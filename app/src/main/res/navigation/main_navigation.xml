@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/navigation_login">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="teamarmada.oxtor.Fragments.ParentFragments.HomeFragment"
+        android:label="@string/title_home"
+        tools:layout="@layout/fragment_home">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="teamarmada.oxtor.Fragments.ParentFragments.ProfileFragment"
+        android:label="@string/title_profile"
+        tools:layout="@layout/fragment_profile" >
+
+
+    </fragment>
+    <fragment
+        android:id="@+id/navigation_login"
+        android:name="teamarmada.oxtor.Fragments.ParentFragments.LoginFragment"
+        android:label="@string/title_login"
+        tools:layout="@layout/fragment_login">
+
+        <action
+            android:id="@+id/action_navigation_login_to_navigation_home"
+            app:destination="@id/navigation_home"
+            app:popUpTo="@id/navigation_home"
+            app:popUpToInclusive="true" />
+
+        <deepLink
+            android:id="@+id/deepLink"
+            app:uri="https://oxt.page.link/login" />
+
+
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_shared"
+        android:name="teamarmada.oxtor.Fragments.ParentFragments.SharedFragment"
+        android:label="@string/title_shared"
+        tools:layout="@layout/fragment_shared">
+
+    </fragment>
+
+
+
+</navigation>
