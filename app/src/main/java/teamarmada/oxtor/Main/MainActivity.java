@@ -39,7 +39,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 import teamarmada.oxtor.Interfaces.ScreenManager;
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.Ui.Dialog.TaskBottomSheet;
+import teamarmada.oxtor.Ui.DialogFragment.TaskBottomSheet;
 import teamarmada.oxtor.Utils.AnimationHelper;
 import teamarmada.oxtor.Utils.InAppUpdate;
 import teamarmada.oxtor.ViewModels.MainViewModel;
@@ -159,12 +159,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     private void observeUploadTasks(){
         mainViewModel.mutableUploadList.observe(this, fileTaskItems -> {
             fileTaskItems.forEach(fileItemTask->
-                fileItemTask.getTask()
-                        .addOnCompleteListener(task -> {
+                    fileItemTask.getTask()
+                            .addOnCompleteListener(task -> {
                             if(task.isComplete()||task.isCanceled())
                                 mainViewModel.removeUploadItem(fileItemTask);
                         })
-                        .addOnFailureListener(e -> {
+                            .addOnFailureListener(e -> {
                             Toast.makeText(this,e.toString(),Toast.LENGTH_SHORT).show();
                         }));
             whenListIsEmpty(mainViewModel.mutableUploadList.getValue().isEmpty(), v -> {
@@ -179,7 +179,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
             });
         });
     }
-
 
     private void observeDownloadTasks(){
         mainViewModel.mutableDownloadList.observe(this, fileTaskItems -> {
@@ -217,14 +216,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         }
     }
 
-    private final ActivityResultLauncher<String[]> permissionLauncher=registerForActivityResult(
-            new ActivityResultContracts.RequestMultiplePermissions(), result->{
+    private final ActivityResultLauncher<String[]> permissionLauncher=
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result->{
                 if(checkForPermissions()) {
-                    Snackbar.make(binding.getRoot(),
-                            R.string.permission_rejected,
-                            Snackbar.LENGTH_SHORT)
-                            .setAction(R.string.grant,
-                                    v -> launchPermission()).show();
+                    Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
+                            .setAction(R.string.grant, v -> launchPermission())
+                            .show();
                 }
             });
 
@@ -300,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     public void enableTouchableLayout() {
         try {
             WindowManager.LayoutParams lp = getWindow().getAttributes();
-            lp.dimAmount = 0.5f; // Set the amount of dimming
+            lp.dimAmount = 0.5f;
             getWindow().setAttributes(lp);
         }
         catch (Exception e){
@@ -312,7 +309,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     public void disableTouchableLayout() {
         try {
             WindowManager.LayoutParams lp = getWindow().getAttributes();
-            lp.dimAmount = 0.0f; // Set the amount of dimming to zero
+            lp.dimAmount = 0.0f;
             getWindow().setAttributes(lp);
         }
         catch (Exception e){

@@ -50,7 +50,7 @@ import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.SharedItem;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter;
-import teamarmada.oxtor.Ui.Dialog.ItemBottomSheet;
+import teamarmada.oxtor.Ui.DialogFragment.ItemBottomSheet;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.ShareViewModel;
 import teamarmada.oxtor.databinding.FragmentBottomsheetItemBinding;

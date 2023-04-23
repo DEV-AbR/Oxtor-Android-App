@@ -4,7 +4,10 @@ import static android.content.Context.ACTIVITY_SERVICE;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -88,8 +91,10 @@ public class FileTask<T extends StorageTask> {
                 .addOnProgressListener(snapshot -> {
                     if(uploadTask.isInProgress()) {
                         if(getAvailableMemory(context).lowMemory){
+                            makeToast("Task paused due to low memory");
                             pause();
                         }else{
+                            makeToast("Task resumed");
                             resume();
                             double d=(100.0*snapshot.getBytesTransferred())/fileItem.getFileSize();
                             callback.onTaskProgress((int) d);
@@ -106,6 +111,7 @@ public class FileTask<T extends StorageTask> {
                 .addOnProgressListener(snapshot -> {
                     if(fileDownloadTask.isInProgress()) {
                         if(getAvailableMemory(context).lowMemory){
+
                             pause();
                         }else{
                             resume();
@@ -143,6 +149,10 @@ public class FileTask<T extends StorageTask> {
         ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
         am.getMemoryInfo(memoryInfo);
         return memoryInfo;
+    }
+
+    private void makeToast(String msg){
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show());
     }
 
     public interface Callback{

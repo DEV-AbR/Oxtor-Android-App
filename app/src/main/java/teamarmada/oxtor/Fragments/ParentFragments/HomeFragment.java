@@ -59,8 +59,8 @@ import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter;
-import teamarmada.oxtor.Ui.Dialog.ItemBottomSheet;
-import teamarmada.oxtor.Ui.Dialog.TextInputDialog;
+import teamarmada.oxtor.Ui.DialogFragment.ItemBottomSheet;
+import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
 import teamarmada.oxtor.Utils.AnimationHelper;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.Utils.Intents;
@@ -396,16 +396,17 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 screenManager.enableTouchableLayout();
                 if(task!=null) {
                     List<FileItem> list=new ArrayList<>();
-                    for (FileItem fileItem : fileItems) {
-                        if(fileItem.isEncrypted()){
-                            list.add(fileItem);
-                        }
+                    for (int i = 0; i < fileItems.size(); i++) {
+                        if(fileItems.get(i).isEncrypted())
+                            list.add(fileItems.get(i));
                     }
                     if(list.isEmpty()){
                        shareSelectedFiles(fileItems);
                     }
                     else {
-                        fileItems.removeAll(list);
+                        for (int i = 0; i < list.size(); i++) {
+                            fileItems.remove(list.get(i));
+                        }
                         list.clear();
                         createFileShareDialog(fileItems).show();
                     }
@@ -513,12 +514,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 selectFileLauncher.launch(files);
             break;
             case R.id.camera:
-                intentLauncher.launch(
-                        Intents.getPickImageChooserIntent(getContext(),
-                                "Select app",
-                                true,
-                                true)
-                );
+                intentLauncher.launch(Intents.getPickImageChooserIntent(getContext(), "Select app",
+                        true, true));
             break;
         }
         AnimationHelper.rotateFab(addButton.getRootView(),isRotated);

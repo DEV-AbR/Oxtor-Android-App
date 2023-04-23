@@ -45,7 +45,7 @@ import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.Ui.Dialog.TextInputDialog;
+import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.ProfileViewModel;
 import teamarmada.oxtor.databinding.FragmentProfileBinding;

@@ -49,7 +49,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 import teamarmada.oxtor.Interfaces.ScreenManager;
 import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.Ui.Dialog.TextInputDialog;
+import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
 import teamarmada.oxtor.ViewModels.LoginViewModel;
 import teamarmada.oxtor.databinding.FragmentLoginBinding;
 

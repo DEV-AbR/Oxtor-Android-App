@@ -19,17 +19,6 @@ import java.util.List;
 public class Intents {
     private int PICK_IMAGE_CHOOSER_REQUEST_CODE = 200;
 
-    /**
-     * Create a chooser intent to select the source to get image from.<br></br>
-     * The source can be camera's (ACTION_IMAGE_CAPTURE) or gallery's (ACTION_GET_CONTENT).<br></br>
-     * All possible sources are added to the intent chooser.
-     *
-     * @param context used to access Android APIs, like content resolve, it is your
-     * activity/fragment/widget.
-     * @param title the title to use for the chooser UI
-     * @param includeDocuments if to include KitKat documents activity containing all sources
-     * @param includeCamera if to include camera intents
-     */
     public static Intent getPickImageChooserIntent(Context context, CharSequence title, boolean includeDocuments, boolean includeCamera) {
         List<Intent> allIntents = new ArrayList<>();
         PackageManager packageManager = context.getPackageManager();
@@ -89,18 +78,13 @@ public class Intents {
         return allIntents;
     }
 
-
-    /**
-     * Get all Gallery intents for getting image from one of the apps of the device that handle
-     * images.
-     */
     private static List<Intent> getGalleryIntents(PackageManager packageManager, String action, boolean includeDocuments) {
         List<Intent> intents = new ArrayList<>();
         Intent galleryIntent = action.equals(Intent.ACTION_GET_CONTENT)
                 ? new Intent(action)
                 : new Intent(action, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        galleryIntent.setType("image/*").setType("video/*");
-
+//        galleryIntent.setType("image/*");
+        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
         List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
         for (ResolveInfo res : listGallery) {
             Intent intent = new Intent(galleryIntent);
@@ -111,23 +95,10 @@ public class Intents {
         return intents;
     }
 
-    /**
-     * Check if explicetly requesting camera permission is required.<br></br>
-     * It is required in Android Marshmellow and above if "CAMERA" permission is requested in the
-     * manifest.<br></br>
-     * See [StackOverflow
-     * question](http://stackoverflow.com/questions/32789027/android-m-camera-intent-permission-bug).
-     */
     private static boolean isExplicitCameraPermissionRequired(Context context) {
         return hasPermissionInManifest(context, "android.permission.CAMERA") && context.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
     }
 
-    /**
-     * Check if the app requests a specific permission in the manifest.
-     *
-     * @param permissionName the permission to check
-     * @return true - the permission in requested in manifest, false - not.
-     */
     public static boolean hasPermissionInManifest(Context context, String permissionName) {
         String packageName = context.getPackageName();
         try {

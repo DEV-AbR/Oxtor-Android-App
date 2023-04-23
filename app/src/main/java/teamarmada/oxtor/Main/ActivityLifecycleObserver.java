@@ -4,7 +4,6 @@ import static android.content.Context.ACTIVITY_SERVICE;
 
 import android.app.ActivityManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -32,7 +31,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.R;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.MainViewModel;
 
@@ -61,11 +59,11 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         mainViewModel=new ViewModelProvider(activity).get(MainViewModel.class);
     }
 
-    private AlertDialog createAlertDialogForFileItem(int pos,int requestCode,String message){
+    private AlertDialog createAlertDialogForFileItem(FileItem fileItem,int requestCode,String message){
         return new MaterialAlertDialogBuilder(activity).setTitle("Caution !")
                 .setMessage(message)
                 .setPositiveButton("Continue with rest of the items",(dialogInterface,i)->{
-                    fileItems.remove(pos);
+                    fileItems.remove(fileItem);
                     continueAction(fileItems,requestCode);
                 })
                 .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
@@ -85,9 +83,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         executor.execute(thread);
     }
 
-    private final Thread thread=new Thread(() -> {
-        continueAction(fileItems,requestCode);
-    });
+    private final Thread thread=new Thread(() -> continueAction(fileItems,requestCode));
 
     private void continueAction(@NonNull List<FileItem> fileItems,int requestCode){
         switch (requestCode){
@@ -109,7 +105,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                     uploadFile(fileItem);
                 }
                 else{
-                    createAlertDialogForFileItem(i,requestCode,
+                    createAlertDialogForFileItem(fileItem,requestCode,
                             "Can't upload "+fileItem.getFileName()+" right now as the app will run out of memory and crash")
                             .show();
                 }
@@ -128,7 +124,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                     downloadFile(fileItem);
                 }
                 else{
-                    createAlertDialogForFileItem(i,requestCode,
+                    createAlertDialogForFileItem(fileItem,requestCode,
                             "Can't download "+fileItem.getFileName()+" right now as the app will run out of memory and crash")
                             .show();
                 }
@@ -149,7 +145,8 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                         }
                     })
                     .addOnFailureListener(e -> {
-                        makeToast("Couldn't Upload " + fileItem.getFileName());
+                        makeToast(e.toString());
+                        //makeToast("Couldn't Upload " + fileItem.getFileName());
                     });
         } catch (Exception e) {
             try {
@@ -159,9 +156,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                                 makeToast("Upload Completed");
                             }
                         })
-                        .addOnFailureListener(ex -> {
-                            makeToast("Couldn't Upload " + fileItem.getFileName());
-                        });
+                        .addOnFailureListener(ex -> makeToast("Couldn't Upload " + fileItem.getFileName()));
             } catch (Exception ex) {
                 mainViewModel.setIsTaskRunning(false);
                 makeToast(e.toString());
@@ -176,9 +171,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                         makeToast("Items saved at Download/Oxtor/");
                     }
                 })
-                .addOnFailureListener(e -> {
-                    makeToast("Couldn't download " + fileItem.getFileName());
-                });
+                .addOnFailureListener(e -> makeToast("Couldn't download " + fileItem.getFileName()));
     }
 
     private boolean canContinueAction(FileItem fileItem){
