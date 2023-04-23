@@ -63,7 +63,7 @@ public class FileTask<T extends StorageTask> {
        try {
            return t.pause();
        }catch (Exception e){
-           Log.e(TAG, "pause: ", e);
+           e.printStackTrace();
            return false;
        }
     }
@@ -72,7 +72,7 @@ public class FileTask<T extends StorageTask> {
         try{
             return t.resume();
         }catch (Exception e){
-            Log.e(TAG, "pause: ", e);
+            e.printStackTrace();
             return false;
         }
     }
@@ -81,7 +81,7 @@ public class FileTask<T extends StorageTask> {
         try{
             return t.cancel();
         }catch (Exception e){
-            Log.e(TAG, "pause: ", e);
+            e.printStackTrace();
             return false;
         }
     }

@@ -117,7 +117,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
 
     public Task<Unit> downloadFile(Context context,FileItem fileItem) throws Exception {
         setIsTaskRunning(true);
-        File output= FileItemUtils.createFile(fileItem);
+        File output= FileItemUtils.createDownloadFile(fileItem.getFileName());
         FileTask<StreamDownloadTask> fileTask =storageRepository.downloadFile(fileItem);
         addDownloadItem(fileTask);
         return fileTask.getTask()
@@ -139,18 +139,16 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 });
     }
 
-    public void downloadViaDownloadManager(Context context, FileItem item) {
+    public void downloadViaDownloadManager(Context context, FileItem item) throws Exception {
         DownloadManager downloadManager=context.getSystemService(DownloadManager.class);
         DownloadManager.Request request=new DownloadManager.Request(Uri.parse(item.getDownloadUrl()));
         request.setTitle("Downloading...")
                 .setDescription(item.getFileName())
                 .setMimeType(item.getFileExtension())
-                .setDestinationInExternalFilesDir(context,
-                        Environment.DIRECTORY_DOWNLOADS,
-                        "Oxtor/"+item.getFileType()+"/")
-                //.setDestinationUri(Uri.parse(item.getFilePath()))
+                .setDestinationUri(Uri.fromFile(FileItemUtils.createDownloadFile(item.getFileName())))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-         downloadManager.enqueue(request);
+
+        downloadManager.enqueue(request);
     }
 
     public InterstitialAd getInterstitialAd(){

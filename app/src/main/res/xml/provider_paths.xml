@@ -1,30 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <files-path
-        name="oxtor_image_files"
-        path="./images/"/>
-    <files-path
-        name="oxtor_video_files"
-        path="./videos/"
-        />
-    <files-path
-        name="oxtor_audio_files"
-        path="./audios/"/>
-    <files-path
-        name="oxtor_doc_files"
-        path="./docs/"/>
+    // store in public directory for sharing. Associate with getExternalStorageDirectory
+    // file path will be storage/emulated/0/Oxtor/Download/[filetype]/
 
-    <cache-path
-        name="oxtor_image_files"
-        path="./images/"/>
-    <cache-path
-        name="oxtor_video_files"
-        path="./videos/"
-        />
-    <cache-path
-        name="oxtor_audio_files"
-        path="./audios/"/>
-    <cache-path
-        name="oxtor_doc_files"
-        path="./docs/"/>
+    <external-path
+        name="oxtor-download-images"
+        path="Oxtor/download/images/" />
+    <external-path
+        name="oxtor-download-videos"
+        path="Oxtor/download/videos"/>
+    <external-path
+        name="oxtor-download-audios"
+        path="Oxtor/download/audios"/>
+    <external-path
+        name="oxtor-download-files"
+        path="Oxtor/download/files"/>
+
+    // store in public directory for sharing. Associate with getExternalStorageDirectory
+    // file path will be storage/emulated/0/Oxtor/Upload/[filetype]/
+
+    <external-path
+        name="oxtor-upload-images"
+        path="Oxtor/upload/images/" />
+    <external-path
+        name="oxtor-upload-videos"
+        path="Oxtor/upload/videos"/>
+    <external-path
+        name="oxtor-upload-audios"
+        path="Oxtor/upload/audios"/>
+    <external-path
+        name="oxtor-upload-files"
+        path="Oxtor/upload/files"/>
+
 </paths>

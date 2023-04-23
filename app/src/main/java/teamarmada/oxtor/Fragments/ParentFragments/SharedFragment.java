@@ -38,6 +38,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.firestore.Query;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -135,9 +136,10 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                             final SharedItem sharedItem= adapter.getItem(pos);
                             View.OnClickListener listener= v1 -> {
                                 itemBottomSheet.dismiss();
-                                onOptionSelected(v1.getId(),sharedItem);
+                                List<SharedItem> sharedItems=new ArrayList<>();
+                                sharedItems.add(sharedItem);
+                                onOptionSelected(v1.getId(),sharedItems);
                             };
-                            //final FileItem fileItem= FileItemUtils.fromSharedPostToFileItem(sharedItem);
                             final FileItem fileItem=sharedItem.getFileItem();
                             binding.deleteButton.setOnClickListener(listener);
                             binding.downloadButton.setOnClickListener(listener);
@@ -241,11 +243,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                                            }
                                        }
                                        else{
-                                           SharedItem[] array = new SharedItem[items.size()];
-                                           for (int i = 0; i < array.length; i++) {
-                                               array[i] = items.get(i);
-                                           }
-                                           onOptionSelected(item.getItemId(), array);
+                                           onOptionSelected(item.getItemId(), items);
                                            onDestroyActionMode(mode);
                                        }
                                        return true;
@@ -254,6 +252,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                                     public void onDestroyActionMode(ActionMode mode) {
                                         mode.finish();
                                         actionmode=null;
+                                        adapter.getSelectedItems().clear();
                                         adapter.getSelectionTracker().clearSelection();
                                     }
                                 });
@@ -288,22 +287,22 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                         permissions[1]) == PackageManager.PERMISSION_GRANTED;
     }
 
-    private void onOptionSelected(int itemId, SharedItem... array) {
+    private void onOptionSelected(int itemId, List<SharedItem> list) {
         switch (itemId){
             case R.id.download_button:
                 if (!checkForPermissions())
                     permissionLauncher.launch(permissions);
                 else {
-
-                    FileItem[] fileItems=new FileItem[array.length];
-                    for(int i=0;i<array.length;i++)
-                        fileItems[i]=array[i].getFileItem();
-                    activityLifecycleObserver.startDownload(Arrays.asList(fileItems));
+                    final List<FileItem> fileItems=new ArrayList<>();
+                    for (int i = 0; i < list.size(); i++) {
+                        fileItems.add(list.get(i).getFileItem());
+                    }
+                    activityLifecycleObserver.startDownload(fileItems);
                 }
 
                 break;
             case R.id.delete_button:
-                for (SharedItem sharedItem : array) {
+                for (SharedItem sharedItem : list) {
                     shareViewModel.deleteSharedPosts(sharedItem);
                 }
                 break;

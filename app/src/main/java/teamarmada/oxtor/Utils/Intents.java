@@ -121,19 +121,23 @@ public class Intents {
 
 
     private static Uri getCaptureImageOutputUri() {
-        File folder=new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),"Oxtor");
-        File innerFolder=new File(folder, "image");
-        if(!innerFolder.exists())
-            innerFolder.mkdirs();
-        return Uri.fromFile(new File(innerFolder.getPath(), FileItemUtils.generateFileName(".jpeg")));
+        String name= FileItemUtils.generateFileName(".jpeg");
+        try {
+            return Uri.fromFile(FileItemUtils.createUploadFile(name));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private static Uri getCaptureVideoOutputUri() {
-        File folder=new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),"Oxtor");
-        File innerFolder=new File(folder, "video");
-        if(!innerFolder.exists())
-            innerFolder.mkdirs();
-        return Uri.fromFile(new File(innerFolder.getPath(), FileItemUtils.generateFileName(".mp4")));
+        String name= FileItemUtils.generateFileName(".mp4");
+        try {
+            return Uri.fromFile(FileItemUtils.createUploadFile(name));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 

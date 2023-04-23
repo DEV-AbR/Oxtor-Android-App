@@ -15,6 +15,7 @@ import android.text.format.DateFormat;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -131,29 +132,6 @@ public class FileItemUtils {
         return l;
     }
 
-    private static String getMediaFileName(Context context, Uri contentUri) {
-        Cursor cursor = null;
-        try {
-            String[] proj = { MediaStore.Images.Media.DISPLAY_NAME };
-            cursor = context.getContentResolver().query(contentUri,  proj, null, null, null);
-            int column_index = cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        }
-        catch(Exception e){
-            String[] proj = { MediaStore.Video.Media.DISPLAY_NAME };
-            cursor = context.getContentResolver().query(contentUri,  proj, null, null, null);
-            int column_index = cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        }
-        finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-    }
-
     public static String generateFileName(String extension) {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             return "OXT_" + timeStamp + extension;
@@ -182,7 +160,7 @@ public class FileItemUtils {
             name = getNameString(context, path);
         }
         catch (Exception e){
-            name=getMediaFileName(context,path);
+            name=FilenameUtils.getName(path.toString());
         }
         fileItem.setFileExtension(FilenameUtils.getExtension(name))
                 .setFileType(type)
@@ -194,15 +172,30 @@ public class FileItemUtils {
         return fileItem;
     }
 
-    public static File createFile(FileItem fileItem) throws IOException {
-        File folder=new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),"Oxtor");
-        File innerFolder=new File(folder, FileItemUtils.getFileTypeString(fileItem.getFileType()));
+    public static File createDownloadFile(String nameWithExtension) throws Exception {
+        File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/download");
+        File innerFolder=new File(folder, FileItemUtils.getFileTypeString(FilenameUtils.getExtension(nameWithExtension)));
         if(!innerFolder.exists())
             innerFolder.mkdirs();
-        File output=new File(innerFolder,fileItem.getFileName());
-        if(!output.exists())
-            output.createNewFile();
-        return output;
+        File output=new File(innerFolder,FilenameUtils.getBaseName(nameWithExtension));
+        boolean created= output.createNewFile();
+        if(created)
+            return output;
+        else
+            throw new Exception("Couldn't create said file");
+    }
+
+    public static File createUploadFile(String nameWithExtension) throws Exception {
+        File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/upload");
+        File innerFolder=new File(folder, FileItemUtils.getFileTypeString(FilenameUtils.getExtension(nameWithExtension)));
+        if(!innerFolder.exists())
+            innerFolder.mkdirs();
+        File output=new File(innerFolder,FilenameUtils.getBaseName(nameWithExtension));
+        boolean created= output.createNewFile();
+        if(created)
+            return output;
+        else
+            throw new Exception("Couldn't create said file");
     }
 
     public static byte[] readIntoByteArray(FileItem item, ProfileItem profileItem,Context context) throws Exception {

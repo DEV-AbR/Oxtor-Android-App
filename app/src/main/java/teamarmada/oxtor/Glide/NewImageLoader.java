@@ -113,12 +113,6 @@ public class NewImageLoader implements ModelLoader<FileItem, ByteBuffer> {
             task.addOnSuccessListener(executor,taskSnapshot -> {
                 if(fileItem.getFileType().contains("image")){
                     try {
-//                        if (fileItem.isEncrypted()) {
-//                            taskSnapshot.getStream().read(bytes);
-//                            byteBuffer = ByteBuffer.wrap(AES.decrypt(bytes, fileItem, new AuthRepository().getProfileItem()));
-//                        } else {
-//                            taskSnapshot.getStream().read(bytes);
-//                        }
                         byteBuffer=ByteBuffer.wrap(FileItemUtils.readIntoByteArray(fileItem,new AuthRepository().getProfileItem(),context));
                         callback.onDataReady(byteBuffer);
                     }catch (Exception e){

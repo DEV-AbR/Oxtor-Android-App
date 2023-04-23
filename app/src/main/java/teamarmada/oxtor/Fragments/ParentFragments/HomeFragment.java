@@ -31,6 +31,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModel;
@@ -46,11 +47,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.Query;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import teamarmada.oxtor.BuildConfig;
 import teamarmada.oxtor.Fragments.ChildFragments.FileItemFragment;
 import teamarmada.oxtor.Interfaces.ListItemCallback;
 import teamarmada.oxtor.Interfaces.ScreenManager;
@@ -183,7 +186,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                         List<Uri> list=new ArrayList<>();
                         if(result.getData().getClipData()!=null){
                             for(int i=0;i<result.getData().getClipData().getItemCount();i++){
-                                list.add(result.getData().getClipData().getItemAt(i).getUri());
+                                Uri fileUri=result.getData().getClipData().getItemAt(i).getUri();
+                                File file=new File(fileUri.toString());
+                                Uri photoURI = FileProvider.getUriForFile(getContext(),
+                                        BuildConfig.APPLICATION_ID + ".fileprovider", file);
+                                list.add(photoURI);
                             }
                             uploadSelectedFiles(list);
                         }
@@ -249,7 +256,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                             final FileItem fileItem = adapter.getItem(pos);
                             View.OnClickListener listener= v1 -> {
                                 itemBottomSheet.dismiss();
-                                onOptionSelected(v1.getId(), fileItem);
+                                List<FileItem> fileItems=new ArrayList<>();
+                                fileItems.add(fileItem);
+                                onOptionSelected(v1.getId(), fileItems);
                             };
                             binding.deleteButton.setOnClickListener(listener);
                             binding.downloadButton.setOnClickListener(listener);
@@ -332,11 +341,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                                             }
                                         }
                                         else{
-                                            FileItem[] array = new FileItem[items.size()];
-                                            for (int i = 0; i < array.length; i++) {
-                                                array[i] = items.get(i);
-                                            }
-                                            onOptionSelected(item.getItemId(), array);
+                                            onOptionSelected(item.getItemId(),items);
                                             onDestroyActionMode(mode);
                                         }
                                         return true;
@@ -363,13 +368,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 }
     };
 
-    private void onOptionSelected(@IdRes int iD, FileItem... fileItems) {
+    private void onOptionSelected(@IdRes int iD, List<FileItem> fileItems) {
         switch (iD) {
             case R.id.download_button:
                 onClickDownloadButton(fileItems);
                 break;
             case R.id.share_button:
-                onClickShareButton(Arrays.asList(fileItems));
+                onClickShareButton(fileItems);
                 break;
             case R.id.rename_button:
                onClickRenameButton(fileItems);
@@ -380,11 +385,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         }
     }
 
-    private void onClickDownloadButton(FileItem... fileItems){
+    private void onClickDownloadButton(List<FileItem> fileItems){
         if (!checkForPermissions())
             permissionLauncher.launch(permissions);
         else
-            activityLifecycleObserver.startDownload(Arrays.asList(fileItems));
+            activityLifecycleObserver.startDownload(fileItems);
     }
 
     private void onClickShareButton(List<FileItem> fileItems){
@@ -394,7 +399,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
             }
             else {
                 screenManager.enableTouchableLayout();
-                if(task!=null) {
+                if(task.getResult()!=null) {
                     List<FileItem> list=new ArrayList<>();
                     for (int i = 0; i < fileItems.size(); i++) {
                         if(fileItems.get(i).isEncrypted())
@@ -417,18 +422,18 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         });
     }
 
-    private void onClickRenameButton(FileItem... fileItems){
+    private void onClickRenameButton(List<FileItem> fileItems){
         TextInputDialog textInputDialog =new TextInputDialog(R.string.rename_file,null,
-                "Current FileName : "+fileItems[0].getFileName(),
+                "Current FileName : "+fileItems.get(0).getFileName(),
                 InputType.TYPE_CLASS_TEXT,
                 requireContext());
         textInputDialog.showDialog(getChildFragmentManager(),
-                msg-> homeViewModel.renameFile(msg,fileItems[0]));
+                msg-> homeViewModel.renameFile(msg,fileItems.get(0)));
     }
 
-    private void onClickDeleteButton(FileItem... fileItems){
+    private void onClickDeleteButton(List<FileItem> fileItems){
         new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
-                .setTitle("Delete "+fileItems.length+" files ?")
+                .setTitle("Delete "+fileItems.size()+" files ?")
                 .setMessage("you won't be able to recover it back")
                 .setCancelable(false)
                 .setPositiveButton("Delete",(dialogInterface, i) -> {

@@ -129,9 +129,13 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                             .show();
                 }
             } catch (Exception e) {
-                mainViewModel.setIsTaskRunning(false);
-                makeToast(e.toString());
-                mainViewModel.downloadViaDownloadManager(activity, fileItem);
+                try {
+                    mainViewModel.downloadViaDownloadManager(activity, fileItem);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    mainViewModel.setIsTaskRunning(false);
+                    makeToast(e.toString());
+                }
             }
         }
     }
@@ -158,6 +162,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                         })
                         .addOnFailureListener(ex -> makeToast("Couldn't Upload " + fileItem.getFileName()));
             } catch (Exception ex) {
+                ex.printStackTrace();
                 mainViewModel.setIsTaskRunning(false);
                 makeToast(e.toString());
             }
