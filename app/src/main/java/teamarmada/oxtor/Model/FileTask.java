@@ -91,10 +91,8 @@ public class FileTask<T extends StorageTask> {
                 .addOnProgressListener(snapshot -> {
                     if(uploadTask.isInProgress()) {
                         if(getAvailableMemory(context).lowMemory){
-                            makeToast("Task paused due to low memory");
                             pause();
                         }else{
-                            makeToast("Task resumed");
                             resume();
                             double d=(100.0*snapshot.getBytesTransferred())/fileItem.getFileSize();
                             callback.onTaskProgress((int) d);
@@ -111,7 +109,6 @@ public class FileTask<T extends StorageTask> {
                 .addOnProgressListener(snapshot -> {
                     if(fileDownloadTask.isInProgress()) {
                         if(getAvailableMemory(context).lowMemory){
-
                             pause();
                         }else{
                             resume();

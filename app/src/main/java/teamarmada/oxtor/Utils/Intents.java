@@ -25,13 +25,19 @@ public class Intents {
         if (!isExplicitCameraPermissionRequired(context) ) {
             allIntents.addAll(getImageCaptureIntents(packageManager));
             allIntents.addAll(getVideoCaptureIntents(packageManager));
-//        }
-//        List<Intent> galleryIntents = getGalleryIntents(packageManager, Intent.ACTION_GET_CONTENT, includeDocuments);
-//        if (galleryIntents.isEmpty()) {
-//            galleryIntents = getGalleryIntents(packageManager, Intent.ACTION_PICK, includeDocuments);
-            allIntents.addAll(getImageGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT));
-            allIntents.addAll(getVideoGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT));
         }
+
+        List<Intent> videoIntents=getVideoGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT);
+        if(videoIntents.isEmpty()) {
+            videoIntents=getVideoGalleryIntents(packageManager,Intent.ACTION_PICK);
+        }
+        allIntents.addAll(videoIntents);
+
+        List<Intent> imageIntents=getImageGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT);
+        if(videoIntents.isEmpty()) {
+            imageIntents=getImageGalleryIntents(packageManager,Intent.ACTION_PICK);
+        }
+        allIntents.addAll(imageIntents);
 
         Intent target;
         if (allIntents.isEmpty()) {

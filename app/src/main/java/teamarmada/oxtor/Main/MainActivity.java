@@ -18,6 +18,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
@@ -30,6 +31,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -86,16 +88,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     };
 
     public MainActivity(){}
-
-    public static String getEncryptionPassword() {
-        String s=sharedPreferences.getString(ENCRYPTION_PASSWORD,null);
-        if(s==null){
-            final String t=UUID.randomUUID().toString();
-            sharedPreferences.edit().putString(ENCRYPTION_PASSWORD,t).apply();
-            s=t;
-        }
-        return s;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -239,6 +231,15 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         return super.onSupportNavigateUp()||navControllerMain.navigateUp();
     }
 
+    private AlertDialog createAlertDialog(){
+        return new MaterialAlertDialogBuilder(this,R.style.Theme_Oxtor_AlertDialog)
+                .setCancelable(false)
+                .setTitle("Task still running")
+                .setMessage("Changing theme might disrupt the ongoing task")
+                .setNegativeButton(R.string.cancel,((dialogInterface, i) -> dialogInterface.dismiss()))
+                .create();
+    }
+
     @Override
     public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
@@ -263,10 +264,15 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if(item.getItemId()==R.id.nightmode){
-            changeTheme(item);
+            if(mainViewModel.mutableUploadList.getValue().isEmpty() ||
+                    mainViewModel.mutableDownloadList.getValue().isEmpty())
+                createAlertDialog().show();
+            else
+                changeTheme(item);
             return true;
         }
-        else return false;
+        else
+            return false;
     }
 
     @Override
@@ -315,6 +321,16 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public static String getEncryptionPassword() {
+        String s=sharedPreferences.getString(ENCRYPTION_PASSWORD,null);
+        if(s==null){
+            final String t=UUID.randomUUID().toString();
+            sharedPreferences.edit().putString(ENCRYPTION_PASSWORD,t).apply();
+            s=t;
+        }
+        return s;
     }
 
 }

@@ -72,7 +72,6 @@ import teamarmada.oxtor.databinding.FragmentBottomsheetItemBinding;
 import teamarmada.oxtor.databinding.FragmentHomeBinding;
 import teamarmada.oxtor.databinding.ListFileitemBinding;
 
-
 @AndroidEntryPoint
 public class HomeFragment extends Fragment implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener, MenuProvider {
 
@@ -152,6 +151,48 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         return binding.getRoot();
     }
 
+    private void initAnim(View view){
+        AnimationHelper.rotateFab(view,isRotated);
+        if(isRotated){
+            AnimationHelper.showIn(cameraButton);
+            AnimationHelper.showIn(fileButton);
+            screenManager.disableTouchableLayout();
+            isRotated=false;
+        }else{
+            AnimationHelper.showOut(cameraButton);
+            AnimationHelper.showOut(fileButton);
+            screenManager.enableTouchableLayout();
+            isRotated=true;
+        }
+    }
+
+    private void initUI(){
+        Log.d(TAG, "initUI: ");
+        switch (sharedPreferences.getInt(SORT_PREFERENCE,1)){
+            default:
+            case 1:
+                query=homeViewModel.queryToSortByTimestamp();
+                break;
+            case 2:
+                query= homeViewModel.queryToSortBySize();
+                break;
+            case 0:
+                query= homeViewModel.queryToSortByName();
+                break;
+        }
+        adapter=new RecyclerViewAdapter<>(
+                getLifecycle(),
+                R.layout.list_fileitem,
+                query,
+                true,
+                FileItem.class,
+                itemCallback);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(),
+                RecyclerView.VERTICAL, false));
+        itemBottomSheet =new ItemBottomSheet(R.layout.fragment_bottomsheet_item);
+        recyclerView.setAdapter(adapter);
+    }
+
     private boolean checkForPermissions(){
         return ContextCompat.checkSelfPermission(requireContext(),
                 permissions[0]) == PackageManager.PERMISSION_GRANTED
@@ -206,47 +247,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 }
             });
 
-    private void initAnim(View view){
-        AnimationHelper.rotateFab(view,isRotated);
-        if(isRotated){
-            AnimationHelper.showIn(cameraButton);
-            AnimationHelper.showIn(fileButton);
-            screenManager.disableTouchableLayout();
-            isRotated=false;
-        }else{
-            AnimationHelper.showOut(cameraButton);
-            AnimationHelper.showOut(fileButton);
-            screenManager.enableTouchableLayout();
-            isRotated=true;
-        }
-    }
-
-    private void initUI(){
-        Log.d(TAG, "initUI: ");
-        switch (sharedPreferences.getInt(SORT_PREFERENCE,1)){
-            default:
-            case 1:
-                query=homeViewModel.queryToSortByTimestamp();
-                break;
-            case 2:
-                query= homeViewModel.queryToSortBySize();
-                break;
-            case 0:
-                query= homeViewModel.queryToSortByName();
-                break;
-        }
-        adapter=new RecyclerViewAdapter<>(
-                getLifecycle(),
-                R.layout.list_fileitem,
-                query,
-                true,
-                FileItem.class,
-                itemCallback);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(),
-                RecyclerView.VERTICAL, false));
-        itemBottomSheet =new ItemBottomSheet(R.layout.fragment_bottomsheet_item);
-        recyclerView.setAdapter(adapter);
-    }
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
             new ItemBottomSheet.BottomSheetCallback() {
@@ -403,14 +403,23 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
             else {
                 screenManager.enableTouchableLayout();
                 if(task.getResult()!=null) {
-                    createFileShareDialog(FileItemUtils.filterEncryptedFiles(fileItems)).show();
+                    List<FileItem> list=new ArrayList<>();
+                    for (int i = 0; i < fileItems.size(); i++) {
+                        if(fileItems.get(i).isEncrypted())
+                            list.add(fileItems.get(i));
+                    }
+                    if (!list.isEmpty()){
+                        for (int i = 0; i < list.size(); i++) {
+                            fileItems.remove(list.get(i));
+                        }
+                    }
+                    createFileShareDialog(list,fileItems).show();
                 }
                 else
                     Snackbar.make(binding.getRoot(),R.string.create_username,Snackbar.LENGTH_SHORT).show();
             }
         });
     }
-
 
     private void onClickRenameButton(List<FileItem> fileItems){
         TextInputDialog textInputDialog =new TextInputDialog(R.string.rename_file,null,
@@ -426,8 +435,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     }
 
     private void deleteSelectedFiles(List<FileItem> fileItems){
-        for(FileItem fileItem:fileItems)
+        for (int i = 0; i < fileItems.size(); i++) {
+            final FileItem fileItem=fileItems.get(i);
             homeViewModel.deleteFile(fileItem);
+        }
     }
 
     private void uploadSelectedFiles(List<Uri> results){
@@ -461,11 +472,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 .create();
     }
 
-    private AlertDialog createFileShareDialog(List<FileItem> fileItems){
+    private AlertDialog createFileShareDialog(List<FileItem> encryptedFiles,List<FileItem> fileItems){
         return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
                 .setCancelable(false)
                 .setTitle("Encrypted files can't be shared, yet")
-                .setMessage(fileItems.size() +" of the selected items are encrypted. So should we send the rest of the items")
+                .setMessage(encryptedFiles.size() +" of the selected items are encrypted. So should we send the rest of the items")
                 .setPositiveButton("Share rest of the items", (dialogInterface, i) -> shareSelectedFiles(fileItems))
                 .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
                 .create();
