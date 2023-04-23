@@ -175,12 +175,12 @@ public class FileItemUtils {
     }
 
 
-    public static File createDownloadFile(String nameWithExtension) throws Exception {
+    public static File createDownloadFile(FileItem fileItem) throws Exception {
         File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/download");
-        File innerFolder=new File(folder, FileItemUtils.getFileTypeString(FilenameUtils.getExtension(nameWithExtension)));
+        File innerFolder=new File(folder,getFileTypeString(fileItem.getFileType()));
         if(!innerFolder.exists())
             innerFolder.mkdirs();
-        File output=new File(innerFolder,FilenameUtils.getBaseName(nameWithExtension));
+        File output=new File(innerFolder,fileItem.getFileName());
         boolean created= output.createNewFile();
         if(created)
             return output;
@@ -193,7 +193,7 @@ public class FileItemUtils {
         File innerFolder=new File(folder, FileItemUtils.getFileTypeString(FilenameUtils.getExtension(nameWithExtension)));
         if(!innerFolder.exists())
             innerFolder.mkdirs();
-        File output=new File(innerFolder,FilenameUtils.getBaseName(nameWithExtension));
+        File output=new File(innerFolder,nameWithExtension);
         boolean created= output.createNewFile();
         if(created)
             return output;

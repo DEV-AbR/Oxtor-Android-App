@@ -117,7 +117,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
 
     public Task<Unit> downloadFile(Context context,FileItem fileItem) throws Exception {
         setIsTaskRunning(true);
-        File output= FileItemUtils.createDownloadFile(fileItem.getFileName());
+        File output= FileItemUtils.createDownloadFile(fileItem);
         FileTask<StreamDownloadTask> fileTask =storageRepository.downloadFile(fileItem);
         addDownloadItem(fileTask);
         return fileTask.getTask()
@@ -145,7 +145,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         request.setTitle("Downloading...")
                 .setDescription(item.getFileName())
                 .setMimeType(item.getFileExtension())
-                .setDestinationUri(Uri.fromFile(FileItemUtils.createDownloadFile(item.getFileName())))
+                .setDestinationUri(Uri.fromFile(FileItemUtils.createDownloadFile(item)))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
         downloadManager.enqueue(request);

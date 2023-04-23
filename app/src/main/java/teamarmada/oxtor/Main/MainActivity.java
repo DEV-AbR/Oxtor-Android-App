@@ -110,7 +110,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         navControllerMain.setLifecycleOwner(this);
         NavigationUI.setupWithNavController(navView, navControllerMain);
         navControllerMain.addOnDestinationChangedListener(this);
-        if(!checkForPermissions()) permissionLauncher.launch(permissions);
+        if(!checkForPermissions()) 
+            askPermission();
         mainViewModel =new ViewModelProvider(this).get(MainViewModel.class);
         taskBottomSheet=new TaskBottomSheet();
         adViewContainer=binding.adView;
@@ -128,20 +129,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         inAppUpdate.onActivityResult(requestCode,resultCode, data);
-    }
-
-    public boolean checkForPermissions(){
-        return  ActivityCompat.checkSelfPermission(this, permissions[0]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this, permissions[1]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this, permissions[2]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this, permissions[3]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this, permissions[4]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this,permissions[5]) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void observeLoadingState(){
@@ -208,16 +195,30 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         }
     }
 
+    public boolean checkForPermissions(){
+        return  ActivityCompat.checkSelfPermission(this, permissions[0]) == PackageManager.PERMISSION_GRANTED
+                &&
+                ActivityCompat.checkSelfPermission(this, permissions[1]) == PackageManager.PERMISSION_GRANTED
+                &&
+                ActivityCompat.checkSelfPermission(this, permissions[2]) == PackageManager.PERMISSION_GRANTED
+                &&
+                ActivityCompat.checkSelfPermission(this, permissions[3]) == PackageManager.PERMISSION_GRANTED
+                &&
+                ActivityCompat.checkSelfPermission(this, permissions[4]) == PackageManager.PERMISSION_GRANTED
+                &&
+                ActivityCompat.checkSelfPermission(this,permissions[5]) == PackageManager.PERMISSION_GRANTED;
+    }
+    
     private final ActivityResultLauncher<String[]> permissionLauncher=
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result->{
-                if(checkForPermissions()) {
+                if(!checkForPermissions()) {
                     Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
-                            .setAction(R.string.grant, v -> launchPermission())
+                            .setAction(R.string.grant, v -> askPermission())
                             .show();
                 }
             });
 
-    private void launchPermission(){
+    private void askPermission(){
       permissionLauncher.launch(permissions);
     }
 
@@ -264,8 +265,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if(item.getItemId()==R.id.nightmode){
-            if(mainViewModel.mutableUploadList.getValue().isEmpty() ||
-                    mainViewModel.mutableDownloadList.getValue().isEmpty())
+            if(!mainViewModel.mutableUploadList.getValue().isEmpty() ||
+                    !mainViewModel.mutableDownloadList.getValue().isEmpty())
                 createAlertDialog().show();
             else
                 changeTheme(item);

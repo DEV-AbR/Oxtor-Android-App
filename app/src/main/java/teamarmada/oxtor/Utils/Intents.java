@@ -27,17 +27,23 @@ public class Intents {
             allIntents.addAll(getVideoCaptureIntents(packageManager));
         }
 
-        List<Intent> videoIntents=getVideoGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT);
-        if(videoIntents.isEmpty()) {
-            videoIntents=getVideoGalleryIntents(packageManager,Intent.ACTION_PICK);
-        }
-        allIntents.addAll(videoIntents);
-
-        List<Intent> imageIntents=getImageGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT);
-        if(videoIntents.isEmpty()) {
-            imageIntents=getImageGalleryIntents(packageManager,Intent.ACTION_PICK);
-        }
-        allIntents.addAll(imageIntents);
+//        List<Intent> videoIntents=getVideoGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT);
+//        if(videoIntents.isEmpty()) {
+//            videoIntents=getVideoGalleryIntents(packageManager,Intent.ACTION_PICK);
+//        }
+//        allIntents.addAll(videoIntents);
+//
+//        List<Intent> imageIntents=getImageGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT);
+//        if(videoIntents.isEmpty()) {
+//            imageIntents=getImageGalleryIntents(packageManager,Intent.ACTION_PICK);
+//        }
+//        allIntents.addAll(imageIntents);
+//
+//        List<Intent> fileIntents=getContentIntents(packageManager,Intent.ACTION_GET_CONTENT);
+//        if(fileIntents.isEmpty()) {
+//            fileIntents=getContentIntents(packageManager,Intent.ACTION_PICK);
+//        }
+//        allIntents.addAll(fileIntents);
 
         Intent target;
         if (allIntents.isEmpty()) {
@@ -109,6 +115,23 @@ public class Intents {
                 ? new Intent(action)
                 : new Intent(action, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
         galleryIntent.setType("video/*");
+        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
+        for (ResolveInfo res : listGallery) {
+            Intent intent = new Intent(galleryIntent);
+            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+            intent.setPackage(res.activityInfo.packageName);
+            intents.add(intent);
+        }
+        return intents;
+    }
+
+    private static List<Intent> getContentIntents(PackageManager packageManager, String action) {
+        List<Intent> intents = new ArrayList<>();
+        Intent galleryIntent = action.equals(Intent.ACTION_GET_CONTENT)
+                ? new Intent(action)
+                : new Intent(action, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+        galleryIntent.setType("*/*");
         galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
         List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
         for (ResolveInfo res : listGallery) {

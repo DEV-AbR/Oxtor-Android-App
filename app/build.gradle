@@ -16,8 +16,8 @@ android {
         applicationId "teamarmada.oxtor"
         minSdk 28
         targetSdk 33
-        versionCode 22
-        versionName "3.1"
+        versionCode 24
+        versionName "3.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

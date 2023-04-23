@@ -36,6 +36,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
@@ -62,6 +63,7 @@ import teamarmada.oxtor.databinding.ListFileitemBinding;
 public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, MenuProvider {
 
     public static final String TAG=SharedFragment.class.getSimpleName();
+    private FragmentSharedBinding binding;
     private ShareViewModel shareViewModel;
     private Query query=null;
     private RecyclerView recyclerView;
@@ -80,7 +82,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         MenuHost menuHost=requireActivity();
         menuHost.addMenuProvider(this,getViewLifecycleOwner());
-        FragmentSharedBinding binding = FragmentSharedBinding.inflate(inflater, container, false);
+        binding = FragmentSharedBinding.inflate(inflater, container, false);
         binding.setLifecycleOwner(this);
         sharedPreferences=requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         recyclerView= binding.recyclerviewShared;
@@ -274,10 +276,16 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
 
     private final ActivityResultLauncher<String[]> permissionLauncher= registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(), result ->  {
-//                if(checkForPermissions()){
-//
-//                }
+                if(!checkForPermissions()) {
+                    Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
+                            .setAction(R.string.grant, v -> askPermission())
+                            .show();
+                }
             });
+
+    private void askPermission() {
+        permissionLauncher.launch(permissions);
+    }
 
     private boolean checkForPermissions(){
         return ContextCompat.checkSelfPermission(requireContext(),
@@ -291,29 +299,33 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
         switch (itemId){
             case R.id.download_button:
                 if (!checkForPermissions())
-                    permissionLauncher.launch(permissions);
+                    askPermission();
                 else {
-                    final List<FileItem> fileItems=new ArrayList<>();
-                    for (int i = 0; i < list.size(); i++) {
-                        fileItems.add(list.get(i).getFileItem());
-                    }
-                    activityLifecycleObserver.startDownload(fileItems);
+                    downloadSelectedFiles(list);
                 }
 
                 break;
             case R.id.delete_button:
-                for (SharedItem sharedItem : list) {
-                    shareViewModel.deleteSharedPosts(sharedItem);
-                }
+                deleteSelectedFiles(list);
                 break;
         }
     }
 
-    private void observeLoadingState(){
-        shareViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(), MainActivity.observer);
+    private void downloadSelectedFiles(List<SharedItem> list) {
+        final List<FileItem> fileItems=new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            fileItems.add(list.get(i).getFileItem());
+        }
+        activityLifecycleObserver.startDownload(fileItems);
+    }
+    
+    private void deleteSelectedFiles(List<SharedItem> list) {
+        for (SharedItem sharedItem : list) {
+            shareViewModel.deleteSharedPosts(sharedItem);
+        }
     }
 
-    private AlertDialog createChooser(){
+    private AlertDialog createPreferenceChooserDialog(){
         MaterialAlertDialogBuilder builder=new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog);
         builder.setCancelable(true).setTitle(R.string.sort);
         builder.setSingleChoiceItems(array,sharedPreferences.getInt(SORT_PREFERENCE,1),
@@ -336,7 +348,10 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
         return builder.create();
     }
 
-
+    private void observeLoadingState(){
+        shareViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(), MainActivity.observer);
+    }
+    
     @Override
     public void onRefresh() {
         (new Handler()).postDelayed(() -> {
@@ -354,7 +369,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
     @Override
     public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if(item.getItemId()==R.id.group) {
-            createChooser().show();
+            createPreferenceChooserDialog().show();
             return true;
         }
         return false;

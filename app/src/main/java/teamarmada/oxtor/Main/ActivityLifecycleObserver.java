@@ -65,10 +65,12 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                 .setTitle("Caution !")
                 .setMessage(message)
                 .setCancelable(false)
-                .setPositiveButton("Continue with rest of the items",(dialogInterface,i)-> continueAction(fileItems,requestCode))
+                .setPositiveButton("Continue with rest of the items", (dialogInterface,i)-> continueAction(fileItems,requestCode))
                 .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
                 .create();
     }
+
+    private final Thread thread=new Thread(() -> continueAction(fileItems,requestCode));
 
     public void startUpload(List<FileItem> fileItems) {
         this.fileItems.addAll(fileItems);
@@ -81,8 +83,6 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         requestCode=DOWNLOAD_TASK;
         executor.execute(thread);
     }
-
-    private final Thread thread=new Thread(() -> continueAction(fileItems,requestCode));
 
     private void continueAction(@NonNull List<FileItem> fileItems,int requestCode){
         switch (requestCode){
@@ -181,6 +181,38 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         return fileItem.getFileSize()<getAvailableMemory(activity).availMem;
     }
 
+    public void loadBanner(FrameLayout container){
+        AdSize adSize = getAdSize(container);
+        mainViewModel.loadAdView(adSize);
+        adView=mainViewModel.getBannerAd();
+        container.removeAllViews();
+        container.addView(adView);
+    }
+
+    private AdSize getAdSize(FrameLayout container) {
+        Display display = activity.getWindowManager().getDefaultDisplay();
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        display.getMetrics(outMetrics);
+        float density = outMetrics.density;
+        float adWidthPixels = container.getWidth();
+        if (adWidthPixels == 0) {
+            adWidthPixels = outMetrics.widthPixels;
+        }
+        int adWidth = (int) (adWidthPixels / density);
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth);
+    }
+
+    private void makeToast(String msg){
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
+    }
+
+    private ActivityManager.MemoryInfo getAvailableMemory(Context context) {
+        ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        am.getMemoryInfo(memoryInfo);
+        return memoryInfo;
+    }
+
     @Override
     public void onAdDismissedFullScreenContent() {
         if(!fileItems.isEmpty())
@@ -236,7 +268,6 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         DefaultLifecycleObserver.super.onStart(owner);
     }
 
-
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
         if(adView!=null)
@@ -256,38 +287,6 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         if(adView!=null)
             adView.destroy();
         DefaultLifecycleObserver.super.onDestroy(owner);
-    }
-
-    public void loadBanner(FrameLayout container){
-        AdSize adSize = getAdSize(container);
-        mainViewModel.loadAdView(adSize);
-        adView=mainViewModel.getBannerAd();
-        container.removeAllViews();
-        container.addView(adView);
-    }
-
-    private AdSize getAdSize(FrameLayout container) {
-        Display display = activity.getWindowManager().getDefaultDisplay();
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        display.getMetrics(outMetrics);
-        float density = outMetrics.density;
-        float adWidthPixels = container.getWidth();
-        if (adWidthPixels == 0) {
-            adWidthPixels = outMetrics.widthPixels;
-        }
-        int adWidth = (int) (adWidthPixels / density);
-        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth);
-    }
-
-    private void makeToast(String msg){
-        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
-    }
-
-    private ActivityManager.MemoryInfo getAvailableMemory(Context context) {
-        ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
-        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-        am.getMemoryInfo(memoryInfo);
-        return memoryInfo;
     }
 
 }

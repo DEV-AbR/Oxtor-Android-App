@@ -77,16 +77,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
 
     public static final String TAG=HomeFragment.class.getSimpleName();
 
-    public static final String images="image/*";
-    public static final String videos="video/*";
-    public static final String audio="audio/*";
-    public static final String files="*/*";
-
     private final String[] permissions=new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-    private static final CharSequence[] array={
+    private static final String[] array={
             "Sort by Name",
             "Sort by Time",
             "Sort by Size"
@@ -140,7 +135,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         addButton.setOnClickListener(v -> {
             add_button_view=v;
             if (!checkForPermissions()){
-                permissionLauncher.launch(permissions);
+                askPermission();
             }
             else {
                 initAnim(add_button_view);
@@ -167,7 +162,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     }
 
     private void initUI(){
-        Log.d(TAG, "initUI: ");
+
         switch (sharedPreferences.getInt(SORT_PREFERENCE,1)){
             default:
             case 1:
@@ -208,7 +203,16 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                                     initAnim(add_button_view);
                                 }catch (Exception e){e.printStackTrace();}
                             }
+                            else {
+                                Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
+                                .setAction(R.string.grant, v -> askPermission())
+                                .show();
+                            }
                     });
+
+    private void askPermission() {
+        permissionLauncher.launch(permissions);
+    }
 
     private final ActivityResultLauncher<String> selectFileLauncher =
             registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), results -> {
@@ -246,7 +250,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                     }
                 }
             });
-
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
             new ItemBottomSheet.BottomSheetCallback() {
@@ -390,7 +393,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
 
     private void onClickDownloadButton(List<FileItem> fileItems){
         if (!checkForPermissions())
-            permissionLauncher.launch(permissions);
+            askPermission();
         else
             activityLifecycleObserver.startDownload(fileItems);
     }
@@ -422,19 +425,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     }
 
     private void onClickRenameButton(List<FileItem> fileItems){
-        TextInputDialog textInputDialog =new TextInputDialog(R.string.rename_file,null,
-                "Current FileName : "+fileItems.get(0).getFileName(),
-                InputType.TYPE_CLASS_TEXT,
-                requireContext());
-        textInputDialog.showDialog(getChildFragmentManager(),
-                msg-> homeViewModel.renameFile(msg,fileItems.get(0)));
+        TextInputDialog textInputDialog =
+                new TextInputDialog(R.string.rename_file,null, "Current FileName : "+fileItems.get(0).getFileName(),
+                        InputType.TYPE_CLASS_TEXT, requireContext());
+        textInputDialog.showDialog(getChildFragmentManager(), msg-> homeViewModel.renameFile(msg,fileItems.get(0)));
     }
 
     private void onClickDeleteButton(List<FileItem> fileItems){
-        createFileDeleteDialog(fileItems).show();
-    }
-
-    private void deleteSelectedFiles(List<FileItem> fileItems){
         for (int i = 0; i < fileItems.size(); i++) {
             final FileItem fileItem=fileItems.get(i);
             homeViewModel.deleteFile(fileItem);
@@ -460,16 +457,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                     else
                         Snackbar.make(binding.getRoot(), R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
                 }));
-    }
-
-    private AlertDialog createFileDeleteDialog(List<FileItem> fileItems){
-        return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
-                .setCancelable(false)
-                .setTitle("Delete "+fileItems.size()+" files ?")
-                .setMessage("you won't be able to recover it back")
-                .setPositiveButton("Delete",(dialogInterface, i) -> deleteSelectedFiles(fileItems))
-                .setNegativeButton("Cancel",(dialogInterface, i) ->dialogInterface.dismiss())
-                .create();
     }
 
     private AlertDialog createFileShareDialog(List<FileItem> encryptedFiles,List<FileItem> fileItems){
@@ -521,7 +508,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.file:
-                selectFileLauncher.launch(files);
+                selectFileLauncher.launch("*/*");
             break;
             case R.id.camera:
                 intentLauncher.launch(Intents.getMediaChooserIntent(getContext(), "Select app"));
@@ -544,10 +531,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
 
     @Override
     public boolean onMenuItemSelected(@NonNull MenuItem item) {
-        if(item.getItemId()==R.id.group)
-        { createPreferenceChooserDialog().show();
-            return true; }
-        return false;
+        if(item.getItemId()==R.id.group) {
+            createPreferenceChooserDialog().show();
+            return true;
+        }
+        else
+            return false;
     }
 
 }

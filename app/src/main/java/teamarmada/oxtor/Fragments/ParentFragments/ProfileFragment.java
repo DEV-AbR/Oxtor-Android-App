@@ -35,6 +35,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -167,7 +168,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
 
     private void updatePicture(){
         if(checkForPermissions()) intentLauncher.launch("image/*");
-        else permissionLauncher.launch(permissions);
+        else
+            askPermission();
+    }
+
+    private void askPermission() {
+        permissionLauncher.launch(permissions);
     }
 
     private void getPassword(boolean b){
@@ -261,6 +267,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
             new ActivityResultContracts.RequestMultiplePermissions(), result -> {
                 if(checkForPermissions())
                     intentLauncher.launch("image/*");
+                else {
+                    Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
+                            .setAction(R.string.grant, v -> askPermission())
+                            .show();
+                }
             });
 
     @Override
