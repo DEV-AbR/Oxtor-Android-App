@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import teamarmada.oxtor.Model.FileItem;
+import teamarmada.oxtor.R;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.MainViewModel;
 
@@ -59,15 +60,13 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         mainViewModel=new ViewModelProvider(activity).get(MainViewModel.class);
     }
 
-    private AlertDialog createAlertDialogForFileItem(FileItem fileItem,int requestCode,String message){
-        return new MaterialAlertDialogBuilder(activity).setTitle("Caution !")
+    private AlertDialog createAlertDialogForFileItem(int requestCode,String message){
+        return new MaterialAlertDialogBuilder(activity, R.style.Theme_Oxtor_AlertDialog)
+                .setTitle("Caution !")
                 .setMessage(message)
-                .setPositiveButton("Continue with rest of the items",(dialogInterface,i)->{
-                    fileItems.remove(fileItem);
-                    continueAction(fileItems,requestCode);
-                })
-                .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
                 .setCancelable(false)
+                .setPositiveButton("Continue with rest of the items",(dialogInterface,i)-> continueAction(fileItems,requestCode))
+                .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
                 .create();
     }
 
@@ -105,7 +104,8 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                     uploadFile(fileItem);
                 }
                 else{
-                    createAlertDialogForFileItem(fileItem,requestCode,
+                    fileItems.remove(fileItem);
+                    createAlertDialogForFileItem(requestCode,
                             "Can't upload "+fileItem.getFileName()+" right now as the app will run out of memory and crash")
                             .show();
                 }
@@ -119,28 +119,19 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private void continueDownload(List<FileItem> fileItems){
         for (int i=0;i<fileItems.size();i++) {
             final FileItem fileItem=fileItems.get(i);
-            try {
-                if(canContinueAction(fileItem)) {
-                    downloadFile(fileItem);
-                }
-                else{
-                    createAlertDialogForFileItem(fileItem,requestCode,
-                            "Can't download "+fileItem.getFileName()+" right now as the app will run out of memory and crash")
-                            .show();
-                }
-            } catch (Exception e) {
-                try {
-                    mainViewModel.downloadViaDownloadManager(activity, fileItem);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    mainViewModel.setIsTaskRunning(false);
-                    makeToast(e.toString());
-                }
+            if(canContinueAction(fileItem)) {
+                downloadFile(fileItem);
+            }
+            else{
+                fileItems.remove(fileItem);
+                createAlertDialogForFileItem(requestCode,
+                        "Can't download "+fileItem.getFileName()+" right now as the app will run out of memory and crash")
+                        .show();
             }
         }
     }
 
-    private void uploadFile(FileItem fileItem){
+    private void uploadFile(FileItem fileItem) {
         try {
             mainViewModel.uploadFile(activity, fileItem)
                     .addOnSuccessListener(unit -> {
@@ -148,10 +139,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                             makeToast("Upload Completed");
                         }
                     })
-                    .addOnFailureListener(e -> {
-                        makeToast(e.toString());
-                        //makeToast("Couldn't Upload " + fileItem.getFileName());
-                    });
+                    .addOnFailureListener(e -> makeToast(e.toString()));
         } catch (Exception e) {
             try {
                 mainViewModel.uploadByteArray(activity, fileItem)
@@ -160,7 +148,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                                 makeToast("Upload Completed");
                             }
                         })
-                        .addOnFailureListener(ex -> makeToast("Couldn't Upload " + fileItem.getFileName()));
+                        .addOnFailureListener(ex -> makeToast(ex.toString()));
             } catch (Exception ex) {
                 ex.printStackTrace();
                 mainViewModel.setIsTaskRunning(false);
@@ -169,14 +157,24 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         }
     }
 
-    private void downloadFile(FileItem fileItem) throws Exception {
-        mainViewModel.downloadFile(activity, fileItem)
-                .addOnSuccessListener(unit -> {
-                    if(fileItems.indexOf(fileItem)==fileItems.size()-1){
-                        makeToast("Items saved at Download/Oxtor/");
-                    }
-                })
-                .addOnFailureListener(e -> makeToast("Couldn't download " + fileItem.getFileName()));
+    private void downloadFile(FileItem fileItem) {
+        try {
+            mainViewModel.downloadFile(activity, fileItem)
+                    .addOnSuccessListener(unit -> {
+                        if (fileItems.indexOf(fileItem) == fileItems.size() - 1) {
+                            makeToast("Items saved at Oxtor/download/");
+                        }
+                    })
+                    .addOnFailureListener(e -> makeToast(e.toString()));
+        }catch (Exception e){
+            try {
+                mainViewModel.downloadViaDownloadManager(activity, fileItem);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                mainViewModel.setIsTaskRunning(false);
+                makeToast(e.toString());
+            }
+        }
     }
 
     private boolean canContinueAction(FileItem fileItem){

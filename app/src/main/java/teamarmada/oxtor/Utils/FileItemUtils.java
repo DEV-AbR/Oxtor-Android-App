@@ -27,8 +27,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -170,6 +172,20 @@ public class FileItemUtils {
                 .setUid(UUID.randomUUID().toString())
                 .setFileSize(getSizeLong(context,path));
         return fileItem;
+    }
+
+    public static List<FileItem> filterEncryptedFiles(List<FileItem> fileItems){
+        List<FileItem> list=new ArrayList<>();
+        for (int i = 0; i < fileItems.size(); i++) {
+            if(fileItems.get(i).isEncrypted())
+                list.add(fileItems.get(i));
+        }
+        if (!list.isEmpty()){
+            for (int i = 0; i < list.size(); i++) {
+                fileItems.remove(list.get(i));
+            }
+        }
+        return fileItems;
     }
 
     public static File createDownloadFile(String nameWithExtension) throws Exception {

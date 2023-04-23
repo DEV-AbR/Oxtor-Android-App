@@ -195,7 +195,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                             uploadSelectedFiles(list);
                         }
                         else{
-                            list.add(result.getData().getData());
+                            Uri fileUri=result.getData().getData();
+                            File file=new File(fileUri.toString());
+                            Uri photoURI = FileProvider.getUriForFile(getContext(),
+                                    BuildConfig.APPLICATION_ID + ".fileprovider", file);
+                            list.add(photoURI);
                             uploadSelectedFiles(list);
                         }
                     }
@@ -216,7 +220,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
             isRotated=true;
         }
     }
-
 
     private void initUI(){
         Log.d(TAG, "initUI: ");
@@ -400,27 +403,14 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
             else {
                 screenManager.enableTouchableLayout();
                 if(task.getResult()!=null) {
-                    List<FileItem> list=new ArrayList<>();
-                    for (int i = 0; i < fileItems.size(); i++) {
-                        if(fileItems.get(i).isEncrypted())
-                            list.add(fileItems.get(i));
-                    }
-                    if(list.isEmpty()){
-                       shareSelectedFiles(fileItems);
-                    }
-                    else {
-                        for (int i = 0; i < list.size(); i++) {
-                            fileItems.remove(list.get(i));
-                        }
-                        list.clear();
-                        createFileShareDialog(fileItems).show();
-                    }
+                    createFileShareDialog(FileItemUtils.filterEncryptedFiles(fileItems)).show();
                 }
                 else
                     Snackbar.make(binding.getRoot(),R.string.create_username,Snackbar.LENGTH_SHORT).show();
             }
         });
     }
+
 
     private void onClickRenameButton(List<FileItem> fileItems){
         TextInputDialog textInputDialog =new TextInputDialog(R.string.rename_file,null,
@@ -432,17 +422,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     }
 
     private void onClickDeleteButton(List<FileItem> fileItems){
-        new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
-                .setTitle("Delete "+fileItems.size()+" files ?")
-                .setMessage("you won't be able to recover it back")
-                .setCancelable(false)
-                .setPositiveButton("Delete",(dialogInterface, i) -> {
-                    for(FileItem fileItem:fileItems)
-                        homeViewModel.deleteFile(fileItem);
-                })
-                .setNegativeButton("Cancel",(dialogInterface, i) ->dialogInterface.dismiss())
-                .create()
-                .show();
+        createFileDeleteDialog(fileItems).show();
+    }
+
+    private void deleteSelectedFiles(List<FileItem> fileItems){
+        for(FileItem fileItem:fileItems)
+            homeViewModel.deleteFile(fileItem);
     }
 
     private void uploadSelectedFiles(List<Uri> results){
@@ -466,15 +451,24 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 }));
     }
 
+    private AlertDialog createFileDeleteDialog(List<FileItem> fileItems){
+        return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
+                .setCancelable(false)
+                .setTitle("Delete "+fileItems.size()+" files ?")
+                .setMessage("you won't be able to recover it back")
+                .setPositiveButton("Delete",(dialogInterface, i) -> deleteSelectedFiles(fileItems))
+                .setNegativeButton("Cancel",(dialogInterface, i) ->dialogInterface.dismiss())
+                .create();
+    }
+
     private AlertDialog createFileShareDialog(List<FileItem> fileItems){
         return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
-                .setCancelable(false).setTitle("Following items are encrypted")
-                .setMessage(fileItems.size() +" of the selected items are encrypted. So sharing they can't be read by another user")
-                .setPositiveButton("Share rest of the items", (dialogInterface, i) -> {
-                    Toast.makeText(getContext(), "Don't worry, you will be able to share all encrypted items very soon", Toast.LENGTH_SHORT).show();
-                    shareSelectedFiles(fileItems);
-                })
-                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel()).create();
+                .setCancelable(false)
+                .setTitle("Encrypted files can't be shared, yet")
+                .setMessage(fileItems.size() +" of the selected items are encrypted. So should we send the rest of the items")
+                .setPositiveButton("Share rest of the items", (dialogInterface, i) -> shareSelectedFiles(fileItems))
+                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
+                .create();
     }
 
     private AlertDialog createPreferenceChooserDialog(){
@@ -519,8 +513,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 selectFileLauncher.launch(files);
             break;
             case R.id.camera:
-                intentLauncher.launch(Intents.getPickImageChooserIntent(getContext(), "Select app",
-                        true, true));
+                intentLauncher.launch(Intents.getMediaChooserIntent(getContext(), "Select app"));
             break;
         }
         AnimationHelper.rotateFab(addButton.getRootView(),isRotated);

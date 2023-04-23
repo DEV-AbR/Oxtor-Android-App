@@ -19,18 +19,20 @@ import java.util.List;
 public class Intents {
     private int PICK_IMAGE_CHOOSER_REQUEST_CODE = 200;
 
-    public static Intent getPickImageChooserIntent(Context context, CharSequence title, boolean includeDocuments, boolean includeCamera) {
+    public static Intent getMediaChooserIntent(Context context, CharSequence title) {
         List<Intent> allIntents = new ArrayList<>();
         PackageManager packageManager = context.getPackageManager();
-        if (!isExplicitCameraPermissionRequired(context) && includeCamera) {
-            allIntents.addAll(getCameraIntents(packageManager));
-            allIntents.addAll(getVideoIntents(packageManager));
+        if (!isExplicitCameraPermissionRequired(context) ) {
+            allIntents.addAll(getImageCaptureIntents(packageManager));
+            allIntents.addAll(getVideoCaptureIntents(packageManager));
+//        }
+//        List<Intent> galleryIntents = getGalleryIntents(packageManager, Intent.ACTION_GET_CONTENT, includeDocuments);
+//        if (galleryIntents.isEmpty()) {
+//            galleryIntents = getGalleryIntents(packageManager, Intent.ACTION_PICK, includeDocuments);
+            allIntents.addAll(getImageGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT));
+            allIntents.addAll(getVideoGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT));
         }
-        List<Intent> galleryIntents = getGalleryIntents(packageManager, Intent.ACTION_GET_CONTENT, includeDocuments);
-        if (galleryIntents.isEmpty()) {
-            galleryIntents = getGalleryIntents(packageManager, Intent.ACTION_PICK, includeDocuments);
-        }
-        allIntents.addAll(galleryIntents);
+
         Intent target;
         if (allIntents.isEmpty()) {
             target = new Intent();
@@ -44,7 +46,7 @@ public class Intents {
         return chooserIntent;
     }
 
-    private static List<Intent> getCameraIntents(PackageManager packageManager) {
+    private static List<Intent> getImageCaptureIntents(PackageManager packageManager) {
         List<Intent> allIntents = new ArrayList<>();
         Uri outputFileUri = getCaptureImageOutputUri();
         Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -61,7 +63,7 @@ public class Intents {
         return allIntents;
     }
 
-    private static List<Intent> getVideoIntents(PackageManager packageManager){
+    private static List<Intent> getVideoCaptureIntents(PackageManager packageManager){
         List<Intent> allIntents = new ArrayList<>();
         Uri outputFileUri = getCaptureVideoOutputUri();
         Intent captureIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
@@ -78,12 +80,29 @@ public class Intents {
         return allIntents;
     }
 
-    private static List<Intent> getGalleryIntents(PackageManager packageManager, String action, boolean includeDocuments) {
+    private static List<Intent> getImageGalleryIntents(PackageManager packageManager, String action) {
         List<Intent> intents = new ArrayList<>();
         Intent galleryIntent = action.equals(Intent.ACTION_GET_CONTENT)
                 ? new Intent(action)
                 : new Intent(action, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//        galleryIntent.setType("image/*");
+        galleryIntent.setType("image/*");
+        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
+        for (ResolveInfo res : listGallery) {
+            Intent intent = new Intent(galleryIntent);
+            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+            intent.setPackage(res.activityInfo.packageName);
+            intents.add(intent);
+        }
+        return intents;
+    }
+
+    private static List<Intent> getVideoGalleryIntents(PackageManager packageManager, String action) {
+        List<Intent> intents = new ArrayList<>();
+        Intent galleryIntent = action.equals(Intent.ACTION_GET_CONTENT)
+                ? new Intent(action)
+                : new Intent(action, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+        galleryIntent.setType("video/*");
         galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
         List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
         for (ResolveInfo res : listGallery) {

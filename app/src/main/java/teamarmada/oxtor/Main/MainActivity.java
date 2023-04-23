@@ -125,8 +125,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         observeUploadTasks();
         observeDownloadTasks();
         observeLoadingState();
