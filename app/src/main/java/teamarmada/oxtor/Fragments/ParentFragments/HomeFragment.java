@@ -219,13 +219,16 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 initAnim(add_button_view);
                 if (!results.isEmpty()) {
                     screenManager.disableTouchableLayout();
-//                    List<Uri> paths=new ArrayList<>();
-//                    for (int i = 0; i < results.size(); i++) {
-//                        final File file=new File(String.valueOf(results.get(i)));
-//                        paths.set(i,FileProvider.getUriForFile(getContext(),AUTHORITY,file));
-//                    }
-//                    uploadSelectedFiles(paths);
-                    uploadSelectedFiles(results);
+                    List<Uri> paths=new ArrayList<>();
+                    for (int i = 0; i < results.size(); i++) {
+                        final File file=new File(String.valueOf(results.get(i)));
+                        try {
+                            paths.set(i, FileProvider.getUriForFile(getContext(), AUTHORITY, file));
+                        }catch(Exception e){
+                            paths.set(i,results.get(i));
+                        }
+                    }
+                    uploadSelectedFiles(paths);
                 }
             });
 
@@ -234,50 +237,37 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 if(result!=null&&result.getResultCode()== Activity.RESULT_OK){
                     if(result.getData()!=null){
                         screenManager.disableTouchableLayout();
-//                        List<Uri> list=new ArrayList<>();
-//                        if(result.getData().getClipData()!=null){
-//                            for(int i=0;i<result.getData().getClipData().getItemCount();i++){
-////                                Uri fileUri=result.getData().getClipData().getItemAt(i).getUri();
-////                                File file=new File(fileUri.toString());
-////                                Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-////                                list.add(photoURI);
-//                                list.add(result.getData().getClipData().getItemAt(i).getUri());
-//                            }
-//                            uploadSelectedFiles(list);
-//                        }
-//                        else{
-////                            Uri fileUri=result.getData().getData();
-////                            File file=new File(fileUri.toString());
-////                            Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-////                            list.add(photoURI);
-//                            list.add(result.getData().getData());
-//                            uploadSelectedFiles(list);
-//                        }
-                        uploadSelectedFiles(parseURIs(result));
+                        parseURIs(result);
                     }
                 }
             });
 
-    private List<Uri> parseURIs(@NonNull ActivityResult result) {
+    private void parseURIs(ActivityResult result) {
         List<Uri> list=new ArrayList<>();
         ClipData clipData=result.getData().getClipData();
         if(clipData!=null){
             for(int i=0;i<clipData.getItemCount();i++){
-//                Uri fileUri=result.getData().getClipData().getItemAt(i).getUri();
-//                File file=new File(fileUri.toString());
-//                Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-//                list.add(photoURI);
-                list.add(clipData.getItemAt(i).getUri());
+                Uri fileUri=clipData.getItemAt(i).getUri();
+                File file=new File(fileUri.toString());
+                try {
+                    fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                list.add(fileUri);
             }
         }
         else{
-//            Uri fileUri=result.getData().getData();
-//            File file=new File(fileUri.toString());
-//            Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-//            list.add(photoURI);
-            list.add(result.getData().getData());
+            Uri fileUri=result.getData().getData();
+            File file=new File(fileUri.toString());
+            try {
+                fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            list.add(fileUri);
         }
-        return list;
+        uploadSelectedFiles(list);
     }
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
@@ -430,13 +420,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     private void onClickShareButton(List<FileItem> fileItems){
         screenManager.disableTouchableLayout();
         homeViewModel.fetchUsername()
-                .addOnCompleteListener(requireActivity(), task -> {
+                .addOnCompleteListener(task -> {
                     if(task.isComplete()) {
                         screenManager.enableTouchableLayout();
                     }
                 })
                 .addOnSuccessListener(s -> {
-                    if(!s.isEmpty()) {
+                    if(s!=null) {
                         List<FileItem> list=new ArrayList<>();
                         for (int i = 0; i < fileItems.size(); i++) {
                         if(fileItems.get(i).isEncrypted())
@@ -446,8 +436,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                             for (int i = 0; i < list.size(); i++) {
                                 fileItems.remove(list.get(i));
                             }
+                            createFileShareDialog(list,fileItems).show();
                         }
-                    createFileShareDialog(list,fileItems).show();
+                        else {
+                            shareSelectedFiles(fileItems);
+                        }
+
                     }
                     else {
                         Snackbar.make(binding.getRoot(), R.string.create_username, Snackbar.LENGTH_SHORT).show();
@@ -546,6 +540,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                     intentLauncher.launch(Intents.getMediaChooserIntent(getContext(), "Select app"));
                 }catch(Exception e){
                     e.printStackTrace();
+                    Snackbar.make(binding.getRoot(),"Some error occurred",Snackbar.LENGTH_SHORT).show();
                 }
                 break;
         }

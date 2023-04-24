@@ -41,8 +41,13 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
         authRepository.signIn(credential)
                 .continueWith(task->{
                     setIsTaskRunning(!task.isComplete());
-                    if(task.isSuccessful())
-                        user.postValue(authRepository.getUser());
+                    if(task.isSuccessful()) {
+                        try{
+                            user.setValue(authRepository.getUser());
+                        }catch (Exception e) {
+                            user.postValue(authRepository.getUser());
+                        }
+                    }
                     return Unit.INSTANCE;
                 }).addOnCompleteListener(this);
     }

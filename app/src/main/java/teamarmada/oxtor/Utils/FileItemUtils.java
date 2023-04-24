@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -174,7 +175,7 @@ public class FileItemUtils {
         File innerFolder=new File(folder,getFileTypeString(fileItem.getFileType()));
         if(!innerFolder.exists())
             innerFolder.mkdirs();
-        String nameWithExtension=null;
+        String nameWithExtension=fileItem.getFileName()+".jpeg";
         switch (getFileTypeString(fileItem.getFileType())) {
             case IMAGES:
                 nameWithExtension=fileItem.getFileName()+".jpeg";
@@ -195,11 +196,12 @@ public class FileItemUtils {
     }
 
     public static File createUploadFile(String name,String type) throws Exception {
+        Log.d(TAG, "createUploadFile: ");
         File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/upload");
         File innerFolder=new File(folder,type);
         if(!innerFolder.exists())
             innerFolder.mkdirs();
-        String nameWithExtension=null;
+        String nameWithExtension=name+".jpeg";
         switch (type) {
             case IMAGES:
                 nameWithExtension=name+".jpeg";

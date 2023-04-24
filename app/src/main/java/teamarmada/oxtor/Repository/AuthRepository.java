@@ -45,7 +45,6 @@ public class AuthRepository  {
     }
 
     public Task<Void> signIn(AuthCredential credential){
-        Log.d(TAG, "signIn: ");
         return auth.signInWithCredential(credential).onSuccessTask(task -> {
             user=task.getUser();
             return firestoreRepository.createAccount(getProfileItem());

@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Intents {
+    public static final String TAG=Intents.class.getSimpleName();
     private int PICK_IMAGE_CHOOSER_REQUEST_CODE = 200;
 
     public static Intent getMediaChooserIntent(Context context, CharSequence title) {
@@ -27,7 +29,6 @@ public class Intents {
             allIntents.addAll(getImageCaptureIntents(packageManager));
             allIntents.addAll(getVideoCaptureIntents(packageManager));
         }
-
         Intent target;
         if (allIntents.isEmpty()) {
             target = new Intent();
@@ -116,6 +117,7 @@ public class Intents {
 
 
     private static Uri getCaptureImageOutputUri() throws IOException {
+        Log.d(TAG, "getCaptureImageOutputUri: ");
         String name= FileItemUtils.generateFileNameWithoutExtension()+".jpeg";
         try {
             return Uri.fromFile(FileItemUtils.createUploadFile(name,"images"));
@@ -127,7 +129,8 @@ public class Intents {
     }
 
     private static Uri getCaptureVideoOutputUri() throws IOException {
-        String name= FileItemUtils.generateFileNameWithoutExtension();
+        Log.d(TAG, "getCaptureVideoOutputUri: ");
+        String name= FileItemUtils.generateFileNameWithoutExtension()+".mp4";
         try {
             return Uri.fromFile(FileItemUtils.createUploadFile(name,"videos"));
         } catch (Exception e) {

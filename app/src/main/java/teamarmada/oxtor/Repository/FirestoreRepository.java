@@ -5,11 +5,7 @@ import static teamarmada.oxtor.Model.FileItem.FILESIZE;
 import static teamarmada.oxtor.Model.FileItem.TIMESTAMP;
 import static teamarmada.oxtor.Model.FileItem.UID;
 
-import android.content.SharedPreferences;
 import android.util.Base64;
-import android.util.Log;
-
-import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -17,7 +13,6 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.nio.charset.StandardCharsets;
@@ -58,8 +53,7 @@ public class FirestoreRepository {
     public Task<Void> createAccount(ProfileItem profileItem){
         DocumentReference documentReference=db.collection(USERS).document(profileItem.getUid());
         return FirebaseMessaging.getInstance().getToken()
-                .onSuccessTask(task-> db.runBatch(batch -> batch.set(documentReference,profileItem)
-                .update(documentReference,MESSAGING_TOKEN,task)));
+                .onSuccessTask(task-> db.runBatch(batch -> batch.set(documentReference,profileItem).update(documentReference,MESSAGING_TOKEN,task)));
     }
 
     public Task<Void> updateAccount(Map<String,Object> map) throws NullPointerException {
