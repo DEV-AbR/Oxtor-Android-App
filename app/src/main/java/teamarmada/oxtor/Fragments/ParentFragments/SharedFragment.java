@@ -111,7 +111,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 break;
         }
 
-        Log.d(TAG, "initUI: ");
         adapter=new RecyclerViewAdapter<>(
                 getLifecycle(),
                 R.layout.list_fileitem,
@@ -220,7 +219,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                                             try{
                                             mode.setTitle("1");
                                             }catch (Exception e){
-                                                Log.e(TAG, "onCreateActionMode: ",e);
+                                                e.printStackTrace();
                                             }
                                             mode.getMenuInflater().inflate(R.menu.shared_action_mode_menu,menu);
                                             return true;
@@ -264,7 +263,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                             String s=String.valueOf(adapter.getSelectionTracker().getSelection().size());
                             actionmode.setTitle(s);
                         }catch (Exception e){
-                            Log.e(TAG, "onChanged: ",e);
+                            e.printStackTrace();
                         }
                         }
                     }

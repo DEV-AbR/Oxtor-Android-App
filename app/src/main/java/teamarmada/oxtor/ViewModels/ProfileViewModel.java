@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.functions.HttpsCallableResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,23 +73,15 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
                 }).addOnCompleteListener(this);
     }
 
-    public void updateUsername(String un, OnCompleteListener<Unit> listener) {
+    public Task<HttpsCallableResult> updateUsername(String un) {
         setIsTaskRunning(true);
         HashMap<String,Object> map=new HashMap<>();
         map.put(UID,profileItem.getValue().getUid());
         map.put(USERNAME,un);
-        functionsRepository.updateUsername(map)
-                .continueWith(task -> Unit.INSTANCE)
-                .addOnCompleteListener(listener);
+        return functionsRepository.updateUsername(map);
     }
     
     public void updateEncryptionSetting(boolean b1) {
-//        Map<String,Object> map=new HashMap<>();
-//        map.put(UID,profileItem.getValue().getUid());
-//        map.put(TO_ENCRYPT,b1);
-//        firestoreRepository.updateAccount(map)
-//                .continueWith(task->Unit.INSTANCE)
-//                .addOnCompleteListener(this);
         sharedPreferences.edit().putBoolean(TO_ENCRYPT,b1).apply();
     }
     

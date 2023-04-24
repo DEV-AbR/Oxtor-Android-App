@@ -128,9 +128,9 @@ public class FileItemUtils {
         return l;
     }
 
-    public static String generateFileName(String extension) {
+    public static String generateFileNameWithoutExtension() {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-            return "OXT_" + timeStamp + extension;
+            return "OXT_" + timeStamp;
     }
 
     public static void loadPhoto(FileItem fileItem,@NonNull ImageView imageView) {
@@ -174,7 +174,19 @@ public class FileItemUtils {
         File innerFolder=new File(folder,getFileTypeString(fileItem.getFileType()));
         if(!innerFolder.exists())
             innerFolder.mkdirs();
-        File output=new File(innerFolder,fileItem.getFileName());
+        String nameWithExtension=null;
+        switch (getFileTypeString(fileItem.getFileType())) {
+            case IMAGES:
+                nameWithExtension=fileItem.getFileName()+".jpeg";
+                break;
+            case VIDEOS:
+                nameWithExtension=fileItem.getFileName()+".mp4";
+                break;
+            case AUDIOS:
+                nameWithExtension=fileItem.getFileName()+".mp3";
+                break;
+        }
+        File output=new File(innerFolder,nameWithExtension);
         boolean created= output.createNewFile();
         if(created)
             return output;
@@ -182,11 +194,23 @@ public class FileItemUtils {
             throw new Exception("Couldn't create said file");
     }
 
-    public static File createUploadFile(String nameWithExtension) throws Exception {
+    public static File createUploadFile(String name,String type) throws Exception {
         File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/upload");
-        File innerFolder=new File(folder, FileItemUtils.getFileTypeString(FilenameUtils.getExtension(nameWithExtension)));
+        File innerFolder=new File(folder,type);
         if(!innerFolder.exists())
             innerFolder.mkdirs();
+        String nameWithExtension=null;
+        switch (type) {
+            case IMAGES:
+                nameWithExtension=name+".jpeg";
+                break;
+            case VIDEOS:
+                nameWithExtension=name+".mp4";
+                break;
+            case AUDIOS:
+                nameWithExtension=name+".mp3";
+                break;
+        }
         File output=new File(innerFolder,nameWithExtension);
         boolean created= output.createNewFile();
         if(created)

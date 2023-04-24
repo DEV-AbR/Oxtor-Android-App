@@ -6,6 +6,7 @@ import static teamarmada.oxtor.Main.MainActivity.SORT_PREFERENCE;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -21,8 +22,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.IdRes;
@@ -49,11 +50,9 @@ import com.google.firebase.firestore.Query;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
-import teamarmada.oxtor.BuildConfig;
 import teamarmada.oxtor.Fragments.ChildFragments.FileItemFragment;
 import teamarmada.oxtor.Interfaces.ListItemCallback;
 import teamarmada.oxtor.Interfaces.ScreenManager;
@@ -61,9 +60,9 @@ import teamarmada.oxtor.Main.ActivityLifecycleObserver;
 import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter;
 import teamarmada.oxtor.Ui.DialogFragment.ItemBottomSheet;
 import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
+import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter;
 import teamarmada.oxtor.Utils.AnimationHelper;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.Utils.Intents;
@@ -79,7 +78,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     public static final String AUTHORITY="teamarmada.oxtor.fileprovider";
     private final String[] permissions=new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA
     };
     private static final String[] array={
             "Sort by Name",
@@ -218,7 +218,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
             registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), results -> {
                 initAnim(add_button_view);
                 if (!results.isEmpty()) {
-                        screenManager.disableTouchableLayout();
+                    screenManager.disableTouchableLayout();
+//                    List<Uri> paths=new ArrayList<>();
+//                    for (int i = 0; i < results.size(); i++) {
+//                        final File file=new File(String.valueOf(results.get(i)));
+//                        paths.set(i,FileProvider.getUriForFile(getContext(),AUTHORITY,file));
+//                    }
+//                    uploadSelectedFiles(paths);
                     uploadSelectedFiles(results);
                 }
             });
@@ -228,26 +234,51 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 if(result!=null&&result.getResultCode()== Activity.RESULT_OK){
                     if(result.getData()!=null){
                         screenManager.disableTouchableLayout();
-                        List<Uri> list=new ArrayList<>();
-                        if(result.getData().getClipData()!=null){
-                            for(int i=0;i<result.getData().getClipData().getItemCount();i++){
-                                Uri fileUri=result.getData().getClipData().getItemAt(i).getUri();
-                                File file=new File(fileUri.toString());
-                                Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-                                list.add(photoURI);
-                            }
-                            uploadSelectedFiles(list);
-                        }
-                        else{
-                            Uri fileUri=result.getData().getData();
-                            File file=new File(fileUri.toString());
-                            Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-                            list.add(photoURI);
-                            uploadSelectedFiles(list);
-                        }
+//                        List<Uri> list=new ArrayList<>();
+//                        if(result.getData().getClipData()!=null){
+//                            for(int i=0;i<result.getData().getClipData().getItemCount();i++){
+////                                Uri fileUri=result.getData().getClipData().getItemAt(i).getUri();
+////                                File file=new File(fileUri.toString());
+////                                Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+////                                list.add(photoURI);
+//                                list.add(result.getData().getClipData().getItemAt(i).getUri());
+//                            }
+//                            uploadSelectedFiles(list);
+//                        }
+//                        else{
+////                            Uri fileUri=result.getData().getData();
+////                            File file=new File(fileUri.toString());
+////                            Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+////                            list.add(photoURI);
+//                            list.add(result.getData().getData());
+//                            uploadSelectedFiles(list);
+//                        }
+                        uploadSelectedFiles(parseURIs(result));
                     }
                 }
             });
+
+    private List<Uri> parseURIs(@NonNull ActivityResult result) {
+        List<Uri> list=new ArrayList<>();
+        ClipData clipData=result.getData().getClipData();
+        if(clipData!=null){
+            for(int i=0;i<clipData.getItemCount();i++){
+//                Uri fileUri=result.getData().getClipData().getItemAt(i).getUri();
+//                File file=new File(fileUri.toString());
+//                Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+//                list.add(photoURI);
+                list.add(clipData.getItemAt(i).getUri());
+            }
+        }
+        else{
+//            Uri fileUri=result.getData().getData();
+//            File file=new File(fileUri.toString());
+//            Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+//            list.add(photoURI);
+            list.add(result.getData().getData());
+        }
+        return list;
+    }
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
             new ItemBottomSheet.BottomSheetCallback() {
@@ -397,36 +428,38 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     }
 
     private void onClickShareButton(List<FileItem> fileItems){
-        homeViewModel.fetchUsername().addOnCompleteListener(requireActivity(), task -> {
-            if(!task.isComplete()) {
-                screenManager.disableTouchableLayout();
-            }
-            else {
-                screenManager.enableTouchableLayout();
-                if(task.getResult()!=null) {
-                    List<FileItem> list=new ArrayList<>();
-                    for (int i = 0; i < fileItems.size(); i++) {
+        screenManager.disableTouchableLayout();
+        homeViewModel.fetchUsername()
+                .addOnCompleteListener(requireActivity(), task -> {
+                    if(task.isComplete()) {
+                        screenManager.enableTouchableLayout();
+                    }
+                })
+                .addOnSuccessListener(s -> {
+                    if(!s.isEmpty()) {
+                        List<FileItem> list=new ArrayList<>();
+                        for (int i = 0; i < fileItems.size(); i++) {
                         if(fileItems.get(i).isEncrypted())
                             list.add(fileItems.get(i));
-                    }
-                    if (!list.isEmpty()){
-                        for (int i = 0; i < list.size(); i++) {
-                            fileItems.remove(list.get(i));
                         }
-                    }
+                        if (!list.isEmpty()){
+                            for (int i = 0; i < list.size(); i++) {
+                                fileItems.remove(list.get(i));
+                            }
+                        }
                     createFileShareDialog(list,fileItems).show();
-                }
-                else
-                    Snackbar.make(binding.getRoot(),R.string.create_username,Snackbar.LENGTH_SHORT).show();
-            }
-        });
+                    }
+                    else {
+                        Snackbar.make(binding.getRoot(), R.string.create_username, Snackbar.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show());
     }
 
     private void onClickRenameButton(List<FileItem> fileItems){
-        TextInputDialog textInputDialog =
-                new TextInputDialog(R.string.rename_file,null, "Current FileName : "+fileItems.get(0).getFileName(),
-                        InputType.TYPE_CLASS_TEXT, requireContext());
-        textInputDialog.showDialog(getChildFragmentManager(), msg-> homeViewModel.renameFile(msg,fileItems.get(0)));
+        TextInputDialog dialog=new TextInputDialog(R.string.rename_file,null,
+                "Current FileName : "+fileItems.get(0).getFileName(), InputType.TYPE_CLASS_TEXT, requireContext());
+        dialog.showDialog(getChildFragmentManager(), msg-> homeViewModel.renameFile(msg,fileItems.get(0)));
     }
 
     private void onClickDeleteButton(List<FileItem> fileItems){
@@ -444,10 +477,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     }
 
     private void shareSelectedFiles(List<FileItem> fileItems){
-        new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
-                InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext())
-                .showDialog(getChildFragmentManager(),
-                msg-> homeViewModel.shareFile(fileItems,msg).addOnCompleteListener( task -> {
+        TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
+                InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
+        dialog.showDialog(getChildFragmentManager(), msg-> homeViewModel.shareFile(fileItems,msg)
+                .addOnCompleteListener( task -> {
                     homeViewModel.setIsTaskRunning(!task.isComplete());
                     if(task.isSuccessful()) {
                         Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show();
@@ -509,8 +542,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 selectFileLauncher.launch("*/*");
             break;
             case R.id.camera:
-                intentLauncher.launch(Intents.getMediaChooserIntent(getContext(), "Select app"));
-            break;
+                try {
+                    intentLauncher.launch(Intents.getMediaChooserIntent(getContext(), "Select app"));
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+                break;
         }
         AnimationHelper.rotateFab(addButton.getRootView(),isRotated);
     }

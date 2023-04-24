@@ -13,6 +13,7 @@ import android.os.Parcelable;
 import android.provider.MediaStore;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,31 +28,15 @@ public class Intents {
             allIntents.addAll(getVideoCaptureIntents(packageManager));
         }
 
-//        List<Intent> videoIntents=getVideoGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT);
-//        if(videoIntents.isEmpty()) {
-//            videoIntents=getVideoGalleryIntents(packageManager,Intent.ACTION_PICK);
-//        }
-//        allIntents.addAll(videoIntents);
-//
-//        List<Intent> imageIntents=getImageGalleryIntents(packageManager,Intent.ACTION_GET_CONTENT);
-//        if(videoIntents.isEmpty()) {
-//            imageIntents=getImageGalleryIntents(packageManager,Intent.ACTION_PICK);
-//        }
-//        allIntents.addAll(imageIntents);
-//
-//        List<Intent> fileIntents=getContentIntents(packageManager,Intent.ACTION_GET_CONTENT);
-//        if(fileIntents.isEmpty()) {
-//            fileIntents=getContentIntents(packageManager,Intent.ACTION_PICK);
-//        }
-//        allIntents.addAll(fileIntents);
-
         Intent target;
         if (allIntents.isEmpty()) {
             target = new Intent();
-        } else {
+        }
+        else {
             target = allIntents.get(allIntents.size() - 1);
             allIntents.remove(allIntents.size() - 1);
         }
+        target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         Intent chooserIntent = Intent.createChooser(target, title);
         Parcelable[] parcelables=new Parcelable[allIntents.size()];
         chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, allIntents.toArray(parcelables));
@@ -60,8 +45,14 @@ public class Intents {
 
     private static List<Intent> getImageCaptureIntents(PackageManager packageManager) {
         List<Intent> allIntents = new ArrayList<>();
-        Uri outputFileUri = getCaptureImageOutputUri();
+        Uri outputFileUri = null;
+        try {
+            outputFileUri = getCaptureImageOutputUri();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
         List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
         for (ResolveInfo res : listCam) {
             Intent intent = new Intent(captureIntent);
@@ -77,8 +68,14 @@ public class Intents {
 
     private static List<Intent> getVideoCaptureIntents(PackageManager packageManager){
         List<Intent> allIntents = new ArrayList<>();
-        Uri outputFileUri = getCaptureVideoOutputUri();
+        Uri outputFileUri=null;
+        try {
+            outputFileUri = getCaptureVideoOutputUri();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Intent captureIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+
         List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
         for (ResolveInfo res : listCam) {
             Intent intent = new Intent(captureIntent);
@@ -92,59 +89,9 @@ public class Intents {
         return allIntents;
     }
 
-    private static List<Intent> getImageGalleryIntents(PackageManager packageManager, String action) {
-        List<Intent> intents = new ArrayList<>();
-        Intent galleryIntent = action.equals(Intent.ACTION_GET_CONTENT)
-                ? new Intent(action)
-                : new Intent(action, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        galleryIntent.setType("image/*");
-        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
-        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
-        for (ResolveInfo res : listGallery) {
-            Intent intent = new Intent(galleryIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(res.activityInfo.packageName);
-            intents.add(intent);
-        }
-        return intents;
-    }
-
-    private static List<Intent> getVideoGalleryIntents(PackageManager packageManager, String action) {
-        List<Intent> intents = new ArrayList<>();
-        Intent galleryIntent = action.equals(Intent.ACTION_GET_CONTENT)
-                ? new Intent(action)
-                : new Intent(action, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
-        galleryIntent.setType("video/*");
-        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
-        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
-        for (ResolveInfo res : listGallery) {
-            Intent intent = new Intent(galleryIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(res.activityInfo.packageName);
-            intents.add(intent);
-        }
-        return intents;
-    }
-
-    private static List<Intent> getContentIntents(PackageManager packageManager, String action) {
-        List<Intent> intents = new ArrayList<>();
-        Intent galleryIntent = action.equals(Intent.ACTION_GET_CONTENT)
-                ? new Intent(action)
-                : new Intent(action, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
-        galleryIntent.setType("*/*");
-        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
-        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
-        for (ResolveInfo res : listGallery) {
-            Intent intent = new Intent(galleryIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(res.activityInfo.packageName);
-            intents.add(intent);
-        }
-        return intents;
-    }
-
     private static boolean isExplicitCameraPermissionRequired(Context context) {
-        return hasPermissionInManifest(context, "android.permission.CAMERA") && context.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
+        return hasPermissionInManifest(context, "android.permission.CAMERA") &&
+                context.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
     }
 
     public static boolean hasPermissionInManifest(Context context, String permissionName) {
@@ -168,23 +115,25 @@ public class Intents {
     }
 
 
-    private static Uri getCaptureImageOutputUri() {
-        String name= FileItemUtils.generateFileName(".jpeg");
+    private static Uri getCaptureImageOutputUri() throws IOException {
+        String name= FileItemUtils.generateFileNameWithoutExtension()+".jpeg";
         try {
-            return Uri.fromFile(FileItemUtils.createUploadFile(name));
+            return Uri.fromFile(FileItemUtils.createUploadFile(name,"images"));
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".jpeg");
+            return Uri.fromFile(file);
         }
     }
 
-    private static Uri getCaptureVideoOutputUri() {
-        String name= FileItemUtils.generateFileName(".mp4");
+    private static Uri getCaptureVideoOutputUri() throws IOException {
+        String name= FileItemUtils.generateFileNameWithoutExtension();
         try {
-            return Uri.fromFile(FileItemUtils.createUploadFile(name));
+            return Uri.fromFile(FileItemUtils.createUploadFile(name,"videos"));
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".mp4");
+            return Uri.fromFile(file);
         }
     }
 

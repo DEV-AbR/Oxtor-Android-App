@@ -114,7 +114,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                         try {
 
                             Glide.with(this).load(profileItem.getPhotoUrl()).into(binding.dpofuser);
-
                             if(profileItem.getUsername()!=null)
                                 binding.username.setText(profileItem.getUsername());
                             else
@@ -148,9 +147,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                 "Current Username : " +currentUsername, InputType.TYPE_CLASS_TEXT, requireContext());
         textInputDialog.showDialog(getChildFragmentManager(), msg -> {
             if(textInputDialog.isUsernameValid(msg)){
-                profileViewModel.updateUsername(msg,task -> {
+                profileViewModel.updateUsername(msg).addOnCompleteListener(task -> {
                     profileViewModel.setIsTaskRunning(!task.isComplete());
                     if(task.isSuccessful()) {
+                        Log.d(TAG, "updateUsername: "+task.getResult().getData().toString());
                         profileItem.setUsername(msg);
                         profileViewModel.getProfileItem().postValue(profileItem);
                         binding.username.setText(msg);

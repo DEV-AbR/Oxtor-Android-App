@@ -10,7 +10,9 @@
         android:name="teamarmada.oxtor.Fragments.ParentFragments.HomeFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home">
-
+        <deepLink
+            android:id="@+id/home_deeplink"
+            app:uri="https://oxt.web.app/home" />
     </fragment>
 
     <fragment
@@ -18,6 +20,9 @@
         android:name="teamarmada.oxtor.Fragments.ParentFragments.ProfileFragment"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" >
+        <deepLink
+            android:id="@+id/profile_deeplink"
+            app:uri="https://oxt.web.app/profile" />
 
 
     </fragment>
@@ -34,8 +39,8 @@
             app:popUpToInclusive="true" />
 
         <deepLink
-            android:id="@+id/deepLink"
-            app:uri="https://oxt.page.link/login" />
+            android:id="@+id/login_deeplink"
+            app:uri="https://oxt.web.app/login" />
 
 
     </fragment>
@@ -46,6 +51,9 @@
         android:name="teamarmada.oxtor.Fragments.ParentFragments.SharedFragment"
         android:label="@string/title_shared"
         tools:layout="@layout/fragment_shared">
+        <deepLink
+            android:id="@+id/shared_deeplink"
+            app:uri="https://oxt.web.app/shared" />
 
     </fragment>
 

@@ -299,8 +299,19 @@ public class LoginFragment extends Fragment {
     }
 
     private void updateUI(FirebaseUser user) {
-        if(user!=null)
-            navController.navigate(R.id.action_navigation_login_to_navigation_home);
+        if (user != null) {
+            try {
+                navController.navigate(R.id.action_navigation_login_to_navigation_home);
+            }catch (Exception e) {
+                try {
+                    navController.navigate(Uri.parse("https://oxt.page.link/home"));
+                }catch (Exception ex){
+                    Intent intent=new Intent();
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                }
+            }
+        }
     }
 
     public void signInFromIntent(Intent data){
