@@ -83,25 +83,20 @@ public class FileItemUtils {
 
     public static String getDateString(Date timestamp){
         Calendar calendar = Calendar.getInstance();
-        if(timestamp==null)return null;
+        if(timestamp==null) return null;
         calendar.setTimeInMillis(timestamp.getTime());
         return DateFormat.format("dd-MM-yyyy", calendar).toString();
     }
 
     public static String getTimestampString(Date postDate){
-
         Calendar calendar=Calendar.getInstance();
         int currentDay=calendar.get(Calendar.DAY_OF_YEAR);
-
         calendar.setTime(postDate);
         int postDay=calendar.get(Calendar.DAY_OF_YEAR);
-
         if(currentDay==postDay)
             return "Today "+getTimeString(postDate);
-
         else if(postDay-currentDay==1)
             return "Yesterday "+getTimeString(postDate);
-
         else
             return getTimeString(postDate)+" "+getDateString(postDate);
     }
@@ -122,7 +117,6 @@ public class FileItemUtils {
         long l= returnCursor.getLong(sizeIndex);
         returnCursor.close();
         return l;
-
     }
 
     public static String getNameString(Context context,Uri path){
@@ -223,10 +217,8 @@ public class FileItemUtils {
                     outputStream.write(bytes, 0, read);
                 }
             } finally {
-                if (outputStream != null) {
-                    outputStream.flush();
-                    outputStream.close();
-                }
+                outputStream.flush();
+                outputStream.close();
                 if (inputStream != null)
                     inputStream.close();
             }

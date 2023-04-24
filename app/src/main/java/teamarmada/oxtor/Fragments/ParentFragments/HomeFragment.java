@@ -76,7 +76,7 @@ import teamarmada.oxtor.databinding.ListFileitemBinding;
 public class HomeFragment extends Fragment implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener, MenuProvider {
 
     public static final String TAG=HomeFragment.class.getSimpleName();
-
+    public static final String AUTHORITY="teamarmada.oxtor.fileprovider";
     private final String[] permissions=new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -233,8 +233,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                             for(int i=0;i<result.getData().getClipData().getItemCount();i++){
                                 Uri fileUri=result.getData().getClipData().getItemAt(i).getUri();
                                 File file=new File(fileUri.toString());
-                                Uri photoURI = FileProvider.getUriForFile(getContext(),
-                                        BuildConfig.APPLICATION_ID + ".fileprovider", file);
+                                Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
                                 list.add(photoURI);
                             }
                             uploadSelectedFiles(list);
@@ -242,8 +241,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                         else{
                             Uri fileUri=result.getData().getData();
                             File file=new File(fileUri.toString());
-                            Uri photoURI = FileProvider.getUriForFile(getContext(),
-                                    BuildConfig.APPLICATION_ID + ".fileprovider", file);
+                            Uri photoURI = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
                             list.add(photoURI);
                             uploadSelectedFiles(list);
                         }

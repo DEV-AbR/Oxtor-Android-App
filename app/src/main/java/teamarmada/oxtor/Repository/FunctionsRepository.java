@@ -15,8 +15,8 @@ public class FunctionsRepository {
     public static final String TAG=FunctionsRepository.class.getSimpleName();
     private static FunctionsRepository functionsRepository=null;
     private final FirebaseFunctions functions;
-    public static final String SHARE_BY_EMAIL="https://asia-south1-oxtor-910e3.cloudfunctions.net/shareByEmail";
-    public static final String CHECK_USERNAME="https://asia-south1-oxtor-910e3.cloudfunctions.net/checkUsername";
+    public static final String SHARE_FILE="https://asia-south1-oxtor-910e3.cloudfunctions.net/shareFile";
+    public static final String SET_USERNAME="https://asia-south1-oxtor-910e3.cloudfunctions.net/setUsername";
 
     private FunctionsRepository(){
         functions=FirebaseFunctions.getInstance();
@@ -30,19 +30,19 @@ public class FunctionsRepository {
 
     public Task<HttpsCallableResult> shareByEmail(HashMap<String,Object> payload)  {
         try{
-            URL url=new URL(SHARE_BY_EMAIL);
+            URL url=new URL(SHARE_FILE);
             return functions.getHttpsCallableFromUrl(url).call(payload);
         }catch (MalformedURLException e){
-            return functions.getHttpsCallable("shareByEmail").call(payload);
+            return functions.getHttpsCallable("shareFile").call(payload);
         }
     }
 
     public Task<HttpsCallableResult> updateUsername(HashMap<String,Object> payload)  {
         try{
-            URL url=new URL(CHECK_USERNAME);
+            URL url=new URL(SET_USERNAME);
             return functions.getHttpsCallableFromUrl(url).call(payload);
         }catch (MalformedURLException e){
-            return functions.getHttpsCallable("checkUsername").call(payload);
+            return functions.getHttpsCallable("setUsername").call(payload);
         }
     }
 

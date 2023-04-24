@@ -71,6 +71,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging-directboot'
     implementation 'com.google.firebase:firebase-appcheck-playintegrity'
     implementation 'com.google.firebase:firebase-appcheck-debug'
+    implementation 'com.google.firebase:firebase-inappmessaging-display'
 // google apis
     implementation 'com.google.code.gson:gson:2.9.1'
     implementation 'com.google.android.gms:play-services-ads:22.0.0'
