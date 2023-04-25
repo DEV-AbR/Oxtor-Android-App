@@ -19,15 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Intents {
-    public static final String TAG=Intents.class.getSimpleName();
-    private int PICK_IMAGE_CHOOSER_REQUEST_CODE = 200;
 
-    public static Intent getMediaChooserIntent(Context context, CharSequence title) {
+    public static final String TAG=Intents.class.getSimpleName();
+
+    public static Intent getMediaChooserIntent(Context context) {
         List<Intent> allIntents = new ArrayList<>();
-        PackageManager packageManager = context.getPackageManager();
         if (!isExplicitCameraPermissionRequired(context) ) {
-            allIntents.addAll(getImageCaptureIntents(packageManager));
-            allIntents.addAll(getVideoCaptureIntents(packageManager));
+            allIntents.addAll(getImageCaptureIntents(context));
+            allIntents.addAll(getVideoCaptureIntents(context));
         }
         Intent target;
         if (allIntents.isEmpty()) {
@@ -37,14 +36,14 @@ public class Intents {
             target = allIntents.get(allIntents.size() - 1);
             allIntents.remove(allIntents.size() - 1);
         }
-        target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        Intent chooserIntent = Intent.createChooser(target, title);
+        Intent chooserIntent = Intent.createChooser(target, "Select source");
         Parcelable[] parcelables=new Parcelable[allIntents.size()];
         chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, allIntents.toArray(parcelables));
         return chooserIntent;
     }
 
-    private static List<Intent> getImageCaptureIntents(PackageManager packageManager) {
+    private static List<Intent> getImageCaptureIntents(Context context) {
+        PackageManager packageManager=context.getPackageManager();
         List<Intent> allIntents = new ArrayList<>();
         Uri outputFileUri = null;
         try {
@@ -53,7 +52,6 @@ public class Intents {
             e.printStackTrace();
         }
         Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
         List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
         for (ResolveInfo res : listCam) {
             Intent intent = new Intent(captureIntent);
@@ -67,7 +65,8 @@ public class Intents {
         return allIntents;
     }
 
-    private static List<Intent> getVideoCaptureIntents(PackageManager packageManager){
+    private static List<Intent> getVideoCaptureIntents(Context context){
+        PackageManager packageManager=context.getPackageManager();
         List<Intent> allIntents = new ArrayList<>();
         Uri outputFileUri=null;
         try {
@@ -76,7 +75,6 @@ public class Intents {
             e.printStackTrace();
         }
         Intent captureIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-
         List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
         for (ResolveInfo res : listCam) {
             Intent intent = new Intent(captureIntent);
@@ -115,30 +113,26 @@ public class Intents {
         return false;
     }
 
-
     private static Uri getCaptureImageOutputUri() throws IOException {
         Log.d(TAG, "getCaptureImageOutputUri: ");
-        String name= FileItemUtils.generateFileNameWithoutExtension()+".jpeg";
         try {
-            return Uri.fromFile(FileItemUtils.createUploadFile(name,"images"));
+            return Uri.parse(FileItemUtils.createUploadFile("images",".jpeg").getAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
             File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".jpeg");
-            return Uri.fromFile(file);
+            return Uri.parse(file.getAbsolutePath());
         }
     }
 
     private static Uri getCaptureVideoOutputUri() throws IOException {
         Log.d(TAG, "getCaptureVideoOutputUri: ");
-        String name= FileItemUtils.generateFileNameWithoutExtension()+".mp4";
         try {
-            return Uri.fromFile(FileItemUtils.createUploadFile(name,"videos"));
+            return Uri.parse(FileItemUtils.createUploadFile("videos",".mp4").getAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
             File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".mp4");
-            return Uri.fromFile(file);
+            return Uri.parse(file.getAbsolutePath());
         }
     }
-
 
 }

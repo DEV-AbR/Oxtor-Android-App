@@ -151,12 +151,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         if(isRotated){
             AnimationHelper.showIn(cameraButton);
             AnimationHelper.showIn(fileButton);
-            screenManager.disableTouchableLayout();
             isRotated=false;
         }else{
             AnimationHelper.showOut(cameraButton);
             AnimationHelper.showOut(fileButton);
-            screenManager.enableTouchableLayout();
             isRotated=true;
         }
     }
@@ -223,9 +221,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                     for (int i = 0; i < results.size(); i++) {
                         final File file=new File(String.valueOf(results.get(i)));
                         try {
-                            paths.set(i, FileProvider.getUriForFile(getContext(), AUTHORITY, file));
+                            paths.add( FileProvider.getUriForFile(getContext(), AUTHORITY, file));
                         }catch(Exception e){
-                            paths.set(i,results.get(i));
+                            paths.add(results.get(i));
                         }
                     }
                     uploadSelectedFiles(paths);
@@ -410,11 +408,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         }
     }
 
-    private void onClickDownloadButton(List<FileItem> fileItems){
-        if (!checkForPermissions())
+    private void onClickDownloadButton(List<FileItem> fileItems) {
+        if (!checkForPermissions()) {
             askPermission();
-        else
+        } else {
             activityLifecycleObserver.startDownload(fileItems);
+        }
     }
 
     private void onClickShareButton(List<FileItem> fileItems){
@@ -441,7 +440,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                         else {
                             shareSelectedFiles(fileItems);
                         }
-
                     }
                     else {
                         Snackbar.make(binding.getRoot(), R.string.create_username, Snackbar.LENGTH_SHORT).show();
@@ -453,7 +451,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     private void onClickRenameButton(List<FileItem> fileItems){
         TextInputDialog dialog=new TextInputDialog(R.string.rename_file,null,
                 "Current FileName : "+fileItems.get(0).getFileName(), InputType.TYPE_CLASS_TEXT, requireContext());
-        dialog.showDialog(getChildFragmentManager(), msg-> homeViewModel.renameFile(msg,fileItems.get(0)));
+        dialog.showDialog(getChildFragmentManager(),msg -> homeViewModel.renameFile(msg,fileItems.get(0)));
     }
 
     private void onClickDeleteButton(List<FileItem> fileItems){
@@ -466,7 +464,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     private void uploadSelectedFiles(List<Uri> results){
         screenManager.enableTouchableLayout();
         List<FileItem> fileItems=new ArrayList<>();
-        results.forEach(uri -> fileItems.add(FileItemUtils.getFileItemFromPath(requireContext(),uri)));
+        for(int i=0;i<results.size();i++){
+            Uri uri=results.get(i);
+            fileItems.add(FileItemUtils.getFileItemFromPath(requireContext(),uri));
+        }
         activityLifecycleObserver.startUpload(fileItems);
     }
 
@@ -537,7 +538,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
             break;
             case R.id.camera:
                 try {
-                    intentLauncher.launch(Intents.getMediaChooserIntent(getContext(), "Select app"));
+                    intentLauncher.launch(Intents.getMediaChooserIntent(getContext()));
                 }catch(Exception e){
                     e.printStackTrace();
                     Snackbar.make(binding.getRoot(),"Some error occurred",Snackbar.LENGTH_SHORT).show();

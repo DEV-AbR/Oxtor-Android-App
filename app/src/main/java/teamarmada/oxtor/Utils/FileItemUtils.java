@@ -24,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -175,18 +176,7 @@ public class FileItemUtils {
         File innerFolder=new File(folder,getFileTypeString(fileItem.getFileType()));
         if(!innerFolder.exists())
             innerFolder.mkdirs();
-        String nameWithExtension=fileItem.getFileName()+".jpeg";
-        switch (getFileTypeString(fileItem.getFileType())) {
-            case IMAGES:
-                nameWithExtension=fileItem.getFileName()+".jpeg";
-                break;
-            case VIDEOS:
-                nameWithExtension=fileItem.getFileName()+".mp4";
-                break;
-            case AUDIOS:
-                nameWithExtension=fileItem.getFileName()+".mp3";
-                break;
-        }
+        String nameWithExtension=fileItem.getFileName();
         File output=new File(innerFolder,nameWithExtension);
         boolean created= output.createNewFile();
         if(created)
@@ -195,26 +185,15 @@ public class FileItemUtils {
             throw new Exception("Couldn't create said file");
     }
 
-    public static File createUploadFile(String name,String type) throws Exception {
+    public static File createUploadFile(String type,String extension) throws Exception {
         Log.d(TAG, "createUploadFile: ");
         File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/upload");
         File innerFolder=new File(folder,type);
         if(!innerFolder.exists())
             innerFolder.mkdirs();
-        String nameWithExtension=name+".jpeg";
-        switch (type) {
-            case IMAGES:
-                nameWithExtension=name+".jpeg";
-                break;
-            case VIDEOS:
-                nameWithExtension=name+".mp4";
-                break;
-            case AUDIOS:
-                nameWithExtension=name+".mp3";
-                break;
-        }
+        String nameWithExtension=generateFileNameWithoutExtension()+extension;
         File output=new File(innerFolder,nameWithExtension);
-        boolean created= output.createNewFile();
+        boolean created= output.createNewFile() && output.setWritable(true);
         if(created)
             return output;
         else

@@ -54,53 +54,54 @@ public class TextInputDialog extends DialogFragment {
         binding.setLifecycleOwner(this);
         editText=binding.editText;
         binding.editText.setInputType(inputType);
-        if(text!=null) editText.setText(text);
-
-        binding.editText.requestFocus();
-        if(binding==null)
-            Log.d(TAG, "onCreateDialog: View binding not initialized yet");
-
-        return new MaterialAlertDialogBuilder(context,R.style.Theme_Oxtor_AlertDialog)
+        if(text!=null)
+            editText.setText(text);
+        editText.requestFocus();
+        MaterialAlertDialogBuilder builder=
+                new MaterialAlertDialogBuilder(context,R.style.Theme_Oxtor_AlertDialog)
                 .setView(binding.getRoot())
-                .setCancelable(false)
                 .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(R.string.save, (dialog, which) -> {
-
                     String s=binding.editText.getText().toString();
-
                     if(!s.isEmpty())
                         callback.getInput(s);
                     else
                         editText.setError("No Input Detected");
                     dialog.dismiss();
                 })
-                .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss()).create();
+                .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
+        setCancelable(false);
+        return builder.create();
     }
 
 
     public void showDialog(@NonNull FragmentManager manager, SimpleCallback callback) {
-        try{
         show(manager,TAG);
-        }catch (Exception e){
-            Log.e(TAG, "showDialog: ",e);
-        }
         this.callback=callback;
     }
 
 
     @Override
     public void show(@NonNull FragmentManager manager, @Nullable String tag) {
-        super.show(manager, tag);
-        if(imm!=null&&binding!=null) imm.showSoftInput(binding.editText,InputMethodManager.SHOW_FORCED);
+        try {
+            super.showNow(manager, tag);
+            if (imm != null && binding != null)
+                imm.showSoftInput(binding.editText, InputMethodManager.SHOW_FORCED);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
-    @SuppressLint("SuspiciousIndentation")
     @Override
-    public void onDismiss(@NonNull DialogInterface dialog) {
-        super.onDismiss(dialog);
-        if(imm!=null&&imm.isActive())
-        imm.hideSoftInputFromWindow(binding.editText.getWindowToken(),0);
+    public void dismiss() {
+        try {
+            super.dismissNow();
+            if(imm!=null&&imm.isActive())
+                imm.hideSoftInputFromWindow(binding.editText.getWindowToken(),0);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public int getInputType(){return inputType;}
@@ -124,6 +125,9 @@ public class TextInputDialog extends DialogFragment {
         Matcher matcher=pattern.matcher(charSequence);
         return matcher.matches();
     }
+
     public interface SimpleCallback{
         void getInput (String msg);
-    }}
+    }
+
+}

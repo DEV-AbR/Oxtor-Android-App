@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.MenuProvider;
+import androidx.core.widget.ContentLoadingProgressBar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -41,6 +42,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 import teamarmada.oxtor.Interfaces.ScreenManager;
 import teamarmada.oxtor.R;
+import teamarmada.oxtor.Ui.DialogFragment.ProgressDialog;
 import teamarmada.oxtor.Ui.DialogFragment.TaskBottomSheet;
 import teamarmada.oxtor.Utils.AnimationHelper;
 import teamarmada.oxtor.Utils.InAppUpdate;
@@ -59,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     public static final String SORT_PREFERENCE="sortPreference";
 
     private ActivityMainBinding binding;
-    public BottomNavigationView navView;
+    private BottomNavigationView navView;
     private FrameLayout adViewContainer;
     private static LinearProgressIndicator progressIndicator;
     private NavController navControllerMain;
@@ -68,7 +70,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     private boolean isDarkModeOn;
     private TaskBottomSheet taskBottomSheet;
     private InAppUpdate inAppUpdate;
-
+    //private ProgressDialog progressDialog;
+    private ContentLoadingProgressBar loadingProgressBar;
     private final String[] permissions=new String[]{
                     Manifest.permission.INTERNET,
                     Manifest.permission.ACCESS_NETWORK_STATE,
@@ -77,9 +80,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
                     Manifest.permission.CHANGE_WIFI_STATE,
                     Manifest.permission.VIBRATE
     };
-
     public static Observer<Boolean> observer=aBoolean ->{
-
         if (aBoolean) {
             progressIndicator.show();
         } else {
@@ -99,6 +100,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         binding =ActivityMainBinding.inflate(getLayoutInflater());
         binding.setLifecycleOwner(this);
         setContentView(binding.getRoot());
+        //progressDialog=new ProgressDialog();
+        loadingProgressBar=new ContentLoadingProgressBar(this);
         inAppUpdate=new InAppUpdate(this);
         navView= binding.navView;
         progressIndicator = binding.progressBar;
@@ -303,9 +306,9 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public void enableTouchableLayout() {
         try {
-            WindowManager.LayoutParams lp = getWindow().getAttributes();
-            lp.dimAmount = 0.5f;
-            getWindow().setAttributes(lp);
+//            if(progressDialog.isInLayout())
+//                progressDialog.dismiss();
+            loadingProgressBar.hide();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -315,9 +318,9 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public void disableTouchableLayout() {
         try {
-            WindowManager.LayoutParams lp = getWindow().getAttributes();
-            lp.dimAmount = 0.0f;
-            getWindow().setAttributes(lp);
+//            if(!progressDialog.isInLayout())
+//                progressDialog.show(getSupportFragmentManager(),"Loading");
+            loadingProgressBar.show();
         }
         catch (Exception e){
             e.printStackTrace();

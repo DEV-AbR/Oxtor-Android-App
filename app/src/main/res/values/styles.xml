@@ -30,10 +30,10 @@
 
     <style name="Theme.Oxtor.AlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <item name="shapeAppearanceOverlay">@style/dialogAppearance</item>
-        <item name="android:textSize">12sp</item>
+<!--        <item name="android:textSize">12sp</item>-->
     </style>
 
-    <style name="Theme.Oxtor.BottomSheetStyle" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">>
+    <style name="Theme.Oxtor.BottomSheetStyle" parent="ThemeOverlay.Material3.BottomSheetDialog">>
         <item name="shapeAppearanceOverlay">@style/dialogAppearance</item>
         <item name="android:textSize">12sp</item>
     </style>
