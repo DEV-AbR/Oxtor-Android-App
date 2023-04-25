@@ -1,5 +1,7 @@
 package teamarmada.oxtor.Utils;
 
+import static teamarmada.oxtor.Fragments.ParentFragments.HomeFragment.AUTHORITY;
+
 import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,6 +14,8 @@ import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Log;
+
+import androidx.core.content.FileProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +51,7 @@ public class Intents {
         List<Intent> allIntents = new ArrayList<>();
         Uri outputFileUri = null;
         try {
-            outputFileUri = getCaptureImageOutputUri();
+            outputFileUri = FileProvider.getUriForFile(context,AUTHORITY,getCaptureImageOutputFile());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -70,7 +74,7 @@ public class Intents {
         List<Intent> allIntents = new ArrayList<>();
         Uri outputFileUri=null;
         try {
-            outputFileUri = getCaptureVideoOutputUri();
+            outputFileUri = FileProvider.getUriForFile(context,AUTHORITY,getCaptureVideoOutputFile());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -113,33 +117,60 @@ public class Intents {
         return false;
     }
 
-    private static Uri getCaptureImageOutputUri() throws IOException {
+//    private static Uri getCaptureImageOutputUri() throws IOException {
+//        Log.d(TAG, "getCaptureImageOutputUri: ");
+//        try {
+//            String uri=FileItemUtils.createUploadFile("images",".jpeg").getAbsolutePath();
+//            return Uri.parse(uri);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            File dir=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
+//            if(!dir.exists())
+//                dir.mkdirs();
+//            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".jpeg",dir);
+//            return Uri.parse(file.getAbsolutePath());
+//        }
+//    }
+//
+//    private static Uri getCaptureVideoOutputUri() throws IOException {
+//        Log.d(TAG, "getCaptureVideoOutputUri: ");
+//        try {
+//            String uri=FileItemUtils.createUploadFile("videos",".mp4").getAbsolutePath();
+//            return Uri.parse(uri);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            File dir=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
+//            if(!dir.exists())
+//                dir.mkdirs();
+//            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".mp4",dir);
+//            return Uri.parse(file.getAbsolutePath());
+//        }
+//    }
+
+    private static File getCaptureImageOutputFile() throws IOException {
         Log.d(TAG, "getCaptureImageOutputUri: ");
+
         try {
-            String uri=FileItemUtils.createUploadFile("images",".jpeg").getAbsolutePath();
-            return Uri.parse(uri);
+            return FileItemUtils.createUploadFile("images",".jpeg");
         } catch (Exception e) {
             e.printStackTrace();
             File dir=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
             if(!dir.exists())
                 dir.mkdirs();
-            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".jpeg",dir);
-            return Uri.parse(file.getAbsolutePath());
+            return File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".jpeg",dir);
         }
     }
 
-    private static Uri getCaptureVideoOutputUri() throws IOException {
+    private static File getCaptureVideoOutputFile() throws IOException {
         Log.d(TAG, "getCaptureVideoOutputUri: ");
         try {
-            String uri=FileItemUtils.createUploadFile("videos",".mp4").getAbsolutePath();
-            return Uri.parse(uri);
+            return FileItemUtils.createUploadFile("videos",".mp4");
         } catch (Exception e) {
             e.printStackTrace();
             File dir=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
             if(!dir.exists())
                 dir.mkdirs();
-            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".mp4",dir);
-            return Uri.parse(file.getAbsolutePath());
+            return File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".mp4",dir);
         }
     }
 

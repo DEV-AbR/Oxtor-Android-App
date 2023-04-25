@@ -246,23 +246,23 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         if(clipData!=null){
             for(int i=0;i<clipData.getItemCount();i++){
                 Uri fileUri=clipData.getItemAt(i).getUri();
-                File file=new File(fileUri.toString());
-                try {
-                    fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+//                try {
+//                    File file=new File(fileUri.toString());
+//                    fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
                 list.add(fileUri);
             }
         }
         else{
             Uri fileUri=result.getData().getData();
-            File file=new File(fileUri.toString());
-            try {
-                fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
+//            try {
+//                File file=new File(fileUri.toString());
+//                fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+//            }catch(Exception e){
+//                e.printStackTrace();
+//            }
             list.add(fileUri);
         }
         uploadSelectedFiles(list);
