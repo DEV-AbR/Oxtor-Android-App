@@ -157,7 +157,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                         Toast.makeText(getContext(),R.string.username_updated,Toast.LENGTH_SHORT).show();
                     }
                     else {
-                        Toast.makeText(getContext(), task.getException().toString(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Some error occurred, Please sign in again", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -167,9 +167,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     }
 
     private void updatePicture(){
-        if(checkForPermissions()) intentLauncher.launch("image/*");
-        else
+        if(checkForPermissions()) {
+            intentLauncher.launch("image/*");
+        }
+        else {
             askPermission();
+        }
     }
 
     private void askPermission() {
@@ -195,25 +198,20 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     }
 
     private void deleteAccount() {
-        profileViewModel.deleteAccount(task -> {
-            //profileViewModel.setIsTaskRunning(!task.isComplete());
+        profileViewModel.deleteAccount().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
                 Toast.makeText(getContext(), "Come back again to signIn, bye... :-)", Toast.LENGTH_SHORT).show();
-                getActivity().finish();
             }
             else {
-                //Log.d(TAG, "deleteAccount: "+task.getException());
-//                Snackbar.make(binding.getRoot(), R.string.some_error_occurred, Snackbar.LENGTH_SHORT).show();
                 Toast.makeText(getContext(),R.string.some_error_occurred,Toast.LENGTH_SHORT).show();
-                requireActivity().finish();
             }
+            getActivity().finish();
         });
     }
 
     public void signOut(){
         profileViewModel.abortAllTasks();
-        profileViewModel.SignOut(task->{
-            //profileViewModel.setIsTaskRunning(!task.isComplete());
+        profileViewModel.signOut().addOnCompleteListener(task->{
             if(task.isSuccessful()){
                 Toast.makeText(getContext(), "Come back again to signIn, bye... :-)", Toast.LENGTH_SHORT).show();
                 getActivity().finish();

@@ -145,23 +145,21 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
                 .addOnCompleteListener(this);
     }
 
-    public void deleteAccount(OnCompleteListener<Unit> listener){
+    public Task<Unit> deleteAccount(){
         setIsTaskRunning(true);
-        authRepository.getUser()
+        return authRepository.getUser()
                 .delete()
-                .continueWith(task->Unit.INSTANCE)
-                .addOnCompleteListener(listener);
+                .continueWith(task->Unit.INSTANCE);
     }
 
-    public void SignOut(OnCompleteListener<Unit> listener) {
+    public Task<Unit> signOut() {
         setIsTaskRunning(true);
-        firestoreRepository.removeMessageToken(profileItem.getValue())
+        return firestoreRepository.removeMessageToken(profileItem.getValue())
                 .continueWith(task -> {
                     getAuthInstance().signOut();
                     setIsTaskRunning(!task.isComplete());
                     return Unit.INSTANCE;
-                })
-                .addOnCompleteListener(listener);
+                });
     }
 
     public FirebaseAuth getAuthInstance(){

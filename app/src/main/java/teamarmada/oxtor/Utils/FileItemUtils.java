@@ -172,7 +172,7 @@ public class FileItemUtils {
 
 
     public static File createDownloadFile(FileItem fileItem) throws Exception {
-        File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/download");
+        File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/Download");
         File innerFolder=new File(folder,getFileTypeString(fileItem.getFileType()));
         if(!innerFolder.exists())
             innerFolder.mkdirs();
@@ -187,7 +187,7 @@ public class FileItemUtils {
 
     public static File createUploadFile(String type,String extension) throws Exception {
         Log.d(TAG, "createUploadFile: ");
-        File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/upload");
+        File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
         File innerFolder=new File(folder,type);
         if(!innerFolder.exists())
             innerFolder.mkdirs();
@@ -252,6 +252,7 @@ public class FileItemUtils {
             inputStream=new BufferedInputStream(inputStream, fileItem.getFileSize().intValue());
         return inputStream;
     }
+
 
 
 }
