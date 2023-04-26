@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="admob_app_id">ca-app-pub-9265274241483804~4762762507</string>
+    <string name="interstitial_test_ad_id">"ca-app-pub-3940256099942544/1033173712"</string>
+    <string name="interstitial_ad_id">ca-app-pub-9265274241483804/4538319657</string>
+    <string name="app_open_test_ad_id">ca-app-pub-3940256099942544/3419835294</string>
+    <string name="app_open_ad_id">ca-app-pub-9265274241483804/1668613732</string>
+    <string name="banner_test_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="banner_ad_id">ca-app-pub-9265274241483804/7499524919</string>
+
+</resources>
