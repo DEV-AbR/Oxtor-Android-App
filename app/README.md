@@ -11,7 +11,7 @@
 
 - 📫 How to reach me **abr.rai.3100@gmail.com**
 
-- ⚡ Fun fact **I am building a MapApp too**
+- ⚡ Also **All commits made here have useless messages. Please don't judge**
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
