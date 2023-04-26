@@ -3,7 +3,7 @@
 
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=dev-abr&label=Profile%20views&color=0e75b6&style=flat" alt="dev-abr" /> </p>
 
-- 🔭 I’m currently working on trying to get a my app a few installs on [Play Store](https://play.google.com/store/apps/details?id=teamarmda.oxtor).
+- 🔭 I’m currently working on trying to get a my app a few installs on [Play Store](https://play.google.com/store/apps/details?id=teamarmada.oxtor).
 
 - 🤝 I’m looking for help with [Oxtor App](https://github.com/DEV-AbR/)
 
