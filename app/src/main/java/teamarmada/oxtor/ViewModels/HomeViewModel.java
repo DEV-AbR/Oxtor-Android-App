@@ -93,7 +93,7 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
         jsonObject.put("fileItems",jsonArray);
 
         return functionsRepository.shareByEmail(jsonObject).continueWithTask(task -> {
-            firestoreRepository.logToDB(jsonObject);
+            //firestoreRepository.logToDB(jsonObject);
             setIsTaskRunning(!task.isComplete());
             return task;
         });

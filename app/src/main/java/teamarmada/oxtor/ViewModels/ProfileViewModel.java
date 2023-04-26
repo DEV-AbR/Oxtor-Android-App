@@ -85,7 +85,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
             e.printStackTrace();
         }
         return functionsRepository.updateUsername(jsonObject).continueWithTask(task->{
-            firestoreRepository.logToDB(jsonObject);
+            //firestoreRepository.logToDB(jsonObject);
             setIsTaskRunning(!task.isComplete());
             return task;
         });

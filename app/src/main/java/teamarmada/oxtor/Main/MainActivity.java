@@ -10,7 +10,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -42,9 +41,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 import teamarmada.oxtor.Interfaces.ScreenManager;
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.Ui.DialogFragment.ProgressDialog;
 import teamarmada.oxtor.Ui.DialogFragment.TaskBottomSheet;
-import teamarmada.oxtor.Utils.AnimationHelper;
 import teamarmada.oxtor.Utils.InAppUpdate;
 import teamarmada.oxtor.ViewModels.MainViewModel;
 import teamarmada.oxtor.databinding.ActivityMainBinding;

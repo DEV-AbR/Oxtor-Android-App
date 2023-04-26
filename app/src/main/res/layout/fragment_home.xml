@@ -25,53 +25,16 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:id="@+id/linear_layout_side"
-                android:layout_gravity="end|bottom"
-                android:paddingBottom="@dimen/margin">
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/camera"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin"
-                    android:layout_marginEnd="@dimen/margin"
-                    app:fabSize="normal"
-                    android:layout_marginStart="@dimen/margin"
-                    android:visibility="invisible"
-                    android:tooltipText="@string/add_image"
-                    android:src="@drawable/ic_baseline_photo_camera_24"
-                    android:layout_gravity="end|bottom" />
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/file"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin"
-                    android:layout_marginEnd="@dimen/margin"
-                    app:fabSize="normal"
-                    android:layout_marginStart="@dimen/margin"
-                    android:visibility="invisible"
-                    android:tooltipText="@string/add_files"
-                    android:src="@drawable/ic_baseline_file_present_24"
-                    android:layout_gravity="end|bottom" />
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/add"
-                    android:layout_marginTop="@dimen/margin"
-                    android:layout_marginEnd="@dimen/margin"
-                    android:layout_marginStart="@dimen/margin"
-                    app:elevation="0dp"
-                    android:src="@drawable/ic_baseline_add_24"
-                    android:layout_gravity="end|bottom"
-                    />
-
-            </LinearLayout>
+         <com.google.android.material.floatingactionbutton.FloatingActionButton
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:id="@+id/add"
+             android:layout_margin="@dimen/margin"
+             app:elevation="0dp"
+             android:src="@drawable/ic_baseline_add_24"
+             android:layout_gravity="end|bottom"
+             />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

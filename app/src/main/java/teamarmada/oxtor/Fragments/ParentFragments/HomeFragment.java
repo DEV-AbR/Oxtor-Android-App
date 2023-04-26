@@ -63,16 +63,14 @@ import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.DialogFragment.ItemBottomSheet;
 import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
 import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter;
-import teamarmada.oxtor.Utils.AnimationHelper;
 import teamarmada.oxtor.Utils.FileItemUtils;
-import teamarmada.oxtor.Utils.Intents;
 import teamarmada.oxtor.ViewModels.HomeViewModel;
 import teamarmada.oxtor.databinding.FragmentBottomsheetItemBinding;
 import teamarmada.oxtor.databinding.FragmentHomeBinding;
 import teamarmada.oxtor.databinding.ListFileitemBinding;
 
 @AndroidEntryPoint
-public class HomeFragment extends Fragment implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener, MenuProvider {
+public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, MenuProvider {
 
     public static final String TAG=HomeFragment.class.getSimpleName();
     public static final String AUTHORITY="teamarmada.oxtor.fileprovider";
@@ -89,8 +87,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     private RecyclerView recyclerView;
     private FragmentHomeBinding binding;
     private HomeViewModel homeViewModel;
-    private boolean isRotated=true;
-    private FloatingActionButton addButton,fileButton,cameraButton;
+    private FloatingActionButton addButton;
     private Query query=null;
     private ActionMode actionmode=null;
     private SwipeRefreshLayout swipeRefreshLayout=null;
@@ -114,8 +111,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         binding.setLifecycleOwner(this);
         sharedPreferences=requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         addButton=binding.add;
-        fileButton=binding.file;
-        cameraButton=binding.camera;
+
         swipeRefreshLayout=binding.swipeHome;
         recyclerView=binding.recyclerviewHome;
         try {
@@ -127,36 +123,18 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         activityLifecycleObserver = ActivityLifecycleObserver.getInstance((AppCompatActivity) requireActivity());
         observeLoadingState();
         initUI();
-        AnimationHelper.init(fileButton);
-        AnimationHelper.init(cameraButton);
-//        fileButton.setOnClickListener(this);
-//        cameraButton.setOnClickListener(this);
         addButton.setOnClickListener(v -> {
             addButtonView=v;
             if (!checkForPermissions()){
                 askPermission();
             }
             else {
-                //initAnim(addButtonView);
                 selectFileLauncher.launch("*/*");
             }
         });
         swipeRefreshLayout.setOnRefreshListener(this);
         swipeRefreshLayout.setOnChildScrollUpCallback((parent, child) -> actionmode!=null);
         return binding.getRoot();
-    }
-
-    private void initAnim(View view){
-        AnimationHelper.rotateFab(view,isRotated);
-        if(isRotated){
-            AnimationHelper.showIn(cameraButton);
-            AnimationHelper.showIn(fileButton);
-            isRotated=false;
-        }else{
-            AnimationHelper.showOut(cameraButton);
-            AnimationHelper.showOut(fileButton);
-            isRotated=true;
-        }
     }
 
     private void initUI(){
@@ -207,13 +185,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
 
     private final ActivityResultLauncher<String[]> permissionLauncher=
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result ->  {
-                //initAnim(addButtonView);
-                if(checkForPermissions()){
-                                try {
-                                    initAnim(addButton);
-                                }catch (Exception e){e.printStackTrace();}
-                            }
-                            else {
+                if(!checkForPermissions()) {
                                 Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
                                 .setAction(R.string.grant, v -> askPermission())
                                 .show();
@@ -549,23 +521,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         },500);
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.file:
-                selectFileLauncher.launch("*/*");
-            break;
-            case R.id.camera:
-                try {
-                    intentLauncher.launch(Intents.getMediaChooserIntent(getContext()));
-                }catch(Exception e){
-                    e.printStackTrace();
-                    Snackbar.make(binding.getRoot(),"Some error occurred",Snackbar.LENGTH_SHORT).show();
-                }
-                break;
-        }
-        AnimationHelper.rotateFab(addButton.getRootView(),isRotated);
-    }
+
 
     @Override
     public void onStop() {
