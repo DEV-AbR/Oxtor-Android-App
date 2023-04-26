@@ -10,6 +10,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -190,9 +192,21 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         }
         else{
             binding.taskButtonMain.show();
-            binding.taskButtonMain.setAnimation(AnimationHelper.getInfiniteRotationAnim());
+            binding.taskButtonMain.setAnimation(getInfiniteRotationAnim());
             binding.taskButtonMain.setOnClickListener(onClickListener);
         }
+    }
+
+    public RotateAnimation getInfiniteRotationAnim(){
+        RotateAnimation rotate = new RotateAnimation(
+                0, 360,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f
+        );
+
+        rotate.setDuration(800);
+        rotate.setRepeatCount(Animation.INFINITE);
+        return rotate;
     }
 
     public boolean checkForPermissions(){

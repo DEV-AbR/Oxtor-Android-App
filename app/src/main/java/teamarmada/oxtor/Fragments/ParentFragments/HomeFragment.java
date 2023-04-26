@@ -76,8 +76,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     public static final String AUTHORITY="teamarmada.oxtor.fileprovider";
     private final String[] permissions=new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
     private static final String[] array={
             "Sort by Name",
@@ -198,14 +197,13 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private final ActivityResultLauncher<String> selectFileLauncher =
             registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), results -> {
-                //initAnim(addButtonView);
                 if (!results.isEmpty()) {
                     screenManager.disableTouchableLayout();
                     List<Uri> paths=new ArrayList<>();
                     for (int i = 0; i < results.size(); i++) {
                         final File file=new File(String.valueOf(results.get(i)));
                         try {
-                            paths.add( FileProvider.getUriForFile(getContext(), AUTHORITY, file));
+                            paths.add(FileProvider.getUriForFile(getContext(), AUTHORITY, file));
                         }catch(Exception e){
                             paths.add(results.get(i));
                         }
@@ -213,44 +211,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                     uploadSelectedFiles(paths);
                 }
             });
-
-    private final ActivityResultLauncher<Intent> intentLauncher=
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if(result!=null&&result.getResultCode()== Activity.RESULT_OK){
-                    if(result.getData()!=null){
-                        screenManager.disableTouchableLayout();
-                        parseURIs(result);
-                    }
-                }
-            });
-
-    private void parseURIs(ActivityResult result) {
-        List<Uri> list=new ArrayList<>();
-        ClipData clipData=result.getData().getClipData();
-        if(clipData!=null){
-            for(int i=0;i<clipData.getItemCount();i++){
-                Uri fileUri=clipData.getItemAt(i).getUri();
-                try {
-                    File file=new File(fileUri.toString());
-                    fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                list.add(fileUri);
-            }
-        }
-        else{
-            Uri fileUri=result.getData().getData();
-            try {
-                File file=new File(fileUri.toString());
-                fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-            list.add(fileUri);
-        }
-        uploadSelectedFiles(list);
-    }
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
             new ItemBottomSheet.BottomSheetCallback() {
