@@ -20,6 +20,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.functions.HttpsCallableResult;
 
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -75,10 +77,18 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
 
     public Task<HttpsCallableResult> updateUsername(String un) {
         setIsTaskRunning(true);
-        HashMap<String,Object> map=new HashMap<>();
-        map.put(UID,profileItem.getValue().getUid());
-        map.put(USERNAME,un);
-        return functionsRepository.updateUsername(map);
+        JSONObject jsonObject=new JSONObject();
+        try {
+            jsonObject.put(UID, profileItem.getValue().getUid());
+            jsonObject.put(USERNAME, un);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return functionsRepository.updateUsername(jsonObject).continueWithTask(task->{
+            firestoreRepository.logToDB(jsonObject);
+            setIsTaskRunning(!task.isComplete());
+            return task;
+        });
     }
     
     public void updateEncryptionSetting(boolean b1) {

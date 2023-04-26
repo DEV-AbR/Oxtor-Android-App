@@ -3,6 +3,9 @@ package teamarmada.oxtor.Model;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.ServerTimestamp;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Date;
 
 
@@ -70,6 +73,21 @@ public class FileItem {
         this.fileSize = fileSize;
         this.encrypted = encrypted;
         this.timeStamp = timeStamp;
+    }
+
+    public FileItem(JSONObject jsonObject) throws JSONException {
+        this.uid = jsonObject.getString(UID);
+        this.fileSize = jsonObject.getLong(FILESIZE);
+        this.filePath = jsonObject.getString(FILEPATH);
+        this.fileName = jsonObject.getString(FILENAME);
+        this.fileType = jsonObject.getString(FILETYPE);
+        this.timeStamp = (Date) jsonObject.get(TIMESTAMP) ;
+        this.encrypted=(Boolean) jsonObject.get(ENCRYPTED);
+        this.downloadUrl = jsonObject.getString(DOWNLOAD_URL);
+        this.fileExtension = jsonObject.getString(FILEEXTENSION);
+        this.storageReference = jsonObject.getString(STORAGE_REFERENCE);
+        this.iv=jsonObject.getString(IV);
+        this.encryptionPassword=jsonObject.getString(ENCRYPTION_PASSWORD);
     }
 
     public String getStorageReference() {

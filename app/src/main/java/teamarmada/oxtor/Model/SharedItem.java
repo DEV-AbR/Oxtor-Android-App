@@ -7,17 +7,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.ServerTimestamp;
 import com.google.gson.Gson;
 
+import org.json.JSONObject;
+
 import java.util.Date;
 
 public class SharedItem {
-
-//    private String downloadUrl;
-//    private String filePath;
-//    private String fileName,fileType;
-//    private String fileExtension;
-//    private Long fileSize;
-
-//    private boolean encrypted;
 
     private String emailOfSender;
     private String usernameOfSender;
@@ -38,7 +32,6 @@ public class SharedItem {
     }
 
     public SharedItem(DocumentSnapshot documentSnapshot) {
-
         emailOfSender = documentSnapshot.getString("emailOfSender");
         emailOfReceiver = documentSnapshot.getString("emailOfReceiver");
         usernameOfSender = documentSnapshot.getString("usernameOfSender");
@@ -47,15 +40,14 @@ public class SharedItem {
         phoneNumberOfReceiver = documentSnapshot.getString("phoneNumberOfReceiver");
         uid = documentSnapshot.getString(UID);
         timeStamp = documentSnapshot.getDate(TIMESTAMP);
-
         try {
-            fileItem = documentSnapshot.get("fileItem", FileItem.class);
+            JSONObject jsonObject=documentSnapshot.get("fileItem", JSONObject.class);
+            fileItem=new FileItem(jsonObject);
         }catch (Exception e){
-            String s=documentSnapshot.getString("fileItem");
-            fileItem=(new Gson()).fromJson(s,FileItem.class);
+            fileItem = documentSnapshot.get("fileItem", FileItem.class);
         }
-
     }
+
 
     public String getUsernameOfSender() {
         return usernameOfSender;

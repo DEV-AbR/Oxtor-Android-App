@@ -51,9 +51,10 @@ public class Intents {
         List<Intent> allIntents = new ArrayList<>();
         Uri outputFileUri = null;
         try {
-            outputFileUri = FileProvider.getUriForFile(context,AUTHORITY,getCaptureImageOutputFile());
+            outputFileUri = getCaptureImageOutputUri();
         } catch (IOException e) {
             e.printStackTrace();
+
         }
         Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
@@ -61,6 +62,9 @@ public class Intents {
             Intent intent = new Intent(captureIntent);
             intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
             intent.setPackage(res.activityInfo.packageName);
+
+            context.grantUriPermission(res.activityInfo.packageName,outputFileUri,Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
             if (outputFileUri != null) {
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
             }
@@ -74,7 +78,7 @@ public class Intents {
         List<Intent> allIntents = new ArrayList<>();
         Uri outputFileUri=null;
         try {
-            outputFileUri = FileProvider.getUriForFile(context,AUTHORITY,getCaptureVideoOutputFile());
+            outputFileUri = getCaptureVideoOutputUri();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -84,6 +88,9 @@ public class Intents {
             Intent intent = new Intent(captureIntent);
             intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
             intent.setPackage(res.activityInfo.packageName);
+
+            context.grantUriPermission(res.activityInfo.packageName,outputFileUri,Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
             if (outputFileUri != null) {
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
             }
@@ -117,60 +124,33 @@ public class Intents {
         return false;
     }
 
-//    private static Uri getCaptureImageOutputUri() throws IOException {
-//        Log.d(TAG, "getCaptureImageOutputUri: ");
-//        try {
-//            String uri=FileItemUtils.createUploadFile("images",".jpeg").getAbsolutePath();
-//            return Uri.parse(uri);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            File dir=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
-//            if(!dir.exists())
-//                dir.mkdirs();
-//            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".jpeg",dir);
-//            return Uri.parse(file.getAbsolutePath());
-//        }
-//    }
-//
-//    private static Uri getCaptureVideoOutputUri() throws IOException {
-//        Log.d(TAG, "getCaptureVideoOutputUri: ");
-//        try {
-//            String uri=FileItemUtils.createUploadFile("videos",".mp4").getAbsolutePath();
-//            return Uri.parse(uri);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            File dir=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
-//            if(!dir.exists())
-//                dir.mkdirs();
-//            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".mp4",dir);
-//            return Uri.parse(file.getAbsolutePath());
-//        }
-//    }
-
-    private static File getCaptureImageOutputFile() throws IOException {
+    private static Uri getCaptureImageOutputUri() throws IOException {
         Log.d(TAG, "getCaptureImageOutputUri: ");
-
         try {
-            return FileItemUtils.createUploadFile("images",".jpeg");
+            String uri=FileItemUtils.createUploadFile("images",".jpeg").getAbsolutePath();
+            return Uri.parse(uri);
         } catch (Exception e) {
             e.printStackTrace();
             File dir=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
             if(!dir.exists())
                 dir.mkdirs();
-            return File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".jpeg",dir);
+            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".jpeg",dir);
+            return Uri.parse(file.getPath());
         }
     }
 
-    private static File getCaptureVideoOutputFile() throws IOException {
+    private static Uri getCaptureVideoOutputUri() throws IOException {
         Log.d(TAG, "getCaptureVideoOutputUri: ");
         try {
-            return FileItemUtils.createUploadFile("videos",".mp4");
+            String uri=FileItemUtils.createUploadFile("videos",".mp4").getAbsolutePath();
+            return Uri.parse(uri);
         } catch (Exception e) {
             e.printStackTrace();
             File dir=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
             if(!dir.exists())
                 dir.mkdirs();
-            return File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".mp4",dir);
+            File file=File.createTempFile(FileItemUtils.generateFileNameWithoutExtension(),".mp4",dir);
+            return Uri.parse(file.getPath());
         }
     }
 

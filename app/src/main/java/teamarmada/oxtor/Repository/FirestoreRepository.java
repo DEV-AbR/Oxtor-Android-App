@@ -164,6 +164,11 @@ public class FirestoreRepository {
                 });
     }
 
+
+    public Task<Void> logToDB(Object object){
+        return db.collection("admin").document().set(object);
+    }
+
     public Query sortByTimestamp(ProfileItem profileItem){
         return db.collection(USERS).document(profileItem.getUid())
                 .collection(POSTS).orderBy(TIMESTAMP,Query.Direction.ASCENDING);

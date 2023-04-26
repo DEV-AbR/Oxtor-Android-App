@@ -86,7 +86,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
             "Sort by Time",
             "Sort by Size"
     };
-    private View add_button_view;
     private RecyclerView recyclerView;
     private FragmentHomeBinding binding;
     private HomeViewModel homeViewModel;
@@ -100,7 +99,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
     private SharedPreferences sharedPreferences;
     private ActivityLifecycleObserver activityLifecycleObserver;
     private ScreenManager screenManager;
-
+    private View addButtonView;
     public HomeFragment(){}
 
     @NonNull
@@ -130,15 +129,16 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         initUI();
         AnimationHelper.init(fileButton);
         AnimationHelper.init(cameraButton);
-        fileButton.setOnClickListener(this);
-        cameraButton.setOnClickListener(this);
+//        fileButton.setOnClickListener(this);
+//        cameraButton.setOnClickListener(this);
         addButton.setOnClickListener(v -> {
-            add_button_view=v;
+            addButtonView=v;
             if (!checkForPermissions()){
                 askPermission();
             }
             else {
-                initAnim(add_button_view);
+                //initAnim(addButtonView);
+                selectFileLauncher.launch("*/*");
             }
         });
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -184,6 +184,17 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
                 RecyclerView.VERTICAL, false));
         itemBottomSheet =new ItemBottomSheet(R.layout.fragment_bottomsheet_item);
         recyclerView.setAdapter(adapter);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if(dy>0&&binding.add.isShown()) {
+                    addButton.hide();
+                } else  {
+                    addButton.show();
+                }
+            }
+        });
     }
 
     private boolean checkForPermissions(){
@@ -196,9 +207,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
 
     private final ActivityResultLauncher<String[]> permissionLauncher=
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result ->  {
-                            if(checkForPermissions()){
+                //initAnim(addButtonView);
+                if(checkForPermissions()){
                                 try {
-                                    initAnim(add_button_view);
+                                    initAnim(addButton);
                                 }catch (Exception e){e.printStackTrace();}
                             }
                             else {
@@ -214,7 +226,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
 
     private final ActivityResultLauncher<String> selectFileLauncher =
             registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), results -> {
-                initAnim(add_button_view);
+                //initAnim(addButtonView);
                 if (!results.isEmpty()) {
                     screenManager.disableTouchableLayout();
                     List<Uri> paths=new ArrayList<>();
@@ -246,23 +258,23 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         if(clipData!=null){
             for(int i=0;i<clipData.getItemCount();i++){
                 Uri fileUri=clipData.getItemAt(i).getUri();
-//                try {
-//                    File file=new File(fileUri.toString());
-//                    fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
+                try {
+                    File file=new File(fileUri.toString());
+                    fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 list.add(fileUri);
             }
         }
         else{
             Uri fileUri=result.getData().getData();
-//            try {
-//                File file=new File(fileUri.toString());
-//                fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
-//            }catch(Exception e){
-//                e.printStackTrace();
-//            }
+            try {
+                File file=new File(fileUri.toString());
+                fileUri = FileProvider.getUriForFile(getContext(), AUTHORITY, file);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
             list.add(fileUri);
         }
         uploadSelectedFiles(list);
@@ -471,18 +483,25 @@ public class HomeFragment extends Fragment implements View.OnClickListener, Swip
         activityLifecycleObserver.startUpload(fileItems);
     }
 
-    private void shareSelectedFiles(List<FileItem> fileItems){
+    private void shareSelectedFiles(List<FileItem> fileItems) {
         TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
                 InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
-        dialog.showDialog(getChildFragmentManager(), msg-> homeViewModel.shareFile(fileItems,msg)
-                .addOnCompleteListener( task -> {
-                    homeViewModel.setIsTaskRunning(!task.isComplete());
-                    if(task.isSuccessful()) {
-                        Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show();
-                    }
-                    else
-                        Snackbar.make(binding.getRoot(), R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
-                }));
+        dialog.showDialog(getChildFragmentManager(), msg-> {
+            try {
+                homeViewModel.shareFile(fileItems,msg)
+                        .addOnCompleteListener( task -> {
+                            if(task.isSuccessful()) {
+                                Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show();
+                            }
+                            else {
+                                Snackbar.make(binding.getRoot(),"Either username doesn't exist or some other error occurred", Snackbar.LENGTH_SHORT).show();
+                            }
+                        });
+            } catch (Exception e) {
+                e.printStackTrace();
+                Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private AlertDialog createFileShareDialog(List<FileItem> encryptedFiles,List<FileItem> fileItems){

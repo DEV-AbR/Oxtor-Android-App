@@ -17,6 +17,9 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.functions.HttpsCallableResult;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,13 +81,22 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
     }
 
 
-    public Task<HttpsCallableResult> shareFile(List<FileItem> fileItems, String receiverUsername) {
+    public Task<HttpsCallableResult> shareFile(List<FileItem> fileItems, String receiverUsername) throws Exception {
         setIsTaskRunning(true);
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("fileItems", (new Gson()).toJson(fileItems.toArray()));
-        map.put("usernameOfSender", profileItem.getValue().getUsername());
-        map.put("usernameOfReceiver", receiverUsername);
-        return functionsRepository.shareByEmail(map);
+        JSONObject jsonObject=new JSONObject();
+        jsonObject.put("senderUsername",profileItem.getValue().getUsername());
+        jsonObject.put("receiverUsername",receiverUsername);
+        JSONArray jsonArray=new JSONArray();
+        for (int i = 0; i < fileItems.size(); i++) {
+            jsonArray.put(i,fileItems.get(i));
+        }
+        jsonObject.put("fileItems",jsonArray);
+
+        return functionsRepository.shareByEmail(jsonObject).continueWithTask(task -> {
+            firestoreRepository.logToDB(jsonObject);
+            setIsTaskRunning(!task.isComplete());
+            return task;
+        });
     }
 
     public void checkUsername() {

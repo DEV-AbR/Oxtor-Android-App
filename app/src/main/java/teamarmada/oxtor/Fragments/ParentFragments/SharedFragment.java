@@ -97,7 +97,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
     }
 
     private void initUI(){
-
         switch (sharedPreferences.getInt(SORT_PREFERENCE,1)){
             default:
             case 1:
@@ -110,7 +109,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 query= shareViewModel.queryToSortSharedItemByName();
                 break;
         }
-
         adapter=new RecyclerViewAdapter<>(
                 getLifecycle(),
                 R.layout.list_fileitem,
