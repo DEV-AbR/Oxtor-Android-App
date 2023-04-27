@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.SuccessContinuation;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -73,15 +72,15 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
                 }).addOnCompleteListener(this);
     }
 
-    public void getGoogleSignInAccount(Task<GoogleSignInAccount> googleSignInAccountTask) {
+    public Task<Unit> getGoogleSignInAccount(Task<GoogleSignInAccount> googleSignInAccountTask) {
         setIsTaskRunning(true);
-        googleSignInAccountTask.continueWith(task->{
+        return googleSignInAccountTask.continueWith(task->{
+            setIsTaskRunning(!task.isComplete());
             GoogleSignInAccount gsa=task.getResult();
             AuthCredential authCredential=GoogleAuthProvider.getCredential(gsa.getIdToken(),null);
             signIn(authCredential);
             return Unit.INSTANCE;
-        }).addOnCompleteListener(this);
-
+        });
     }
 
     public FirebaseAuth getAuthInstance(){

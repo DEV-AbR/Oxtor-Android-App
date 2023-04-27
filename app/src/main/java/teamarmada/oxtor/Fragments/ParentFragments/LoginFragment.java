@@ -102,9 +102,11 @@ public class LoginFragment extends Fragment {
         loginViewModel.getUser().observe(getViewLifecycleOwner(),this::updateUI);
         observeLoadingState();
         googleSignIn.setOnClickListener(v -> {
+            loginViewModel.setIsTaskRunning(false);
             initGoogleSignIn();
         });
         phoneSignIn.setOnClickListener(v -> {
+            loginViewModel.setIsTaskRunning(false);
             TextInputDialog textInputDialog = new TextInputDialog(R.string.sign_in_with_phone,getString(R.string.india_country_code),
                     "Enter your no. with Country Code",InputType.TYPE_CLASS_PHONE, getContext());
             textInputDialog.showDialog(getChildFragmentManager(), msg -> {
@@ -117,6 +119,7 @@ public class LoginFragment extends Fragment {
             });
         });
         emailSignIn.setOnClickListener(v -> {
+            loginViewModel.setIsTaskRunning(false);
             TextInputDialog emailDialog=new TextInputDialog(R.string.sign_in_with_email,null,
             "Enter your Email address",InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, getContext());
             emailDialog.showDialog(getChildFragmentManager(), msg -> {
@@ -154,6 +157,7 @@ public class LoginFragment extends Fragment {
                 .build();
         gsi = GoogleSignIn.getClient(requireActivity(), gso);
         googleSignInLauncher.launch(gsi.getSignInIntent());
+        loginViewModel.setIsTaskRunning(true);
     }
 
     private void initPhoneSignIn(){
@@ -209,8 +213,8 @@ public class LoginFragment extends Fragment {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Task<GoogleSignInAccount> task = GoogleSignIn.
                             getSignedInAccountFromIntent(result.getData());
-                    loginViewModel.getGoogleSignInAccount(task);
-                    gsi.signOut();
+                    loginViewModel.getGoogleSignInAccount(task)
+                            .addOnCompleteListener(task1->gsi.signOut());
                 }
             });
 
@@ -288,6 +292,14 @@ public class LoginFragment extends Fragment {
 
     private void observeLoadingState() {
         loginViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(),MainActivity.observer);
+        loginViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(),isRunning->{
+            if(isRunning){
+                binding.progressLogin.setVisibility(View.VISIBLE);
+            }
+            else{
+                binding.progressLogin.setVisibility(View.INVISIBLE);
+            }
+        });
     }
 
     private void updateUI(FirebaseUser user) {
