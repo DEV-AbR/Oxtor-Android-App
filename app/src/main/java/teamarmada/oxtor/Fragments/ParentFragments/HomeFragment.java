@@ -414,7 +414,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             try {
                 homeViewModel.shareFile(fileItems,msg)
                         .addOnSuccessListener( task -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
-                        .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),"Either username doesn't exist or some other error occurred", Snackbar.LENGTH_SHORT).show());
+                        .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(), Snackbar.LENGTH_SHORT).show());
             } catch (Exception e) {
                 e.printStackTrace();
                 Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();

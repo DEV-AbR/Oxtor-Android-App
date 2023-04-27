@@ -86,7 +86,9 @@ public class LoginFragment extends Fragment {
         }
         try {
             sharedPreferences = requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-            navController = NavHostFragment.findNavController(this);
+            NavHostFragment navHostMain = (NavHostFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
+            assert navHostMain !=null;
+            navController = navHostMain.getNavController();
         }catch(Exception e){
             Log.e(TAG, "onCreateView: ",e);
         }
@@ -304,18 +306,8 @@ public class LoginFragment extends Fragment {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-
-            try {
-                navController.navigate(R.id.action_navigation_login_to_navigation_home);
-            }catch (Exception e) {
-                try {
-                    navController.navigate(Uri.parse("https://oxt.page.link/home"));
-                }catch (Exception ex){
-                    Intent intent=new Intent();
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                }
-            }
+            Snackbar.make(binding.getRoot(),"Welcome "+user.getDisplayName(),Snackbar.LENGTH_SHORT).show();
+            navController.navigate(R.id.home_deeplink);
         }
     }
 

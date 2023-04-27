@@ -77,7 +77,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         observeLoadingState();
         initUI();
         try {
-            navController = NavHostFragment.findNavController(this);
+            NavHostFragment navHostMain = (NavHostFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
+            if(navHostMain !=null);
+            navController = navHostMain.getNavController();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -207,7 +209,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         profileViewModel.signOut().addOnCompleteListener(task->{
             if(task.isSuccessful()){
                 Toast.makeText(getContext(), "Come back again to signIn, bye... :-)", Toast.LENGTH_SHORT).show();
-                getActivity().finish();
+                navController.navigate(R.id.login_deeplink);
             }
         });
     }
