@@ -130,6 +130,7 @@ public class ProfileItem {
     }
 
     public Map<String,Object> toMap(){
+        // message token and username are not added here
         Map<String,Object> map=new HashMap<>();
         map.put(UID,getUid());
         map.put(EMAIL,getEmail());
@@ -137,7 +138,6 @@ public class ProfileItem {
         map.put(TIMESTAMP,getTimeStamp());
         map.put(DISPLAY_NAME,getDisplayName());
         map.put(PHONE_NUMBER,getPhoneNumber());
-        map.put(MESSAGING_TOKEN,getMessagingToken());
         map.put(STORAGE_REFERENCE,getStorageReference());
         return map;
     }

@@ -53,10 +53,10 @@ public class FirestoreRepository {
     public Task<Void> createAccount(ProfileItem profileItem){
         DocumentReference documentReference=db.collection(USERS).document(profileItem.getUid());
         return FirebaseMessaging.getInstance().getToken()
-                .onSuccessTask(task-> db.clearPersistence())
                 .onSuccessTask(task->db.runBatch(batch ->
                         batch.update(documentReference,profileItem.toMap())
-                        .update(documentReference,MESSAGING_TOKEN,task)));
+                        .update(documentReference,MESSAGING_TOKEN,task)))
+                .onSuccessTask(task-> db.clearPersistence());
     }
 
     public Task<Void> updateAccount(Map<String,Object> map) throws NullPointerException {
