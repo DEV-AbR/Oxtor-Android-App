@@ -53,7 +53,10 @@ public class FirestoreRepository {
     public Task<Void> createAccount(ProfileItem profileItem){
         DocumentReference documentReference=db.collection(USERS).document(profileItem.getUid());
         return FirebaseMessaging.getInstance().getToken()
-                .onSuccessTask(task-> db.runBatch(batch -> batch.set(documentReference,profileItem).update(documentReference,MESSAGING_TOKEN,task)));
+                .onSuccessTask(task-> db.clearPersistence())
+                .onSuccessTask(task->db.runBatch(batch ->
+                        batch.update(documentReference,profileItem.toMap())
+                        .update(documentReference,MESSAGING_TOKEN,task)));
     }
 
     public Task<Void> updateAccount(Map<String,Object> map) throws NullPointerException {
@@ -162,11 +165,6 @@ public class FirestoreRepository {
                     else bytes=salt.getBytes(StandardCharsets.UTF_8);
                     return bytes;
                 });
-    }
-
-
-    public Task<Void> logToDB(Object object){
-        return db.collection("admin").document().set(object);
     }
 
     public Query sortByTimestamp(ProfileItem profileItem){

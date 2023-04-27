@@ -147,16 +147,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                 "Current Username : " +currentUsername, InputType.TYPE_CLASS_TEXT, requireContext());
         textInputDialog.showDialog(getChildFragmentManager(), msg -> {
             if(textInputDialog.isUsernameValid(msg)){
-                profileViewModel.updateUsername(msg).addOnCompleteListener(task -> {
-                    if(task.isSuccessful()) {
+                profileViewModel.updateUsername(msg).addOnSuccessListener(task -> {
                         profileItem.setUsername(msg);
                         profileViewModel.getProfileItem().postValue(profileItem);
                         binding.username.setText(msg);
                         Toast.makeText(getContext(),R.string.username_updated,Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        Toast.makeText(getContext(), "Some error occurred, Please sign in again", Toast.LENGTH_SHORT).show();
-                    }
                 });
             }
             else

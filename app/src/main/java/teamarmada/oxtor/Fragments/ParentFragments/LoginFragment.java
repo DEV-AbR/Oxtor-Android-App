@@ -288,14 +288,6 @@ public class LoginFragment extends Fragment {
 
     private void observeLoadingState() {
         loginViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(),MainActivity.observer);
-        loginViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(),running->{
-            if(running){
-                fullscreenManager.disableTouchableLayout();
-            }
-            else {
-                fullscreenManager.enableTouchableLayout();
-            }
-        });
     }
 
     private void updateUI(FirebaseUser user) {

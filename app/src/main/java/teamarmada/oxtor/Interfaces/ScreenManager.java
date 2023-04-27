@@ -5,6 +5,4 @@ public interface ScreenManager{
     void disableFullscreen();
     void hideNavigationBar();
     void showNavigationBar();
-    void enableTouchableLayout();
-    void disableTouchableLayout();
 }

@@ -7,6 +7,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProfileItem {
 
@@ -127,5 +129,16 @@ public class ProfileItem {
         this.timeStamp = timestamp;
     }
 
-
+    public Map<String,Object> toMap(){
+        Map<String,Object> map=new HashMap<>();
+        map.put(UID,getUid());
+        map.put(EMAIL,getEmail());
+        map.put(PHOTO_URL,getPhotoUrl());
+        map.put(TIMESTAMP,getTimeStamp());
+        map.put(DISPLAY_NAME,getDisplayName());
+        map.put(PHONE_NUMBER,getPhoneNumber());
+        map.put(MESSAGING_TOKEN,getMessagingToken());
+        map.put(STORAGE_REFERENCE,getStorageReference());
+        return map;
+    }
 }

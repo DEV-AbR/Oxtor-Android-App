@@ -69,8 +69,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     private boolean isDarkModeOn;
     private TaskBottomSheet taskBottomSheet;
     private InAppUpdate inAppUpdate;
-    //private ProgressDialog progressDialog;
-    private ContentLoadingProgressBar loadingProgressBar;
+
+
     private final String[] permissions=new String[]{
                     Manifest.permission.INTERNET,
                     Manifest.permission.ACCESS_NETWORK_STATE,
@@ -99,8 +99,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         binding =ActivityMainBinding.inflate(getLayoutInflater());
         binding.setLifecycleOwner(this);
         setContentView(binding.getRoot());
-        //progressDialog=new ProgressDialog();
-        loadingProgressBar=new ContentLoadingProgressBar(this);
         inAppUpdate=new InAppUpdate(this);
         navView= binding.navView;
         progressIndicator = binding.progressBar;
@@ -312,30 +310,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public void showNavigationBar() {
         navView.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void enableTouchableLayout() {
-        try {
-//            if(progressDialog.isInLayout())
-//                progressDialog.dismiss();
-            loadingProgressBar.hide();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void disableTouchableLayout() {
-        try {
-//            if(!progressDialog.isInLayout())
-//                progressDialog.show(getSupportFragmentManager(),"Loading");
-            loadingProgressBar.show();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
     }
 
     public static String getEncryptionPassword() {

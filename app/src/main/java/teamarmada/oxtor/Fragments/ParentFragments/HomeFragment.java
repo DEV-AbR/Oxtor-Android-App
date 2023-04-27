@@ -198,7 +198,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private final ActivityResultLauncher<String> selectFileLauncher =
             registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), results -> {
                 if (!results.isEmpty()) {
-                    screenManager.disableTouchableLayout();
                     List<Uri> paths=new ArrayList<>();
                     for (int i = 0; i < results.size(); i++) {
                         final File file=new File(String.valueOf(results.get(i)));
@@ -361,13 +360,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void onClickShareButton(List<FileItem> fileItems){
-        screenManager.disableTouchableLayout();
         homeViewModel.fetchUsername()
-                .addOnCompleteListener(task -> {
-                    if(task.isComplete()) {
-                        screenManager.enableTouchableLayout();
-                    }
-                })
                 .addOnSuccessListener(s -> {
                     if(s!=null) {
                         List<FileItem> list=new ArrayList<>();
@@ -406,7 +399,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void uploadSelectedFiles(List<Uri> results){
-        screenManager.enableTouchableLayout();
         List<FileItem> fileItems=new ArrayList<>();
         for(int i=0;i<results.size();i++){
             Uri uri=results.get(i);
@@ -421,14 +413,8 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         dialog.showDialog(getChildFragmentManager(), msg-> {
             try {
                 homeViewModel.shareFile(fileItems,msg)
-                        .addOnCompleteListener( task -> {
-                            if(task.isSuccessful()) {
-                                Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show();
-                            }
-                            else {
-                                Snackbar.make(binding.getRoot(),"Either username doesn't exist or some other error occurred", Snackbar.LENGTH_SHORT).show();
-                            }
-                        });
+                        .addOnSuccessListener( task -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
+                        .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),"Either username doesn't exist or some other error occurred", Snackbar.LENGTH_SHORT).show());
             } catch (Exception e) {
                 e.printStackTrace();
                 Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
