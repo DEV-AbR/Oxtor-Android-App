@@ -209,7 +209,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         profileViewModel.signOut().addOnCompleteListener(task->{
             if(task.isSuccessful()){
                 Toast.makeText(getContext(), "Come back again to signIn, bye... :-)", Toast.LENGTH_SHORT).show();
-                navController.navigate(R.id.login_deeplink);
+                navController.navigate(R.id.action_navigation_profile_to_navigation_login);
             }
         });
     }

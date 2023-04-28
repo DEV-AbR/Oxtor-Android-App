@@ -150,4 +150,8 @@
     <string name="generatenewtoken">Generate New Token</string>
     <string name="unselect_all_item">Unselect All</string>
     <string name="loading">Loading...</string>
+    <string name="update_app">Update App</string>
+    <string name="update_now">Update now</string>
+    <string name="later">Later</string>
+    <string name="dialog_update_available_message">A newer version of Oxtor is available on PlayStore</string>
 </resources>

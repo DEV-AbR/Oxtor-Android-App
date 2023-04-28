@@ -307,7 +307,7 @@ public class LoginFragment extends Fragment {
     private void updateUI(FirebaseUser user) {
         if (user != null) {
             Snackbar.make(binding.getRoot(),"Welcome "+user.getDisplayName(),Snackbar.LENGTH_SHORT).show();
-            navController.navigate(R.id.home_deeplink);
+            navController.navigate(R.id.action_navigation_login_to_navigation_home);
         }
     }
 

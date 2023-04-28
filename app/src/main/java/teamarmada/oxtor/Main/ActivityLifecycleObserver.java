@@ -47,7 +47,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private final List<FileItem> fileItems=new ArrayList<>();
     private int requestCode;
     private AdView adView;
-
+    private AlertDialog alertDialog=null;
     public static ActivityLifecycleObserver getInstance(@NonNull AppCompatActivity activity) {
         if(activityLifecycleObserver ==null)
             activityLifecycleObserver =new ActivityLifecycleObserver(activity);
@@ -58,16 +58,23 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
         this.activity=activity;
         mainViewModel=new ViewModelProvider(activity).get(MainViewModel.class);
-    }
-
-    private AlertDialog createAlertDialogForFileItem(int requestCode,String message){
-        return new MaterialAlertDialogBuilder(activity, R.style.Theme_Oxtor_AlertDialog)
+        alertDialog=new MaterialAlertDialogBuilder(activity, R.style.Theme_Oxtor_AlertDialog)
                 .setTitle("Caution !")
-                .setMessage(message)
+                .setMessage("App is running low on memory")
                 .setCancelable(false)
                 .setPositiveButton("Continue with rest of the items", (dialogInterface,i)-> continueAction(fileItems,requestCode))
                 .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
                 .create();
+    }
+
+    private void showAlertDialogForFileItem(String message) {
+        alertDialog.setMessage(message);
+        try {
+            if (!alertDialog.isShowing())
+                alertDialog.show();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private final Thread thread=new Thread(() -> continueAction(fileItems,requestCode));
@@ -105,9 +112,8 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                 }
                 else{
                     fileItems.remove(fileItem);
-                    createAlertDialogForFileItem(requestCode,
-                            "Can't upload "+fileItem.getFileName()+" right now as the app will run out of memory and crash")
-                            .show();
+                    requestCode=UPLOAD_TASK;
+                    showAlertDialogForFileItem("Can't upload "+fileItem.getFileName()+" right now as the app will run out of memory and crash");
                 }
             }
             else {
@@ -124,9 +130,8 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             }
             else{
                 fileItems.remove(fileItem);
-                createAlertDialogForFileItem(requestCode,
-                        "Can't download "+fileItem.getFileName()+" right now as the app will run out of memory and crash")
-                        .show();
+                requestCode=DOWNLOAD_TASK;
+                showAlertDialogForFileItem("Can't download "+fileItem.getFileName()+" right now as the app will run out of memory and crash");
             }
         }
     }

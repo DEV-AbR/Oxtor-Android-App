@@ -44,6 +44,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 import teamarmada.oxtor.Interfaces.ScreenManager;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.DialogFragment.TaskBottomSheet;
+import teamarmada.oxtor.Utils.ForceUpdate;
 import teamarmada.oxtor.Utils.InAppUpdate;
 import teamarmada.oxtor.ViewModels.MainViewModel;
 import teamarmada.oxtor.databinding.ActivityMainBinding;
@@ -99,7 +100,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         binding =ActivityMainBinding.inflate(getLayoutInflater());
         binding.setLifecycleOwner(this);
         setContentView(binding.getRoot());
-        inAppUpdate=new InAppUpdate(this);
         navView= binding.navView;
         progressIndicator = binding.progressBar;
         setSupportActionBar(binding.toolbar);
@@ -112,6 +112,11 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         navControllerMain.addOnDestinationChangedListener(this);
         if(!checkForPermissions()) 
             askPermission();
+        try{
+            ForceUpdate.getInstance(this).checkForUpdate();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         mainViewModel =new ViewModelProvider(this).get(MainViewModel.class);
         taskBottomSheet=new TaskBottomSheet();
         adViewContainer=binding.adView;

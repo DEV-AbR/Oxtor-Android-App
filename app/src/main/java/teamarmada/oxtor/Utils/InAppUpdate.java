@@ -22,6 +22,7 @@ import com.google.android.play.core.install.InstallStateUpdatedListener;
 import com.google.android.play.core.install.model.InstallStatus;
 import com.google.android.play.core.install.model.UpdateAvailability;
 
+import teamarmada.oxtor.Main.App;
 import teamarmada.oxtor.R;
 
 
@@ -31,14 +32,21 @@ public class InAppUpdate implements InstallStateUpdatedListener, DefaultLifecycl
     private final int MY_REQUEST_CODE = 500;
     private final AppCompatActivity parentActivity;
     private int currentType = FLEXIBLE;
+    private static InAppUpdate inAppUpdate=null;
 
-    public InAppUpdate(AppCompatActivity activity) {
+    public static InAppUpdate getInstance(AppCompatActivity activity) {
+        if(inAppUpdate==null)
+            inAppUpdate=new InAppUpdate(activity);
+        return inAppUpdate;
+    }
+
+    private InAppUpdate(AppCompatActivity activity) {
         parentActivity=activity;
         activity.getLifecycle().addObserver(this);
         appUpdateManager = AppUpdateManagerFactory.create(parentActivity);
         appUpdateManager.getAppUpdateInfo().addOnSuccessListener ( info -> {
             // Check if update is available
-            if (info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) { // UPDATE IS AVAILABLE
+            if (info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
                 if (info.updatePriority() == 5) { // Priority: 5 (Immediate update flow)
                     if (info.isUpdateTypeAllowed(IMMEDIATE)) {
                         startUpdate(info, IMMEDIATE);
@@ -95,8 +103,7 @@ public class InAppUpdate implements InstallStateUpdatedListener, DefaultLifecycl
     }
 
 
-
-    public void onActivityResult(int requestCode, int resultCode, Intent date) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == MY_REQUEST_CODE) {
             if (resultCode != AppCompatActivity.RESULT_OK) {
                 // If the update is cancelled or fails, you can request to start the update again.
