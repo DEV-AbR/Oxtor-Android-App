@@ -91,7 +91,7 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="@string/dynamic_link"/>
+                <data android:scheme="https" android:host="oxt.web.app"/>
                 <data android:scheme="app" android:host="@string/package_name" />
             </intent-filter>
 

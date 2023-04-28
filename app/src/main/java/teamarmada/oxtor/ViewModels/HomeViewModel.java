@@ -76,7 +76,6 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                     return Unit.INSTANCE;
                     })
                 .addOnCompleteListener(executor, this);
-
     }
 
 

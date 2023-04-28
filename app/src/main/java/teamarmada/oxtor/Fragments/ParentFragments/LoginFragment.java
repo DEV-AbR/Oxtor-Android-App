@@ -307,7 +307,12 @@ public class LoginFragment extends Fragment {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
+            try{
             navController.navigate(R.id.action_navigation_login_to_navigation_home);
+            }catch(Exception e){
+                e.printStackTrace();
+                Snackbar.make(binding.getRoot(),"Some error occurred, please restart the app",Snackbar.LENGTH_SHORT).show();
+            }
         }
     }
 
