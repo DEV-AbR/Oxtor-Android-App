@@ -165,6 +165,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     public Task<Unit> signOut() {
         setIsTaskRunning(true);
         return firestoreRepository.removeMessageToken(profileItem.getValue())
+                .continueWithTask(task->firestoreRepository.clearCache())
                 .continueWith(task -> {
                     setIsTaskRunning(!task.isComplete());
                     getAuthInstance().signOut();

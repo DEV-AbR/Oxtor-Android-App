@@ -87,10 +87,9 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
         jsonObject.put("receiverUsername",receiverUsername);
         JSONArray jsonArray=new JSONArray();
         for (int i = 0; i < fileItems.size(); i++) {
-            jsonArray.put(i,fileItems.get(i));
+            jsonArray.put(fileItems.get(i));
         }
         jsonObject.put("fileItems",jsonArray);
-
         return functionsRepository.shareByEmail(jsonObject).continueWithTask(task -> {
             setIsTaskRunning(!task.isComplete());
             return task;

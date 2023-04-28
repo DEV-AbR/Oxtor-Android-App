@@ -25,7 +25,6 @@ public class FileTask<T extends StorageTask> {
     private Callback callback;
     private Context context;
 
-
     public FileTask(FileItem fileItem, T t){
         this.t=t;
         this.fileItem=fileItem;
@@ -146,10 +145,6 @@ public class FileTask<T extends StorageTask> {
         ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
         am.getMemoryInfo(memoryInfo);
         return memoryInfo;
-    }
-
-    private void makeToast(String msg){
-        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show());
     }
 
     public interface Callback{
