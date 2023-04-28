@@ -33,10 +33,11 @@ public class ForceUpdate {
         frc = FirebaseRemoteConfig.getInstance();
     }
 
-    public void checkForUpdate() {
+    public void checkForUpdate() throws Exception {
         String appVersion = getAppVersion();
         String currentVersion = frc.getString("min_version_of_app");
         String minVersion = frc.getString("latest_version_of_app");
+
         if (!TextUtils.isEmpty(minVersion) && !TextUtils.isEmpty(appVersion) && checkMandateVersionApplicable(
                 getAppVersionWithoutAlphaNumeric(minVersion), getAppVersionWithoutAlphaNumeric(appVersion))) {
             onUpdateNeeded(true);
@@ -46,9 +47,9 @@ public class ForceUpdate {
                 !TextUtils.equals(currentVersion, appVersion)) {
             onUpdateNeeded(false);
         }
-        else {
-            moveForward();
-        }
+//        else {
+//            moveForward();
+//        }
     }
 
     private Boolean checkMandateVersionApplicable(String minVersion,String appVersion) {
@@ -78,11 +79,17 @@ public class ForceUpdate {
                 .setMessage(isMandatoryUpdate?
                     activity.getString(R.string.dialog_update_available_message):
                         "A new version is found on Play store, please update for better usage.")
-            .setPositiveButton(R.string.update_now,((dialogInterface, i) -> openAppOnPlayStore()));
+            .setPositiveButton(R.string.update_now,((dialogInterface, i) -> {
+                try{
+                    openAppOnPlayStore();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }));
 
         if (!isMandatoryUpdate) {
             dialogBuilder.setNegativeButton(R.string.later,(dialogInterface, i) -> {
-                moveForward();
+//                moveForward();
                 dialogInterface.dismiss();
             }).create();
         }
@@ -90,20 +97,20 @@ public class ForceUpdate {
         dialog.show();
     }
 
-    private void moveForward() {
-        makeToast("Next Page Intent");
-    }
+//    private void moveForward() {
+//        makeToast("Next Page Intent");
+//    }
 
     private void makeToast(String msg){
         new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
     }
 
-    void openAppOnPlayStore() {
+    void openAppOnPlayStore() throws Exception {
         Uri uri = Uri.parse("market://details?id=teamarmada.oxtor");
         openURI(activity, uri, "Play Store not found in your device");
     }
 
-    void openURI(Context ctx, Uri uri,String error_msg) {
+    void openURI(Context ctx, Uri uri,String error_msg) throws Exception {
         Intent i =new Intent(Intent.ACTION_VIEW, uri);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);

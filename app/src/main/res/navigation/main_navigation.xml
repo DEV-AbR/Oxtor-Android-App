@@ -18,12 +18,13 @@
         android:name="teamarmada.oxtor.Fragments.ParentFragments.ProfileFragment"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" >
-
-
         <action
             android:id="@+id/action_navigation_profile_to_navigation_login"
-            app:destination="@id/navigation_login" />
+            app:destination="@id/navigation_login"
+            app:popUpToInclusive="true"
+            app:popUpTo="@navigation/main_navigation"/>
     </fragment>
+
     <fragment
         android:id="@+id/navigation_login"
         android:name="teamarmada.oxtor.Fragments.ParentFragments.LoginFragment"
@@ -32,10 +33,10 @@
 
         <action
             android:id="@+id/action_navigation_login_to_navigation_home"
-            app:destination="@id/navigation_home"/>
-<!--            app:popUpTo="@id/navigation_home"-->
-<!--            app:popUpToInclusive="true" -->
-<!--            />-->
+            app:destination="@id/navigation_home"
+            app:popUpToInclusive="true"
+            app:popUpTo="@navigation/main_navigation"
+            />
 
 
     </fragment>

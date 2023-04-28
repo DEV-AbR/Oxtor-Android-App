@@ -29,7 +29,6 @@ import teamarmada.oxtor.Repository.FirestoreRepository;
 public class ShareViewModel extends ViewModel implements OnCompleteListener<HttpsCallableResult> {
     public static final String TAG=ShareViewModel.class.getSimpleName();
     private final FirestoreRepository firestoreRepository;
-    private final AuthRepository authRepository;
     private final MutableLiveData<Boolean> isTaskRunning;
     private final MutableLiveData<ProfileItem> profileItem;
     private final Executor executor= Executors.newCachedThreadPool();
@@ -37,34 +36,34 @@ public class ShareViewModel extends ViewModel implements OnCompleteListener<Http
     @Inject
     public ShareViewModel() {
         this.firestoreRepository = FirestoreRepository.getInstance();
-        this.authRepository = new AuthRepository();
+        AuthRepository authRepository = new AuthRepository();
         this.profileItem=new MutableLiveData<>(authRepository.getProfileItem());
         isTaskRunning = new MutableLiveData<>(false);
     }
 
-    public void deleteExpiredPosts(){
-        Calendar c=Calendar.getInstance();
-        firestoreRepository.sortSharedPostByTimestamp(authRepository.getProfileItem())
-                .get().addOnCompleteListener(task->{
-                    if(task.isSuccessful())
-                        task.getResult().getDocuments()
-                                .forEach(documentSnapshot -> {
-                                    Date exp=documentSnapshot.get("expiryDate",Date.class);
-                                    Log.d(TAG, "deleteExpiredPosts: "+exp);
-                                     if(documentSnapshot.get("readable",Boolean.class)
-                                             &&
-                                        documentSnapshot.get("emailOfReceiver",String.class)
-                                                .equals(authRepository.getProfileItem().getEmail())
-                                            &&
-                                        documentSnapshot.get("expiryDate",Date.class)
-                                                .compareTo(c.getTime())<0) {
-                                         SharedItem sharedItem=new SharedItem();
-                                         sharedItem.setUid(documentSnapshot.get("uid",String.class));
-                                         deleteSharedPosts(sharedItem);
-                                     }
-                                });
-                });
-    }
+//    public void deleteExpiredPosts(){
+//        Calendar c=Calendar.getInstance();
+//        firestoreRepository.sortSharedPostByTimestamp(authRepository.getProfileItem())
+//                .get().addOnCompleteListener(task->{
+//                    if(task.isSuccessful())
+//                        task.getResult().getDocuments()
+//                                .forEach(documentSnapshot -> {
+//                                    Date exp=documentSnapshot.get("expiryDate",Date.class);
+//                                    Log.d(TAG, "deleteExpiredPosts: "+exp);
+//                                     if(documentSnapshot.get("readable",Boolean.class)
+//                                             &&
+//                                        documentSnapshot.get("emailOfReceiver",String.class)
+//                                                .equals(authRepository.getProfileItem().getEmail())
+//                                            &&
+//                                        documentSnapshot.get("expiryDate",Date.class)
+//                                                .compareTo(c.getTime())<0) {
+//                                         SharedItem sharedItem=new SharedItem();
+//                                         sharedItem.setUid(documentSnapshot.get("uid",String.class));
+//                                         deleteSharedPosts(sharedItem);
+//                                     }
+//                                });
+//                });
+//    }
 
     public void deleteSharedPosts(SharedItem item) {
         setIsTaskRunning(true);

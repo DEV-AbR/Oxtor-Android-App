@@ -43,7 +43,6 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
     public static final String TAG = HomeViewModel.class.getSimpleName();
     private final FirestoreRepository firestoreRepository;
     private final StorageRepository storageRepository;
-    private final AuthRepository authRepository;
     private final FunctionsRepository functionsRepository;
     private final MutableLiveData<Boolean> isTaskRunning;
     private final Executor executor = Executors.newCachedThreadPool();
@@ -55,7 +54,7 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
         this.storageRepository = StorageRepository.getInstance();
         this.firestoreRepository = FirestoreRepository.getInstance();
         this.functionsRepository = FunctionsRepository.getInstance();
-        this.authRepository = new AuthRepository();
+        AuthRepository authRepository = new AuthRepository();
         isTaskRunning = new MutableLiveData<>(false);
         profileItem=new MutableLiveData<>(authRepository.getProfileItem());
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);

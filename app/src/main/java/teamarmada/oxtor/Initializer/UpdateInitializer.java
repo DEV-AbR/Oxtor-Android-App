@@ -42,6 +42,6 @@ public class UpdateInitializer implements Initializer<Unit> {
     @NonNull
     @Override
     public List<Class<? extends Initializer<?>>> dependencies() {
-        return Collections.singletonList(MobileAdsInitializer.class);
+        return Collections.singletonList(AppCheckInitializer.class);
     }
 }
