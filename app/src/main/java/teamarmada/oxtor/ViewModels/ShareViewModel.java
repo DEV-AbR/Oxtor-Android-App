@@ -89,9 +89,7 @@ public class ShareViewModel extends ViewModel implements OnCompleteListener<Http
 
     @Override
     public void onComplete(@NonNull Task<HttpsCallableResult> task) {
-        isTaskRunning.postValue(!task.isComplete());
-        if(!task.isSuccessful())
-            task.getException().printStackTrace();
+        setIsTaskRunning(!task.isComplete());
     }
 
     public Query queryToSortSharedItemByTimestamp() {

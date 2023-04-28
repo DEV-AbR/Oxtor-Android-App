@@ -191,8 +191,6 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
    @Override
    public void onComplete(@NonNull Task<Unit> task) {
         setIsTaskRunning(!task.isComplete());
-        if(!task.isSuccessful())
-            task.getException().printStackTrace();
    }
 
    
