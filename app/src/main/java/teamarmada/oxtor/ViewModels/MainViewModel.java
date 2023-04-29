@@ -79,19 +79,29 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         usedSpace = new MutableLiveData<>(sharedPreferences.getLong(USED_SPACE, 0L));
     }
-
+    
+    public LiveData<ProfileItem> getProfileItem() {
+        if(getProfileItem().getValue()==null)
+            try {
+                profileItem.setValue(authRepository.getProfileItem());
+            }catch (Exception e){
+                profileItem.postValue(authRepository.getProfileItem());
+            }
+        return profileItem;
+    }
+    
     public Task<Unit> uploadFile(Context context,FileItem item) throws Exception {
         setIsTaskRunning(true);
-        InputStream inputStream= FileItemUtils.uploadInputStream(item,profileItem.getValue(), context);
-        FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item, inputStream, profileItem.getValue());
+        InputStream inputStream= FileItemUtils.uploadInputStream(item,getProfileItem().getValue(), context);
+        FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item, inputStream, getProfileItem().getValue());
         addUploadItem(uploadTaskFileTask);
         return uploadTaskFileTask.getTask()
                 .continueWithTask(executor,task->{
                     if(task.isComplete())
                         inputStream.close();
-                    return storageRepository.getDownloadUrl(item, profileItem.getValue());
+                    return storageRepository.getDownloadUrl(item, getProfileItem().getValue());
                 })
-                .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(profileItem.getValue()))
+                .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
                 .continueWith(executor, task -> {
                     setIsTaskRunning(!task.isComplete());
                     sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
@@ -102,12 +112,12 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     public Task<Unit> uploadByteArray(Context context, FileItem item) throws Exception {
         setIsTaskRunning(true);
         FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item,
-                FileItemUtils.readIntoByteArray(item, profileItem.getValue(), context),
-                profileItem.getValue());
+                FileItemUtils.readIntoByteArray(item, getProfileItem().getValue(), context),
+                getProfileItem().getValue());
         addUploadItem(uploadTaskFileTask);
         return uploadTaskFileTask.getTask()
-                .continueWithTask(executor,task-> storageRepository.getDownloadUrl(item, profileItem.getValue()))
-                .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(profileItem.getValue()))
+                .continueWithTask(executor,task-> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
+                .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
                 .continueWith(executor, task -> {
                     setIsTaskRunning(!task.isComplete());
                     sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
@@ -123,7 +133,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         return fileTask.getTask()
                 .continueWith(executor,task ->{
                     InputStream inputStream=task.getResult().getStream();
-                    inputStream= FileItemUtils.downloadInputStream(fileItem, profileItem.getValue(), inputStream);
+                    inputStream= FileItemUtils.downloadInputStream(fileItem, getProfileItem().getValue(), inputStream);
                     OutputStream outputStream=context.getContentResolver().openOutputStream(Uri.fromFile(output));
                     byte[] bytes=new byte[fileItem.getFileSize().intValue()];
                     int read;

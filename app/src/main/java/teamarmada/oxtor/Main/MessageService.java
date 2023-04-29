@@ -34,7 +34,6 @@ public class MessageService extends FirebaseMessagingService implements OnComple
         authRepository.getAuth().addAuthStateListener(this);
     }
 
-
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
         if(firebaseAuth.getCurrentUser()==null){
@@ -53,20 +52,18 @@ public class MessageService extends FirebaseMessagingService implements OnComple
 
     @Override
     public void onComplete(@NonNull Task<Void> task) {
+
     }
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-
         if (remoteMessage.getNotification() != null) {
             NotificationWorker.setRemoteMessage(remoteMessage);
             scheduleJob();
         }
     }
 
-
     private void scheduleJob() {
-        // [START dispatch_job]
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
@@ -76,9 +73,6 @@ public class MessageService extends FirebaseMessagingService implements OnComple
                 .setConstraints(constraints)
                 .build();
         WorkManager.getInstance(this).beginWith(work).enqueue();
-        // [END dispatch_job]
     }
-
-
 
 }

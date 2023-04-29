@@ -66,7 +66,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
 
     public void checkUsername(){
         setIsTaskRunning(true);
-        firestoreRepository.fetchUsername(profileItem.getValue())
+        firestoreRepository.fetchUsername(getProfileItem().getValue())
                 .continueWith(executor,task -> {
                     final ProfileItem profileItem=getProfileItem().getValue();
                     profileItem.setUsername(task.getResult());
@@ -86,19 +86,25 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     public void updateEncryptionSetting(boolean b1) {
         sharedPreferences.edit().putBoolean(TO_ENCRYPT,b1).apply();
     }
-    
+
     public MutableLiveData<ProfileItem> getProfileItem() {
+        if(profileItem.getValue()==null)
+            try {
+                profileItem.setValue(authRepository.getProfileItem());
+            }catch (Exception e){
+                profileItem.postValue(authRepository.getProfileItem());
+            }
         return profileItem;
     }
 
     public void fetchUsedSpace(){
-        firestoreRepository.fetchUsedSpace(profileItem.getValue())
+        firestoreRepository.fetchUsedSpace(getProfileItem().getValue())
                 .addOnSuccessListener(aLong -> sharedPreferences.edit().putLong(USED_SPACE,aLong).apply());
     }
 
     private void uploadDisplayPicture(FileItem fileItem,byte[] bytes) {
         setIsTaskRunning(true);
-        storageRepository.UploadFile(fileItem,bytes ,profileItem.getValue())
+        storageRepository.UploadFile(fileItem,bytes ,getProfileItem().getValue())
                 .getTask()
                 .onSuccessTask(executor, task -> {
                     String s=task.getMetadata().getReference().toString();
@@ -120,7 +126,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     }
 
     public void updateDisplayPicture(FileItem fileItem,byte[] bytes) {
-        String s= profileItem.getValue().getPhotoUrl();
+        String s= getProfileItem().getValue().getPhotoUrl();
         boolean b=s.contains("https://firebasestorage.googleapis.com");
         Log.d(TAG, "updateDisplayPicture: picture found in bucket : "+b);
         if(b) {

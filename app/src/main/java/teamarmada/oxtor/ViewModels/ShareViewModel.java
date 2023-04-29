@@ -29,6 +29,7 @@ import teamarmada.oxtor.Repository.FirestoreRepository;
 public class ShareViewModel extends ViewModel implements OnCompleteListener<HttpsCallableResult> {
     public static final String TAG=ShareViewModel.class.getSimpleName();
     private final FirestoreRepository firestoreRepository;
+    private final AuthRepository authRepository;
     private final MutableLiveData<Boolean> isTaskRunning;
     private final MutableLiveData<ProfileItem> profileItem;
     private final Executor executor= Executors.newCachedThreadPool();
@@ -36,7 +37,7 @@ public class ShareViewModel extends ViewModel implements OnCompleteListener<Http
     @Inject
     public ShareViewModel() {
         this.firestoreRepository = FirestoreRepository.getInstance();
-        AuthRepository authRepository = new AuthRepository();
+        authRepository = new AuthRepository();
         this.profileItem=new MutableLiveData<>(authRepository.getProfileItem());
         isTaskRunning = new MutableLiveData<>(false);
     }
@@ -75,6 +76,12 @@ public class ShareViewModel extends ViewModel implements OnCompleteListener<Http
     }
 
     public LiveData<ProfileItem> getProfileItem() {
+        if(profileItem.getValue()==null)
+            try {
+                profileItem.setValue(authRepository.getProfileItem());
+            }catch (Exception e){
+                profileItem.postValue(authRepository.getProfileItem());
+            }
         return profileItem;
     }
 
