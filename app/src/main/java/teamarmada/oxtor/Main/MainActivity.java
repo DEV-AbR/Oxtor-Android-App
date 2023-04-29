@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     private boolean isDarkModeOn;
     private TaskBottomSheet taskBottomSheet;
     private InAppUpdate inAppUpdate;
-
+    private ProgressDialog progressDialog;
 
     private final String[] permissions=new String[]{
                     Manifest.permission.INTERNET,
@@ -108,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         adViewContainer=binding.adView;
         inAppUpdate=InAppUpdate.getInstance(this);
         taskBottomSheet=new TaskBottomSheet();
+        progressDialog= new progress();
         mainViewModel =new ViewModelProvider(this).get(MainViewModel.class);
         NavHostFragment navHostMain = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
         assert navHostMain !=null;
@@ -297,6 +298,27 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public void showNavigationBar() {
         navView.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void showProgressDialog (){
+        try{
+            if(!progressDialog.isAdded())
+                progressDialog
+.show(getSupportFragmentManager(),"Loading");
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void hideProgressDialog (){
+        try{
+            if(progressDialog.isAdded())
+            progressDialog.dismiss()
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     public static String getEncryptionPassword() {
