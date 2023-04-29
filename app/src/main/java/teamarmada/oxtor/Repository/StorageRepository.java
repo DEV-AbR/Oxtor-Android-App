@@ -4,13 +4,11 @@ import static teamarmada.oxtor.Model.FileItem.ENCRYPTED;
 import static teamarmada.oxtor.Model.FileItem.FILENAME;
 import static teamarmada.oxtor.Model.FileItem.UID;
 
-import android.util.Log;
-
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
@@ -105,11 +103,10 @@ public class StorageRepository  {
         return new FileTask<>(fileItem,task);
     }
 
-    public void abortAllTasks() {
-        try {
-            storage.getReference().getActiveUploadTasks().forEach(StorageTask::cancel);
-            storage.getReference().getActiveDownloadTasks().forEach(StorageTask::cancel);
-        }catch (Exception ignored){}
+    public Task<Void> abortAllTasks() {
+        Task<Void> downloadTasks= Tasks.whenAll(storage.getReference().getActiveDownloadTasks());
+        Task<Void> uploadTasks=Tasks.whenAll(storage.getReference().getActiveUploadTasks());
+        return Tasks.whenAll(uploadTasks,downloadTasks);
     }
 
 }

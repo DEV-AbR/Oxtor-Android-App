@@ -118,11 +118,9 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 itemCallback);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(),
                 RecyclerView.VERTICAL, false));
-
         itemBottomSheet =new ItemBottomSheet(R.layout.fragment_bottomsheet_item);
         recyclerView.setAdapter(adapter);
     }
-
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
             new ItemBottomSheet.BottomSheetCallback() {

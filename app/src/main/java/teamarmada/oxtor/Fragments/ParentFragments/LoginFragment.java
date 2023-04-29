@@ -34,6 +34,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
@@ -146,7 +147,7 @@ public class LoginFragment extends Fragment {
             if(intent.getData()!=null)
                 signInFromIntent(intent);
             else
-                loginViewModel.checkPendingSignIn();
+                Tasks.await(loginViewModel.checkPendingSignIn());
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -311,7 +312,7 @@ public class LoginFragment extends Fragment {
             navController.navigate(R.id.action_navigation_login_to_navigation_home);
             }catch(Exception e){
                 e.printStackTrace();
-                Snackbar.make(binding.getRoot(),"Some error occurred, please restart the app",Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(binding.getRoot(),"Some error occurred, Please restart the app",Snackbar.LENGTH_SHORT).show();
             }
         }
     }

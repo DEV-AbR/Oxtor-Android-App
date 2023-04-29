@@ -27,9 +27,7 @@ public class SharedItem {
     @ServerTimestamp
     private Date timeStamp;
 
-    public SharedItem(){
-
-    }
+    public SharedItem(){}
 
     public SharedItem(DocumentSnapshot documentSnapshot) {
         emailOfSender = documentSnapshot.getString("emailOfSender");
@@ -40,14 +38,18 @@ public class SharedItem {
         phoneNumberOfReceiver = documentSnapshot.getString("phoneNumberOfReceiver");
         uid = documentSnapshot.getString(UID);
         timeStamp = documentSnapshot.getDate(TIMESTAMP);
-        try {
-            JSONObject jsonObject=documentSnapshot.get("fileItem", JSONObject.class);
-            fileItem=new FileItem(jsonObject);
-        }catch (Exception e){
-            fileItem = documentSnapshot.get("fileItem", FileItem.class);
-        }
+        fileItem=parseFileItem(documentSnapshot);
     }
 
+    private FileItem parseFileItem(DocumentSnapshot documentSnapshot){
+        try {
+            String s=documentSnapshot.get("fileItem", String.class);
+            Gson gson=new Gson();
+            return gson.fromJson(s,FileItem.class);
+        }catch (Exception e) {
+            return null;
+        }
+    }
 
     public String getUsernameOfSender() {
         return usernameOfSender;

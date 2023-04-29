@@ -84,7 +84,6 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
         this.itemLayoutID=itemLayoutID;
         this.enableSelection=enableSelection;
         setHasStableIds(true);
-
     }
 
     public List<T> getSelectedItems() {

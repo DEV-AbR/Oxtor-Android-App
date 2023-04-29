@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.functions.HttpsCallableResult;
 
@@ -155,9 +156,13 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
 
     public Task<Unit> deleteAccount(){
         setIsTaskRunning(true);
-        return authRepository.getUser()
-                .delete()
-                .continueWith(task->Unit.INSTANCE);
+        return authRepository.getUser().delete()
+                .continueWithTask(task->storageRepository.deleteAllFiles(getProfileItem().getValue()))
+                .continueWithTask(task->firestoreRepository.deleteAccount(getProfileItem().getValue()))
+                .continueWith(task->{
+                    setIsTaskRunning(!task.isComplete());
+                    return Unit.INSTANCE;
+                });
     }
 
     public Task<Unit> signOut() {
@@ -184,7 +189,11 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     }
 
     public void abortAllTasks() {
-        storageRepository.abortAllTasks();
+        try {
+            Tasks.await(storageRepository.abortAllTasks());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
    @Override

@@ -41,7 +41,6 @@ public class ProfileItem {
         this.phoneNumber = documentSnapshot.getString(PHONE_NUMBER);
         this.messagingToken = documentSnapshot.getString(MESSAGING_TOKEN);
         this.storageReference = documentSnapshot.getString(STORAGE_REFERENCE);
-
     }
 
     public ProfileItem(FirebaseUser user){

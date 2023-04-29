@@ -103,23 +103,19 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
         addMenuProvider(this,this);
-
         navView= binding.navView;
         progressIndicator = binding.progressBar;
         adViewContainer=binding.adView;
         inAppUpdate=InAppUpdate.getInstance(this);
         taskBottomSheet=new TaskBottomSheet();
         mainViewModel =new ViewModelProvider(this).get(MainViewModel.class);
-
         NavHostFragment navHostMain = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
         assert navHostMain !=null;
         navControllerMain = navHostMain.getNavController();
         navControllerMain.setLifecycleOwner(this);
         NavigationUI.setupWithNavController(navView, navControllerMain);
         navControllerMain.addOnDestinationChangedListener(this);
-
         if(!checkForPermissions()) askPermission();
-
     }
 
     @Override
@@ -143,8 +139,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     private void observeUploadTasks(){
         mainViewModel.mutableUploadList.observe(this, fileTaskItems -> {
             fileTaskItems.forEach(fileItemTask->
-                    fileItemTask.getTask()
-                            .addOnCompleteListener(task -> mainViewModel.removeUploadItem(fileItemTask)));
+                    fileItemTask.getTask().addOnCompleteListener(task -> mainViewModel.removeUploadItem(fileItemTask)));
             whenListIsEmpty(mainViewModel.mutableUploadList.getValue().isEmpty(), v -> {
                 if(!taskBottomSheet.isInLayout()) {
                     taskBottomSheet.setTab(0);

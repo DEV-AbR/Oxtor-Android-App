@@ -8,11 +8,13 @@ import androidx.lifecycle.ViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.storage.FileDownloadTask;
 
 import javax.inject.Inject;
 
@@ -35,9 +37,9 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
         user=new MutableLiveData<>(authRepository.getUser());
     }
 
-    public void signIn(AuthCredential credential){
+    public Task<Unit> signIn(AuthCredential credential){
         setIsTaskRunning(true);
-        authRepository.signIn(credential)
+        return authRepository.signIn(credential)
                 .continueWith(task->{
                     setIsTaskRunning(!task.isComplete());
                     if(task.isSuccessful()) {
@@ -48,28 +50,22 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
                         }
                     }
                     return Unit.INSTANCE;
-                }).addOnCompleteListener(this);
+                });
     }
 
-    public void checkPendingSignIn() {
+    public Task<Unit> checkPendingSignIn() {
         Task<AuthResult> authResultTask = authRepository.getAuth().getPendingAuthResult();
         if (authResultTask != null) {
             setIsTaskRunning(true);
-            authResultTask.continueWith(task -> {
+            return authResultTask.continueWithTask(task -> {
                 if(task.isSuccessful())
-                    signIn(task.getResult().getCredential());
-                return Unit.INSTANCE;
-            }).addOnCompleteListener(this);
+                    return signIn(task.getResult().getCredential());
+                else
+                    return Tasks.forResult(Unit.INSTANCE);
+            });
         }
-    }
-
-    public void signInWithEmail(String email,String link){
-        setIsTaskRunning(true);
-        getAuthInstance().signInWithEmailLink(email,link)
-                .continueWith(task -> {
-                    signIn(task.getResult().getCredential());
-                    return Unit.INSTANCE;
-                }).addOnCompleteListener(this);
+        else
+            return Tasks.forException(new Exception("No pending sign in session found"));
     }
 
     public Task<Unit> getGoogleSignInAccount(Task<GoogleSignInAccount> googleSignInAccountTask) {
@@ -81,6 +77,15 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
             signIn(authCredential);
             return Unit.INSTANCE;
         });
+    }
+
+    public void signInWithEmail(String email,String link){
+        setIsTaskRunning(true);
+        getAuthInstance().signInWithEmailLink(email,link)
+                .continueWith(task -> {
+                    signIn(task.getResult().getCredential());
+                    return Unit.INSTANCE;
+                }).addOnCompleteListener(this);
     }
 
     public FirebaseAuth getAuthInstance(){

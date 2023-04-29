@@ -136,12 +136,6 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
     }
 
     public LiveData<ProfileItem> getProfileItem() {
-        if(profileItem.getValue()==null)
-            try {
-                profileItem.setValue(authRepository.getProfileItem());
-            }catch (Exception e){
-                profileItem.postValue(authRepository.getProfileItem());
-            }
         return profileItem;
     }
 

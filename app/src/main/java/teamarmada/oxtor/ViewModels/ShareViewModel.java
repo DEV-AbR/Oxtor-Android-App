@@ -76,12 +76,6 @@ public class ShareViewModel extends ViewModel implements OnCompleteListener<Http
     }
 
     public LiveData<ProfileItem> getProfileItem() {
-        if(profileItem.getValue()==null)
-            try {
-                profileItem.setValue(authRepository.getProfileItem());
-            }catch (Exception e){
-                profileItem.postValue(authRepository.getProfileItem());
-            }
         return profileItem;
     }
 

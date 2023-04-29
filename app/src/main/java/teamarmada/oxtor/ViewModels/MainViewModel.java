@@ -81,12 +81,6 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     }
     
     public LiveData<ProfileItem> getProfileItem() {
-        if(getProfileItem().getValue()==null)
-            try {
-                profileItem.setValue(authRepository.getProfileItem());
-            }catch (Exception e){
-                profileItem.postValue(authRepository.getProfileItem());
-            }
         return profileItem;
     }
     
@@ -241,14 +235,9 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         }
     }
 
-    public FirebaseAuth getAuthInstance(){
-        return authRepository.getAuth();
-    }
-
     @Override
     public void onComplete(@NonNull Task<Unit> task) {
         setIsTaskRunning(!task.isComplete());
     }
-
 
 }

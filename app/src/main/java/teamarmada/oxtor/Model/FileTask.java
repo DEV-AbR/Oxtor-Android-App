@@ -4,10 +4,6 @@ import static android.content.Context.ACTIVITY_SERVICE;
 
 import android.app.ActivityManager;
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -22,8 +18,8 @@ public class FileTask<T extends StorageTask> {
     public static final String TAG= FileTask.class.getSimpleName();
     private final FileItem fileItem;
     private final T t;
-    private Callback callback;
-    private Context context;
+    //private Callback callback;
+    //private Context context;
 
     public FileTask(FileItem fileItem, T t){
         this.t=t;
@@ -37,121 +33,117 @@ public class FileTask<T extends StorageTask> {
     public T getTask() {
         return t;
     }
-
-
-
-    public void beginTask(Context context, Callback callback){
-        this.context=context;
-        this.callback=callback;
-
-        if(t instanceof UploadTask){
-            UploadTask uploadTask=(UploadTask) t;
-            bindUploadTask(uploadTask);
-        }
-        if(t instanceof FileDownloadTask){
-            FileDownloadTask fileDownloadTask=(FileDownloadTask) t;
-            bindDownloadTask(fileDownloadTask);
-        }
-        if(t instanceof StreamDownloadTask){
-            StreamDownloadTask streamDownloadTask=(StreamDownloadTask) t;
-            bindStreamDownload(streamDownloadTask);
-        }
-    }
-
-    public boolean pause() {
-       try {
-           return t.pause();
-       }catch (Exception e){
-           e.printStackTrace();
-           return false;
-       }
-    }
-
-    public boolean resume(){
-        try{
-            return t.resume();
-        }catch (Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean cancel(){
-        try{
-            return t.cancel();
-        }catch (Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private void bindUploadTask(UploadTask uploadTask){
-        uploadTask
-                .addOnProgressListener(snapshot -> {
-                    if(uploadTask.isInProgress()) {
-                        if(getAvailableMemory(context).lowMemory){
-                            pause();
-                        }else{
-                            resume();
-                            double d=(100.0*snapshot.getBytesTransferred())/fileItem.getFileSize();
-                            callback.onTaskProgress((int) d);
-                        }
-                }
-                })
-                .addOnCanceledListener(()->callback.onTaskCancel())
-                .addOnSuccessListener(snapshot->callback.onTaskSuccess())
-                .addOnFailureListener(callback::onTaskFailed);
-    }
-
-    private void bindDownloadTask(FileDownloadTask fileDownloadTask){
-        fileDownloadTask
-                .addOnProgressListener(snapshot -> {
-                    if(fileDownloadTask.isInProgress()) {
-                        if(getAvailableMemory(context).lowMemory){
-                            pause();
-                        }else{
-                            resume();
-                            double d=(100.0*snapshot.getBytesTransferred())/fileItem.getFileSize();
-                            callback.onTaskProgress((int) d);
-                        }
-                    }
-                })
-                .addOnCanceledListener(()->callback.onTaskCancel())
-                .addOnSuccessListener(snapshot->callback.onTaskSuccess())
-                .addOnFailureListener(callback::onTaskFailed);
-    }
-
-    private void bindStreamDownload(StreamDownloadTask streamDownloadTask){
-        streamDownloadTask
-                .addOnProgressListener(snapshot ->{
-                    if(streamDownloadTask.isInProgress()) {
-                        if(getAvailableMemory(context).lowMemory){
-                            pause();
-                        }else{
-                            resume();
-                            double d=(100.0*snapshot.getBytesTransferred())/fileItem.getFileSize();
-                            callback.onTaskProgress((int) d);
-                        }
-
-                    }
-                })
-                .addOnCanceledListener(()->callback.onTaskCancel())
-                .addOnSuccessListener(snapshot->callback.onTaskSuccess())
-                .addOnFailureListener(callback::onTaskFailed);
-    }
-
-    private ActivityManager.MemoryInfo getAvailableMemory(Context context) {
-        ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
-        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-        am.getMemoryInfo(memoryInfo);
-        return memoryInfo;
-    }
-
-    public interface Callback{
-        void onTaskProgress(int progress);
-        void onTaskSuccess();
-        void onTaskCancel();
-        void onTaskFailed(@Nullable Exception ex);
-    }
+//
+//    public void beginTask(Context context, Callback callback){
+//        this.context=context;
+//        this.callback=callback;
+//
+//        if(t instanceof UploadTask){
+//            UploadTask uploadTask=(UploadTask) t;
+//            bindUploadTask(uploadTask);
+//        }
+//        if(t instanceof FileDownloadTask){
+//            FileDownloadTask fileDownloadTask=(FileDownloadTask) t;
+//            bindDownloadTask(fileDownloadTask);
+//        }
+//        if(t instanceof StreamDownloadTask){
+//            StreamDownloadTask streamDownloadTask=(StreamDownloadTask) t;
+//            bindStreamDownload(streamDownloadTask);
+//        }
+//    }
+//
+//    public void pause() {
+//       try {
+//           t.pause();
+//       }catch (Exception e){
+//           e.printStackTrace();
+//       }
+//    }
+//
+//    public void resume(){
+//        try{
+//            t.resume();
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    public boolean cancel(){
+//        try{
+//            return t.cancel();
+//        }catch (Exception e){
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
+//
+//    private void bindUploadTask(UploadTask uploadTask){
+//        uploadTask
+//                .addOnProgressListener(snapshot -> {
+//                    if(uploadTask.isInProgress()) {
+//                        if(getAvailableMemory(context).lowMemory){
+//                            pause();
+//                        }else{
+//                            resume();
+//                            double d=(100.0*snapshot.getBytesTransferred())/fileItem.getFileSize();
+//                            callback.onTaskProgress((int) d);
+//                        }
+//                }
+//                })
+//                .addOnCanceledListener(()->callback.onTaskCancel())
+//                .addOnSuccessListener(snapshot->callback.onTaskSuccess())
+//                .addOnFailureListener(callback::onTaskFailed);
+//    }
+//
+//    private void bindDownloadTask(FileDownloadTask fileDownloadTask){
+//        fileDownloadTask
+//                .addOnProgressListener(snapshot -> {
+//                    if(fileDownloadTask.isInProgress()) {
+//                        if(getAvailableMemory(context).lowMemory){
+//                            pause();
+//                        }else{
+//                            resume();
+//                            double d=(100.0*snapshot.getBytesTransferred())/fileItem.getFileSize();
+//                            callback.onTaskProgress((int) d);
+//                        }
+//                    }
+//                })
+//                .addOnCanceledListener(()->callback.onTaskCancel())
+//                .addOnSuccessListener(snapshot->callback.onTaskSuccess())
+//                .addOnFailureListener(callback::onTaskFailed);
+//    }
+//
+//    private void bindStreamDownload(StreamDownloadTask streamDownloadTask){
+//        streamDownloadTask
+//                .addOnProgressListener(snapshot ->{
+//                    if(streamDownloadTask.isInProgress()) {
+//                        if(getAvailableMemory(context).lowMemory){
+//                            pause();
+//                        }else{
+//                            resume();
+//                            double d=(100.0*snapshot.getBytesTransferred())/fileItem.getFileSize();
+//                            callback.onTaskProgress((int) d);
+//                        }
+//
+//                    }
+//                })
+//                .addOnCanceledListener(()->callback.onTaskCancel())
+//                .addOnSuccessListener(snapshot->callback.onTaskSuccess())
+//                .addOnFailureListener(callback::onTaskFailed);
+//    }
+//
+//    private ActivityManager.MemoryInfo getAvailableMemory(Context context) {
+//        ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
+//        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+//        am.getMemoryInfo(memoryInfo);
+//        return memoryInfo;
+//    }
+//
+//    public interface Callback{
+//        void onTaskProgress(int progress);
+//        void onTaskSuccess();
+//        void onTaskCancel();
+//        void onTaskFailed(@Nullable Exception ex);
+//    }
 
 }
