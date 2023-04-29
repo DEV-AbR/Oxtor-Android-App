@@ -5,4 +5,6 @@ public interface ScreenManager{
     void disableFullscreen();
     void hideNavigationBar();
     void showNavigationBar();
+    void showProgressDialog();
+    void hideProgressDialog();
 }
