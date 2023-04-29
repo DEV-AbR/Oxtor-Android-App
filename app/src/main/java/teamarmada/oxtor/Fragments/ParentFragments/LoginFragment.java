@@ -332,8 +332,6 @@ public class LoginFragment extends Fragment {
         super.onDestroyView();
         if(fullscreenManager!=null)
             fullscreenManager.disableFullscreen();
-        if(navController!=null)
-            navController.clearBackStack(R.id.navigation_login);
     }
 
 }
