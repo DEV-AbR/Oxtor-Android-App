@@ -78,7 +78,6 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                 .addOnCompleteListener(executor, this);
     }
 
-
     public Task<HttpsCallableResult> shareFile(List<FileItem> fileItems, String receiverUsername) throws Exception {
         setIsTaskRunning(true);
         JSONObject jsonObject=new JSONObject();

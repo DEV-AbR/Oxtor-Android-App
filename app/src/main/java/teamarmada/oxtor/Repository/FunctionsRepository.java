@@ -36,12 +36,12 @@ public class FunctionsRepository {
         }
     }
 
-    public Task<HttpsCallableResult> updateUsername(JSONObject payload)  {
+    public Task<HttpsCallableResult> updateUsername(String username)  {
         try{
             URL url=new URL(CHECK_USERNAME);
-            return functions.getHttpsCallableFromUrl(url).call(payload);
+            return functions.getHttpsCallableFromUrl(url).call(username);
         }catch (MalformedURLException e){
-            return functions.getHttpsCallable("checkUsername").call(payload);
+            return functions.getHttpsCallable("checkUsername").call(username);
         }
     }
 

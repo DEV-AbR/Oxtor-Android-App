@@ -77,15 +77,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
 
     public Task<HttpsCallableResult> updateUsername(String un) {
         setIsTaskRunning(true);
-        JSONObject jsonObject=new JSONObject();
-        try {
-            jsonObject.put(UID, profileItem.getValue().getUid());
-            jsonObject.put(USERNAME, un);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return functionsRepository.updateUsername(jsonObject).continueWithTask(task->{
-            //firestoreRepository.logToDB(jsonObject);
+        return functionsRepository.updateUsername(un).continueWithTask(task->{
             setIsTaskRunning(!task.isComplete());
             return task;
         });
