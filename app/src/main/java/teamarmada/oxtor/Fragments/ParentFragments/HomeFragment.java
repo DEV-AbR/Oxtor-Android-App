@@ -261,7 +261,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
                     recBinding.size.setText(FileItemUtils.byteToString(item.getFileSize()));
                     recBinding.getRoot().setOnClickListener(v->{
-                        if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()){
+                        if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isAdded()){
                             itemBottomSheet.showBottomSheet(getChildFragmentManager(),bottomSheetCallback);
                             itemBottomSheet.setItemPosition(position);
                         }
