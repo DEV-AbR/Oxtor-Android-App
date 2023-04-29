@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
                     Manifest.permission.CHANGE_WIFI_STATE,
                     Manifest.permission.VIBRATE
     };
+
     public static Observer<Boolean> observer=aBoolean ->{
         if (aBoolean) {
             progressIndicator.show();
@@ -91,33 +92,34 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         sharedPreferences = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         isDarkModeOn = sharedPreferences.getBoolean(IS_DARK_MODE_ON, false);
         if (isDarkModeOn) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
         binding =ActivityMainBinding.inflate(getLayoutInflater());
         binding.setLifecycleOwner(this);
         setContentView(binding.getRoot());
-        navView= binding.navView;
-        progressIndicator = binding.progressBar;
         setSupportActionBar(binding.toolbar);
         addMenuProvider(this,this);
+
+        navView= binding.navView;
+        progressIndicator = binding.progressBar;
+        adViewContainer=binding.adView;
+        inAppUpdate=InAppUpdate.getInstance(this);
+        taskBottomSheet=new TaskBottomSheet();
+        mainViewModel =new ViewModelProvider(this).get(MainViewModel.class);
+
         NavHostFragment navHostMain = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
         assert navHostMain !=null;
         navControllerMain = navHostMain.getNavController();
         navControllerMain.setLifecycleOwner(this);
         NavigationUI.setupWithNavController(navView, navControllerMain);
         navControllerMain.addOnDestinationChangedListener(this);
-        if(!checkForPermissions()) 
-            askPermission();
-        try{
-            ForceUpdate.getInstance(this).checkForUpdate();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        mainViewModel =new ViewModelProvider(this).get(MainViewModel.class);
-        taskBottomSheet=new TaskBottomSheet();
-        adViewContainer=binding.adView;
+
+        if(!checkForPermissions()) askPermission();
+
     }
 
     @Override
@@ -142,13 +144,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         mainViewModel.mutableUploadList.observe(this, fileTaskItems -> {
             fileTaskItems.forEach(fileItemTask->
                     fileItemTask.getTask()
-                            .addOnCompleteListener(task -> {
-                            if(task.isComplete()||task.isCanceled())
-                                mainViewModel.removeUploadItem(fileItemTask);
-                        })
-                            .addOnFailureListener(e -> {
-                            Toast.makeText(this,e.toString(),Toast.LENGTH_SHORT).show();
-                        }));
+                            .addOnCompleteListener(task -> mainViewModel.removeUploadItem(fileItemTask)));
             whenListIsEmpty(mainViewModel.mutableUploadList.getValue().isEmpty(), v -> {
                 if(!taskBottomSheet.isInLayout()) {
                     taskBottomSheet.setTab(0);
@@ -165,14 +161,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     private void observeDownloadTasks(){
         mainViewModel.mutableDownloadList.observe(this, fileTaskItems -> {
             fileTaskItems.forEach(fileTaskItem->
-                fileTaskItem.getTask()
-                        .addOnCompleteListener(task -> {
-                            if(task.isComplete()||task.isCanceled())
-                                mainViewModel.removeDownloadItem(fileTaskItem);
-                        })
-                        .addOnFailureListener(e-> {
-                                Toast.makeText(this,e.toString(),Toast.LENGTH_SHORT).show();
-                        }));
+                fileTaskItem.getTask().addOnCompleteListener(task -> mainViewModel.removeDownloadItem(fileTaskItem)));
             whenListIsEmpty(mainViewModel.mutableDownloadList.getValue().isEmpty(), v -> {
                 if(!taskBottomSheet.isInLayout()) {
                     taskBottomSheet.setTab(1);
