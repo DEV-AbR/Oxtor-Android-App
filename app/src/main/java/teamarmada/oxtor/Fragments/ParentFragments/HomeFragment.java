@@ -361,8 +361,8 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private void onClickShareButton(List<FileItem> fileItems){
         homeViewModel.fetchUsername()
-                .addOnSuccessListener(s -> {
-                    if(s!=null) {
+                .addOnSuccessListener(username-> {
+                    if(username!=null) {
                         List<FileItem> list=new ArrayList<>();
                         for (int i = 0; i < fileItems.size(); i++) {
                         if(fileItems.get(i).isEncrypted())
@@ -372,10 +372,10 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                             for (int i = 0; i < list.size(); i++) {
                                 fileItems.remove(list.get(i));
                             }
-                            createFileShareDialog(list,fileItems).show();
+                            createFileShareDialog(username,list,fileItems).show();
                         }
                         else {
-                            shareSelectedFiles(fileItems);
+                            shareSelectedFiles(username,fileItems);
                         }
                     }
                     else {
@@ -407,12 +407,22 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         activityLifecycleObserver.startUpload(fileItems);
     }
 
-    private void shareSelectedFiles(List<FileItem> fileItems) {
+    private AlertDialog createFileShareDialog(String username,List<FileItem> encryptedFiles,List<FileItem> fileItems){
+        return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
+                .setCancelable(false)
+                .setTitle("Encrypted files can't be shared, yet")
+                .setMessage(encryptedFiles.size() +" of the selected items are encrypted. So should we send the rest of the items")
+                .setPositiveButton("Share rest of the items", (dialogInterface, i) -> shareSelectedFiles(username,fileItems))
+                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
+                .create();
+    }
+
+    private void shareSelectedFiles(String senderUsername,List<FileItem> fileItems) {
         TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
                 InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
-        dialog.showDialog(getChildFragmentManager(), msg-> {
+        dialog.showDialog(getChildFragmentManager(), receiverUsername-> {
             try {
-                homeViewModel.shareFile(fileItems,msg)
+                homeViewModel.shareFile(fileItems, senderUsername, receiverUsername)
                         .addOnSuccessListener( task -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
                         .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(), Snackbar.LENGTH_SHORT).show());
             } catch (Exception e) {
@@ -420,16 +430,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private AlertDialog createFileShareDialog(List<FileItem> encryptedFiles,List<FileItem> fileItems){
-        return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
-                .setCancelable(false)
-                .setTitle("Encrypted files can't be shared, yet")
-                .setMessage(encryptedFiles.size() +" of the selected items are encrypted. So should we send the rest of the items")
-                .setPositiveButton("Share rest of the items", (dialogInterface, i) -> shareSelectedFiles(fileItems))
-                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
-                .create();
     }
 
     private AlertDialog createPreferenceChooserDialog(){

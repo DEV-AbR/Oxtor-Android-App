@@ -78,10 +78,12 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                 .addOnCompleteListener(executor, this);
     }
 
-    public Task<HttpsCallableResult> shareFile(List<FileItem> fileItems, String receiverUsername) throws Exception {
+    public Task<HttpsCallableResult> shareFile(@NonNull List<FileItem> fileItems,
+                                               @NonNull String senderUsername,
+                                               @NonNull String receiverUsername) throws Exception {
         setIsTaskRunning(true);
         JSONObject jsonObject=new JSONObject();
-        jsonObject.put("senderUsername",profileItem.getValue().getUsername());
+        jsonObject.put("senderUsername",senderUsername);
         jsonObject.put("receiverUsername",receiverUsername);
         JSONArray jsonArray=new JSONArray();
         for (int i = 0; i < fileItems.size(); i++) {
