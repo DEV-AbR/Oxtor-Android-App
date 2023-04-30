@@ -217,8 +217,7 @@ public class LoginFragment extends Fragment {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Task<GoogleSignInAccount> task = GoogleSignIn.
                             getSignedInAccountFromIntent(result.getData());
-                    loginViewModel.getGoogleSignInAccount(task)
-                            .addOnCompleteListener(task1->gsi.signOut());
+                    loginViewModel.getGoogleSignInAccount(task).addOnSuccessListener(task1->gsi.signOut());
                 }
             });
 
@@ -321,7 +320,13 @@ public class LoginFragment extends Fragment {
         if(loginViewModel.getAuthInstance().isSignInWithEmailLink(data.getData().toString())) {
             String email=sharedPreferences.getString("email",null);
             Snackbar.make(binding.getRoot(),"SignIn link detected for : "+email,Snackbar.LENGTH_SHORT).show();
-            loginViewModel.signInWithEmail(email, data.getData().toString());
+            loginViewModel.signInWithEmail(email, data.getData().toString())
+                    .addOnSuccessListener(result->{
+                        Log.d(TAG, "signInFromIntent: continuing sign in");
+                    })
+                    .addOnFailureListener(e->{
+                        Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
+                    });
             sharedPreferences.edit().remove(EMAIL).apply();
         }
     }

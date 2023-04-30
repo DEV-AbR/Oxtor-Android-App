@@ -61,7 +61,7 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
 
     public RecyclerViewAdapter(Lifecycle lifecycle,
                                @LayoutRes int itemLayoutID,
-                               @NonNull Query mQuery,
+                               Query mQuery,
                                boolean enableSelection,
                                Class<T> tClass,
                                ListItemCallback<T,VB> listener){
@@ -177,7 +177,8 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
 
     public void changeAdapterQuery(Query mQuery, boolean enableSelection){
         stopListening();
-        query=mQuery;
+        if(mQuery!=null)
+            query=mQuery;
         if(!enableSelection)
             if(selectionTracker!=null)
             {

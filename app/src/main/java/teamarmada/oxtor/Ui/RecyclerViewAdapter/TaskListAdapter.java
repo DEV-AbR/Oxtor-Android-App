@@ -68,7 +68,7 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
         FileTask<T> item=list.get(position);
         item.getTask()
                 .addOnCompleteListener(task -> holder.cancelTask())
-                .addOnCanceledListener(()->holder.cancelTask())
+                .addOnCanceledListener(holder::cancelTask)
                 .addOnProgressListener(snapshot -> {
                     if(getAvailableMemory(context).lowMemory){
                         if(item.getTask().isInProgress()) {

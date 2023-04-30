@@ -21,6 +21,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
@@ -84,7 +85,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         return profileItem;
     }
     
-    public Task<Unit> uploadFile(Context context,FileItem item) throws Exception {
+    public Task<Unit> uploadUsingInputStream(Context context,FileItem item) throws Exception {
         setIsTaskRunning(true);
         InputStream inputStream= FileItemUtils.uploadInputStream(item,getProfileItem().getValue(), context);
         FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item, inputStream, getProfileItem().getValue());
@@ -103,7 +104,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 });
     }
 
-    public Task<Unit> uploadByteArray(Context context, FileItem item) throws Exception {
+    public Task<Unit> uploadUsingByteArray(Context context, FileItem item) throws Exception {
         setIsTaskRunning(true);
         FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item,
                 FileItemUtils.readIntoByteArray(item, getProfileItem().getValue(), context),
@@ -119,7 +120,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 });
     }
 
-    public Task<Unit> downloadFile(Context context,FileItem fileItem) throws Exception {
+    public Task<Unit> downloadUsingInputStream(Context context,FileItem fileItem) throws Exception {
         setIsTaskRunning(true);
         File output= FileItemUtils.createDownloadFile(fileItem);
         FileTask<StreamDownloadTask> fileTask =storageRepository.downloadFile(fileItem);
@@ -151,7 +152,6 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 .setMimeType(item.getFileExtension())
                 .setDestinationUri(Uri.fromFile(FileItemUtils.createDownloadFile(item)))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-
         downloadManager.enqueue(request);
     }
 

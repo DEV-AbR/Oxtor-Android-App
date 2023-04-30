@@ -21,7 +21,7 @@ public class ProgressDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getContext(), R.style.Theme_Oxtor_AlertDialog)
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext(), R.style.Theme_Oxtor_AlertDialog)
                 .setView(R.layout.fragment_dialog_progress);
         setCancelable(false);
         return builder.create();

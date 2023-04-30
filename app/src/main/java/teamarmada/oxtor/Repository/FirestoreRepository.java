@@ -8,6 +8,7 @@ import static teamarmada.oxtor.Model.FileItem.UID;
 import android.util.Base64;
 
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -134,14 +135,17 @@ public class FirestoreRepository {
 
     public Task<Long> fetchUsedSpace(ProfileItem profileItem) {
         usedSpace=0L;
-        return firestoreRepository.sortByTimestamp(profileItem)
-                .get().continueWith(task -> {
+        Query query= firestoreRepository.sortByTimestamp(profileItem);
+        if(query!=null)
+            return query.get().continueWith(task -> {
                     for(DocumentSnapshot snapshot:task.getResult()){
                         Long g = snapshot.getLong("fileSize");
                         usedSpace+=g;
                     }
                     return usedSpace;
                 });
+        else
+            return Tasks.forResult(0L);
     }
 
     public Task<String> fetchUsername(ProfileItem profileItem){
@@ -169,33 +173,45 @@ public class FirestoreRepository {
     }
 
     public Query sortByTimestamp(ProfileItem profileItem){
-        return db.collection(USERS).document(profileItem.getUid())
+        if(profileItem.getUid()!=null)
+            return db.collection(USERS).document(profileItem.getUid())
                 .collection(POSTS).orderBy(TIMESTAMP,Query.Direction.ASCENDING);
+        else return null;
     }
 
     public Query sortBySize(ProfileItem profileItem){
-        return db.collection(USERS).document(profileItem.getUid())
+        if(profileItem.getUid()!=null)
+            return db.collection(USERS).document(profileItem.getUid())
                 .collection(POSTS).orderBy(FILESIZE, Query.Direction.DESCENDING);
+        else return null;
     }
 
     public Query sortByName(ProfileItem profileItem){
-        return db.collection(USERS).document(profileItem.getUid())
+        if(profileItem.getUid()!=null)
+            return db.collection(USERS).document(profileItem.getUid())
                 .collection(POSTS).orderBy(FILENAME, Query.Direction.ASCENDING);
+        else return null;
     }
 
     public Query sortSharedPostByTimestamp(ProfileItem profileItem) {
-        return db.collection(USERS).document(profileItem.getUid())
+        if(profileItem.getUid()!=null)
+            return db.collection(USERS).document(profileItem.getUid())
                 .collection(SHARED_POSTS).orderBy(TIMESTAMP, Query.Direction.ASCENDING);
+        else return null;
     }
 
     public Query sortSharedPostBySize(ProfileItem profileItem) {
-        return db.collection(USERS).document(profileItem.getUid())
+        if(profileItem.getUid()!=null)
+            return db.collection(USERS).document(profileItem.getUid())
                 .collection(SHARED_POSTS).orderBy(FILESIZE, Query.Direction.ASCENDING);
+        else return null;
     }
 
     public Query sortSharedPostByName(ProfileItem profileItem) {
+        if(profileItem.getUid()!=null)
         return db.collection(USERS).document(profileItem.getUid())
                 .collection(SHARED_POSTS).orderBy(FILENAME, Query.Direction.ASCENDING);
+        else return null;
     }
     
 }

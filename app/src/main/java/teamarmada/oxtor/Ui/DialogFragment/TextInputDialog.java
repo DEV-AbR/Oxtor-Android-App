@@ -35,7 +35,7 @@ public class TextInputDialog extends DialogFragment {
     private final Context context;
     private TextInputEditText editText;
     private final InputMethodManager imm;
-    private String text;
+    private final String text;
     public static final String TAG= TextInputDialog.class.getSimpleName();
 
     public TextInputDialog(@StringRes int title,String hint ,String message, int inputType, Context context){

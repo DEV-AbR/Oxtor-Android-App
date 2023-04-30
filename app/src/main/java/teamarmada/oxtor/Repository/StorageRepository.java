@@ -4,8 +4,12 @@ import static teamarmada.oxtor.Model.FileItem.ENCRYPTED;
 import static teamarmada.oxtor.Model.FileItem.FILENAME;
 import static teamarmada.oxtor.Model.FileItem.UID;
 
+import android.content.Context;
+import android.net.Uri;
+
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -19,6 +23,7 @@ import java.util.Map;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.Model.ProfileItem;
+import teamarmada.oxtor.Utils.FileItemUtils;
 
 public class StorageRepository  {
 
@@ -100,6 +105,12 @@ public class StorageRepository  {
             if(state.getBytesTransferred()==state.getTotalByteCount())
                 stream.close();
         });
+        return new FileTask<>(fileItem,task);
+    }
+
+    public FileTask<FileDownloadTask> downloadFile(FileItem fileItem, Uri uri) {
+        StorageReference storageReference=storage.getReference().child(fileItem.getStorageReference());
+        FileDownloadTask task = storageReference.getFile(uri);
         return new FileTask<>(fileItem,task);
     }
 

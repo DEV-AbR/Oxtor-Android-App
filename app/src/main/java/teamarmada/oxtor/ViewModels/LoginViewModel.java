@@ -79,13 +79,14 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
         });
     }
 
-    public void signInWithEmail(String email,String link){
+    public Task<Unit> signInWithEmail(String email,String link){
         setIsTaskRunning(true);
-        getAuthInstance().signInWithEmailLink(email,link)
+        return getAuthInstance().signInWithEmailLink(email,link)
                 .continueWith(task -> {
+                    setIsTaskRunning(!task.isComplete());
                     signIn(task.getResult().getCredential());
                     return Unit.INSTANCE;
-                }).addOnCompleteListener(this);
+                });
     }
 
     public FirebaseAuth getAuthInstance(){

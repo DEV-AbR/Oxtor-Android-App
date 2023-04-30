@@ -42,6 +42,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 import teamarmada.oxtor.Interfaces.ScreenManager;
 import teamarmada.oxtor.R;
+import teamarmada.oxtor.Ui.DialogFragment.ProgressDialog;
 import teamarmada.oxtor.Ui.DialogFragment.TaskBottomSheet;
 import teamarmada.oxtor.Utils.InAppUpdate;
 import teamarmada.oxtor.ViewModels.MainViewModel;
@@ -108,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         adViewContainer=binding.adView;
         inAppUpdate=InAppUpdate.getInstance(this);
         taskBottomSheet=new TaskBottomSheet();
-        progressDialog= new progress();
+        progressDialog= new ProgressDialog();
         mainViewModel =new ViewModelProvider(this).get(MainViewModel.class);
         NavHostFragment navHostMain = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
         assert navHostMain !=null;
@@ -304,8 +305,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     public void showProgressDialog (){
         try{
             if(!progressDialog.isAdded())
-                progressDialog
-.show(getSupportFragmentManager(),"Loading");
+                progressDialog.show(getSupportFragmentManager(),"Loading");
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -315,7 +315,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     public void hideProgressDialog (){
         try{
             if(progressDialog.isAdded())
-            progressDialog.dismiss()
+            progressDialog.dismiss();
         }catch(Exception e){
             e.printStackTrace();
         }

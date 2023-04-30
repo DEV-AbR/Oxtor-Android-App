@@ -23,6 +23,7 @@ import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import kotlin.Unit;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.R;
@@ -139,49 +141,48 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private void uploadFile(FileItem fileItem) {
-        try {
-            mainViewModel.uploadFile(activity, fileItem)
-                    .addOnSuccessListener(unit -> {
+        Task<Unit> uploadTask;
+        try{
+            uploadTask= mainViewModel.uploadUsingInputStream(activity,fileItem);
+        }catch (Exception e){
+            e.printStackTrace();
+            try{
+                uploadTask= mainViewModel.uploadUsingByteArray(activity,fileItem);
+            }catch (Exception ex){
+                ex.printStackTrace();
+                mainViewModel.setIsTaskRunning(false);
+                makeToast(ex.toString());
+                return;
+            }
+        }
+        uploadTask.addOnSuccessListener(unit -> {
                         if(fileItems.indexOf(fileItem)==fileItems.size()-1){
                             makeToast("Upload Completed");
                         }
                     })
                     .addOnFailureListener(e -> makeToast(e.toString()));
-        } catch (Exception e) {
-            try {
-                mainViewModel.uploadByteArray(activity, fileItem)
-                        .addOnSuccessListener(unit -> {
-                            if(fileItems.indexOf(fileItem)==fileItems.size()-1){
-                                makeToast("Upload Completed");
-                            }
-                        })
-                        .addOnFailureListener(ex -> makeToast(ex.toString()));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                mainViewModel.setIsTaskRunning(false);
-                makeToast(e.toString());
-            }
-        }
     }
 
     private void downloadFile(FileItem fileItem) {
-        try {
-            mainViewModel.downloadFile(activity, fileItem)
-                    .addOnSuccessListener(unit -> {
-                        if (fileItems.indexOf(fileItem) == fileItems.size() - 1) {
-                            makeToast("Items saved at Oxtor/download/");
-                        }
-                    })
-                    .addOnFailureListener(e -> makeToast(e.toString()));
+        Task<Unit> downloadTask;
+        try{
+            downloadTask= mainViewModel.downloadUsingInputStream(activity,fileItem);
         }catch (Exception e){
+            e.printStackTrace();
             try {
-                mainViewModel.downloadViaDownloadManager(activity, fileItem);
+                mainViewModel.downloadViaDownloadManager(activity,fileItem);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 mainViewModel.setIsTaskRunning(false);
                 makeToast(e.toString());
             }
+            return;
         }
+        downloadTask.addOnSuccessListener(unit -> {
+            if (fileItems.indexOf(fileItem) == fileItems.size() - 1) {
+                makeToast("Items saved at Oxtor/download/");
+            }
+        }).addOnFailureListener(ex -> makeToast(ex.toString()));
     }
 
     private boolean canContinueAction(FileItem fileItem){

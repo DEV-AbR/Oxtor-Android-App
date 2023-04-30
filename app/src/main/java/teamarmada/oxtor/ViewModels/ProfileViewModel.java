@@ -157,8 +157,8 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     public Task<Unit> deleteAccount(){
         setIsTaskRunning(true);
         return authRepository.getUser().delete()
-                .continueWithTask(task->storageRepository.deleteAllFiles(getProfileItem().getValue()))
-                .continueWithTask(task->firestoreRepository.deleteAccount(getProfileItem().getValue()))
+                .onSuccessTask(task->storageRepository.deleteAllFiles(getProfileItem().getValue()))
+                .onSuccessTask(task->firestoreRepository.deleteAccount(getProfileItem().getValue()))
                 .continueWith(task->{
                     setIsTaskRunning(!task.isComplete());
                     return Unit.INSTANCE;
@@ -168,7 +168,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     public Task<Unit> signOut() {
         setIsTaskRunning(true);
         return firestoreRepository.removeMessageToken(profileItem.getValue())
-                .continueWithTask(task->firestoreRepository.clearCache())
+                .onSuccessTask(task->firestoreRepository.clearCache())
                 .continueWith(task -> {
                     setIsTaskRunning(!task.isComplete());
                     getAuthInstance().signOut();
@@ -201,5 +201,4 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
         setIsTaskRunning(!task.isComplete());
    }
 
-   
 }
