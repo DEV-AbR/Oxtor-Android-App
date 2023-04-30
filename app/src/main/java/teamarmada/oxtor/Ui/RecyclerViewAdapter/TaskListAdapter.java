@@ -67,7 +67,7 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
         holder.bind();
         FileTask<T> item=list.get(position);
         item.getTask()
-                .addOnCompleteListener(task -> holder.cancelTask())
+                .addOnCompleteListener(task -> holder.removeTask())
                 .addOnCanceledListener(holder::cancelTask)
                 .addOnProgressListener(snapshot -> {
                     if(getAvailableMemory(context).lowMemory){
@@ -214,6 +214,21 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
              }
         }
 
+        public void  cancelTask(){
+            
+            try {
+                list.remove(getAbsoluteAdapterPosition());
+                listObserver.onChanged(list);
+            }catch (Exception e){
+                e.printStackTrace();
+                return;
+            }
+             try{
+                 notifyItemRemoved(getAbsoluteAdapterPosition());
+             }catch (Exception e){
+                 notifyDataSetChanged();
+             }
+        }
     }
 
 }
