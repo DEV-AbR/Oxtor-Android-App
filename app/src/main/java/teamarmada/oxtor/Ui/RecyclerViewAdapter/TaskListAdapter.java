@@ -198,10 +198,11 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
         }
 
         public void  cancelTask(){
-            list.remove(getAbsoluteAdapterPosition());
-            listObserver.onChanged(list);
+            
             try {
                 getItem().getTask().cancel();
+                list.remove(getAbsoluteAdapterPosition());
+                listObserver.onChanged(list);
             }catch (Exception e){
                 e.printStackTrace();
                 return;
