@@ -113,20 +113,20 @@ public class LoginFragment extends Fragment {
             loginViewModel.setIsTaskRunning(false);
             TextInputDialog textInputDialog = new TextInputDialog(R.string.sign_in_with_phone,getString(R.string.india_country_code),
                     "Enter your no. with Country Code",InputType.TYPE_CLASS_PHONE, getContext());
-            textInputDialog.showDialog(getChildFragmentManager(), msg -> {
+            textInputDialog.addCallback(msg -> {
                 if(textInputDialog.isPhoneNumberValid(msg)) {
                     phoneNumber=msg;
                     initPhoneSignIn();
                 }
                 else
                     Snackbar.make(binding.getRoot(),R.string.enter_country_code,Snackbar.LENGTH_SHORT).show();
-            });
+            }).show(getChildFragmentManager(),"Input");
         });
         emailSignIn.setOnClickListener(v -> {
             loginViewModel.setIsTaskRunning(false);
             TextInputDialog emailDialog=new TextInputDialog(R.string.sign_in_with_email,null,
             "Enter your Email address",InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, getContext());
-            emailDialog.showDialog(getChildFragmentManager(), msg -> {
+            emailDialog.addCallback(msg -> {
                 if(emailDialog.isEmailValid(msg)){
                 sharedPreferences.edit().putString(EMAIL,msg).apply();
                 email=msg;
@@ -134,7 +134,7 @@ public class LoginFragment extends Fragment {
                 }
                 else
                     Snackbar.make(binding.getRoot(),"Enter valid email",Snackbar.LENGTH_SHORT).show();
-            });
+            }).show(getChildFragmentManager(),"Input");
         });
         return binding.getRoot();
     }
@@ -215,8 +215,7 @@ public class LoginFragment extends Fragment {
     public ActivityResultLauncher<Intent> googleSignInLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Task<GoogleSignInAccount> task = GoogleSignIn.
-                            getSignedInAccountFromIntent(result.getData());
+                    Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
                     loginViewModel.getGoogleSignInAccount(task).addOnSuccessListener(task1->gsi.signOut());
                 }
             });
@@ -284,25 +283,17 @@ public class LoginFragment extends Fragment {
     };
 
     private void showSmsDialog(){
-        enterCode.showDialog(getChildFragmentManager(), code -> {
+        enterCode.addCallback(code -> {
             if (code != null) {
                 PhoneAuthCredential credential = PhoneAuthProvider.getCredential(id, code);
                 loginViewModel.signIn(credential);
                 sharedPreferences.edit().remove(EMAIL).apply();
             }
-        });
+        }).show(getChildFragmentManager(),"Input");
     }
 
     private void observeLoadingState() {
         loginViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(),MainActivity.observer);
-        loginViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(),isRunning->{
-            if(isRunning){
-                binding.progressLogin.setVisibility(View.VISIBLE);
-            }
-            else{
-                binding.progressLogin.setVisibility(View.INVISIBLE);
-            }
-        });
     }
 
     private void updateUI(FirebaseUser user) {
@@ -331,7 +322,6 @@ public class LoginFragment extends Fragment {
         }
     }
 
-    @SuppressLint("SuspiciousIndentation")
     @Override
     public void onDestroyView() {
         super.onDestroyView();

@@ -75,12 +75,10 @@ public class TextInputDialog extends DialogFragment {
         return builder.create();
     }
 
-
-    public void showDialog(@NonNull FragmentManager manager, SimpleCallback callback) {
-        show(manager,TAG);
+    public DialogFragment addCallback(SimpleCallback callback){
         this.callback=callback;
+        return this;
     }
-
 
     @Override
     public void show(@NonNull FragmentManager manager, @Nullable String tag) {

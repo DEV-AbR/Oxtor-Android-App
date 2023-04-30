@@ -139,7 +139,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         String currentName=profileViewModel.getProfileItem().getValue().getDisplayName();
         TextInputDialog textInputDialog =new TextInputDialog(R.string.update_name,null,"Current name : "
                 +currentName, InputType.TYPE_CLASS_TEXT,requireContext());
-        textInputDialog.showDialog(getChildFragmentManager(),profileViewModel::updateDisplayName);
+        textInputDialog.addCallback(profileViewModel::updateDisplayName)
+                .show(getChildFragmentManager(),"Input");
     }
 
     private void updateUsername(){
@@ -147,7 +148,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         String currentUsername=profileItem.getUsername();
         TextInputDialog textInputDialog =new TextInputDialog(R.string.update_username,getString(R.string.at),
                 "Current Username : " +currentUsername, InputType.TYPE_CLASS_TEXT, requireContext());
-        textInputDialog.showDialog(getChildFragmentManager(), msg -> {
+        textInputDialog.addCallback(msg -> {
             if(textInputDialog.isUsernameValid(msg)){
                 profileViewModel.updateUsername(msg).addOnSuccessListener(task -> {
                         profileItem.setUsername(msg);
@@ -158,7 +159,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
             }
             else
                 Toast.makeText(getContext(),R.string.dont_use_any_special_character,Toast.LENGTH_SHORT).show();
-        });
+        }).show(getChildFragmentManager(),"Input");
     }
 
     private void updatePicture(){

@@ -1,6 +1,7 @@
 package teamarmada.oxtor.Main;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -301,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         navView.setVisibility(View.VISIBLE);
     }
 
+    @SuppressLint("SuspiciousIndentation")
     @Override
     public void showProgressDialog (){
         try{
@@ -311,11 +313,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         }
     }
 
+    @SuppressLint("SuspiciousIndentation")
     @Override
     public void hideProgressDialog (){
         try{
             if(progressDialog.isAdded())
-            progressDialog.dismiss();
+                progressDialog.dismiss();
         }catch(Exception e){
             e.printStackTrace();
         }

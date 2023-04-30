@@ -388,14 +388,17 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private void onClickRenameButton(List<FileItem> fileItems){
         TextInputDialog dialog=new TextInputDialog(R.string.rename_file,null,
                 "Current FileName : "+fileItems.get(0).getFileName(), InputType.TYPE_CLASS_TEXT, requireContext());
-        dialog.showDialog(getChildFragmentManager(),msg -> homeViewModel.renameFile(msg,fileItems.get(0)));
+        dialog.addCallback(msg -> homeViewModel.renameFile(msg,fileItems.get(0)))
+                .show(getChildFragmentManager(),"Input");
     }
 
     private void onClickDeleteButton(List<FileItem> fileItems){
-        for (int i = 0; i < fileItems.size(); i++) {
-            final FileItem fileItem=fileItems.get(i);
-            homeViewModel.deleteFile(fileItem);
-        }
+//        for (int i = 0; i < fileItems.size(); i++) {
+//            final FileItem fileItem=fileItems.get(i);
+//            homeViewModel.deleteFile(fileItem);
+//        }
+        screenManager.showProgressDialog();
+        homeViewModel.deleteFiles(fileItems).addOnCompleteListener(task-> screenManager.hideProgressDialog());
     }
 
     private void uploadSelectedFiles(List<Uri> results){
@@ -420,16 +423,18 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private void shareSelectedFiles(String senderUsername,List<FileItem> fileItems) {
         TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
                 InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
-        dialog.showDialog(getChildFragmentManager(), receiverUsername-> {
+        dialog.addCallback(receiverUsername-> {
             try {
+                screenManager.showProgressDialog();
                 homeViewModel.shareFile(fileItems, senderUsername, receiverUsername)
-                        .addOnSuccessListener( task -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
+                        .addOnCompleteListener(task-> screenManager.hideProgressDialog())
+                        .addOnSuccessListener(result -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
                         .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(), Snackbar.LENGTH_SHORT).show());
             } catch (Exception e) {
                 e.printStackTrace();
                 Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
             }
-        });
+        }).show(getChildFragmentManager(),"Input");
     }
 
     private AlertDialog createPreferenceChooserDialog(){

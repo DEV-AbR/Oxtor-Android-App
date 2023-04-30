@@ -159,6 +159,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
         return authRepository.getUser().delete()
                 .onSuccessTask(task->storageRepository.deleteAllFiles(getProfileItem().getValue()))
                 .onSuccessTask(task->firestoreRepository.deleteAccount(getProfileItem().getValue()))
+                .onSuccessTask(task->firestoreRepository.clearCache())
                 .continueWith(task->{
                     setIsTaskRunning(!task.isComplete());
                     return Unit.INSTANCE;

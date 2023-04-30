@@ -13,15 +13,14 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.functions.HttpsCallableResult;
-import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -67,15 +66,30 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                 .addOnCompleteListener(executor,this);
     }
 
-    public void deleteFile(FileItem fileItem) {
+//    public void deleteFile(FileItem fileItem) {
+//        setIsTaskRunning(true);
+//        storageRepository.deleteFile(fileItem, profileItem.getValue())
+//                .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(profileItem.getValue()))
+//                .continueWith(executor, task -> {
+//                    sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
+//                    return Unit.INSTANCE;
+//                    })
+//                .addOnCompleteListener(executor, this);
+//    }
+
+    public Task<Unit> deleteFiles(List<FileItem> fileItems) {
         setIsTaskRunning(true);
-        storageRepository.deleteFile(fileItem, profileItem.getValue())
+        List<Task<Void>> tasks=new ArrayList<>();
+        for (FileItem fileItem : fileItems) {
+            tasks.add(storageRepository.deleteFile(fileItem, profileItem.getValue()));
+        }
+        return Tasks.whenAll(tasks)
                 .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(profileItem.getValue()))
                 .continueWith(executor, task -> {
+                    setIsTaskRunning(!task.isComplete());
                     sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
                     return Unit.INSTANCE;
-                    })
-                .addOnCompleteListener(executor, this);
+                    });
     }
 
     public Task<HttpsCallableResult> shareFile(@NonNull List<FileItem> fileItems,
