@@ -96,7 +96,7 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
                 new StableIdProvider(rv),
                 new StableIdProvider.ItemLookup(rv),
                 StorageStrategy.createLongStorage())
-                .withSelectionPredicate(//SelectionPredicates.createSelectAnything()
+                .withSelectionPredicate(
                         new SelectionTracker.SelectionPredicate<Long>() {
                             @Override
                             public boolean canSetStateForKey(@NonNull Long key, boolean nextState) {
@@ -237,11 +237,11 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
     public void onDocumentRemoved(DocumentChange change){
 
         snapshotList.remove(change.getOldIndex());
-        //if(change.getOldIndex()!=0)
-        //    notifyItemRemoved(change.getOldIndex());
-        //else
+        try{
+           notifyItemRemoved(change.getOldIndex());
+        }catch(Exception e){
         notifyDataSetChanged();
-
+        }
     }
 
     public Query getQuery() {
