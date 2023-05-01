@@ -119,10 +119,6 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
         return memoryInfo;
     }
 
-    private void makeToast(String msg){
-        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show());
-    }
-
     @Override
     public int getItemCount() {
         return list.size();
@@ -155,8 +151,14 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
             if(getItem().getTask() instanceof FileDownloadTask)
                 FileItemUtils.loadPhoto(fileItem,binding.picture);
             binding.removeButton.setOnClickListener(v->{
-                removeTask();
-                makeToast(fileItem.getFileName() + " Removed");
+                try {
+                    Toast.makeText(context, fileItem.getFileName() + " Removed", Toast.LENGTH_SHORT).show();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                finally {
+                    removeTask();
+                }
             });
         }
 

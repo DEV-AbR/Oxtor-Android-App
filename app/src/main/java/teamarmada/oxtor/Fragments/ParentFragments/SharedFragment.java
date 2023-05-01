@@ -194,9 +194,9 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                     recBinding.timestamp.setText(a);
 
                     recBinding.getRoot().setOnClickListener(v->{
-                        if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isAdded()) {
-                            itemBottomSheet.showBottomSheet(getChildFragmentManager(),bottomSheetCallback);
+                        if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()) {
                             itemBottomSheet.setItemPosition(position);
+                            itemBottomSheet.addCallback(bottomSheetCallback).show(getChildFragmentManager(),"Preview");
                         }
                         else
                             if(itemBottomSheet.isInLayout()) itemBottomSheet.dismiss();
