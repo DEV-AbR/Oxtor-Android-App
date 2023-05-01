@@ -16,6 +16,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.functions.HttpsCallableResult;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -66,17 +67,6 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                 .addOnCompleteListener(executor,this);
     }
 
-//    public void deleteFile(FileItem fileItem) {
-//        setIsTaskRunning(true);
-//        storageRepository.deleteFile(fileItem, profileItem.getValue())
-//                .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(profileItem.getValue()))
-//                .continueWith(executor, task -> {
-//                    sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
-//                    return Unit.INSTANCE;
-//                    })
-//                .addOnCompleteListener(executor, this);
-//    }
-
     public Task<Unit> deleteFiles(List<FileItem> fileItems) {
         setIsTaskRunning(true);
         List<Task<Void>> tasks=new ArrayList<>();
@@ -100,8 +90,9 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
         jsonObject.put("senderUsername",senderUsername);
         jsonObject.put("receiverUsername",receiverUsername);
         JSONArray jsonArray=new JSONArray();
+        Gson gson=new Gson();
         for (int i = 0; i < fileItems.size(); i++) {
-            jsonArray.put(fileItems.get(i));
+            jsonArray.put(i,gson.toJson(fileItems.get(i)));
         }
         jsonObject.put("fileItems",jsonArray);
         return functionsRepository.shareByEmail(jsonObject).continueWithTask(task -> {

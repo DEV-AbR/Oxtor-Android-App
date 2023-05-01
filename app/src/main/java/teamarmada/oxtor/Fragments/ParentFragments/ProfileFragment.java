@@ -155,10 +155,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                         profileViewModel.getProfileItem().postValue(profileItem);
                         binding.username.setText(msg);
                         Toast.makeText(getContext(),R.string.username_updated,Toast.LENGTH_SHORT).show();
-                }).addOnFailureListener(e-> Toast.makeText(getContext(),e.toString(),Toast.LENGTH_SHORT).show());
+                }).addOnFailureListener(e-> Toast.makeText(getContext(),"Username already taken",Toast.LENGTH_SHORT).show());
             }
-            else
-                Toast.makeText(getContext(),R.string.dont_use_any_special_character,Toast.LENGTH_SHORT).show();
+            else Toast.makeText(getContext(),R.string.dont_use_any_special_character,Toast.LENGTH_SHORT).show();
         }).show(getChildFragmentManager(),"Input");
     }
 

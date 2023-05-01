@@ -5,10 +5,7 @@ import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Main.MainActivity.SORT_PREFERENCE;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.ClipData;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -23,7 +20,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.IdRes;
@@ -262,7 +258,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                     recBinding.size.setText(FileItemUtils.byteToString(item.getFileSize()));
                     recBinding.getRoot().setOnClickListener(v->{
                         if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isAdded()){
-                            itemBottomSheet.showBottomSheet(getChildFragmentManager(),bottomSheetCallback);
+                            itemBottomSheet.addCallback(bottomSheetCallback).showNow(getChildFragmentManager(),"Preview");
                             itemBottomSheet.setItemPosition(position);
                         }
                         else if(itemBottomSheet.isInLayout()) itemBottomSheet.dismiss();
@@ -360,7 +356,9 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void onClickShareButton(List<FileItem> fileItems){
+        screenManager.showProgressDialog();
         homeViewModel.fetchUsername()
+                .addOnCompleteListener(task->screenManager.hideProgressDialog())
                 .addOnSuccessListener(username-> {
                     if(username!=null) {
                         List<FileItem> list=new ArrayList<>();
@@ -393,10 +391,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void onClickDeleteButton(List<FileItem> fileItems){
-//        for (int i = 0; i < fileItems.size(); i++) {
-//            final FileItem fileItem=fileItems.get(i);
-//            homeViewModel.deleteFile(fileItem);
-//        }
         screenManager.showProgressDialog();
         homeViewModel.deleteFiles(fileItems).addOnCompleteListener(task-> screenManager.hideProgressDialog());
     }

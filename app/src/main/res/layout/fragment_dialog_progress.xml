@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/margin">
+        android:padding="@dimen/margin">
         <ProgressBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/progress_bar"
-            android:padding="2dp"/>
+            android:padding="8dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -18,7 +17,8 @@
             android:layout_alignTop="@id/progress_bar"
             android:layout_alignBottom="@id/progress_bar"
             android:gravity="center"
-            android:padding="2dp"
+            android:textSize="24sp"
+            android:padding="8dp"
             android:layout_toEndOf="@id/progress_bar"/>
     </RelativeLayout>
 </layout>

@@ -7,7 +7,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -28,6 +30,7 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
     private ViewPager2 viewpager2;
     private TabLayout tablayout;
     private int pos=0;
+
     public TaskBottomSheet(){}
 
     @Nullable
@@ -91,8 +94,17 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
         super.setStyle(STYLE_NORMAL, R.style.Theme_Oxtor_BottomSheetStyle);
     }
 
-    public void setTab(int pos){
+    public DialogFragment setTab(int pos){
         this.pos=pos;
+        return this;
     }
 
+    @Override
+    public void showNow(@NonNull FragmentManager manager, @Nullable String tag) {
+        try {
+            super.showNow(manager, tag);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 }

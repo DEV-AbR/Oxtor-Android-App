@@ -4,7 +4,6 @@ import static android.app.Activity.RESULT_OK;
 import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Model.ProfileItem.EMAIL;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -21,11 +20,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.os.BuildCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDirections;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -40,7 +37,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.ActionCodeSettings;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
@@ -49,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
-import teamarmada.oxtor.BuildConfig;
+import kotlin.Unit;
 import teamarmada.oxtor.Interfaces.ScreenManager;
 import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.R;
@@ -154,6 +153,7 @@ public class LoginFragment extends Fragment {
     }
 
     private void initGoogleSignIn(){
+        loginViewModel.setIsTaskRunning(true);
         GoogleSignInOptions gso = new GoogleSignInOptions
                 .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -161,11 +161,11 @@ public class LoginFragment extends Fragment {
                 .build();
         gsi = GoogleSignIn.getClient(requireActivity(), gso);
         googleSignInLauncher.launch(gsi.getSignInIntent());
-        loginViewModel.setIsTaskRunning(true);
     }
 
     private void initPhoneSignIn(){
-    PhoneAuthOptions pao= new PhoneAuthOptions
+        loginViewModel.setIsTaskRunning(true);
+        PhoneAuthOptions pao= new PhoneAuthOptions
                 .Builder(loginViewModel.getAuthInstance())
                 .setPhoneNumber(phoneNumber)
                 .setTimeout(60L, TimeUnit.SECONDS)
@@ -173,7 +173,6 @@ public class LoginFragment extends Fragment {
                 .setCallbacks(onVerificationStateChangedCallback)
                 .build();
         PhoneAuthProvider.verifyPhoneNumber(pao);
-        loginViewModel.setIsTaskRunning(true);
     }
 
     private void initEmailSignIn(){
@@ -216,9 +215,21 @@ public class LoginFragment extends Fragment {
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-                    loginViewModel.getGoogleSignInAccount(task).addOnSuccessListener(task1->gsi.signOut());
+                    getGoogleSignInAccount(task)
+                            .addOnSuccessListener(task1->gsi.signOut());
                 }
             });
+
+    public Task<Unit> getGoogleSignInAccount(Task<GoogleSignInAccount> googleSignInAccountTask) {
+        loginViewModel.setIsTaskRunning(true);
+        return googleSignInAccountTask.continueWith(task->{
+            loginViewModel.setIsTaskRunning(!task.isComplete());
+            GoogleSignInAccount gsa=task.getResult();
+            AuthCredential authCredential= GoogleAuthProvider.getCredential(gsa.getIdToken(),null);
+            loginViewModel.signIn(authCredential);
+            return Unit.INSTANCE;
+        });
+    }
 
     private void resendCode(){
     PhoneAuthOptions pao= new PhoneAuthOptions

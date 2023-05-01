@@ -58,7 +58,6 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     private final FirestoreRepository firestoreRepository;
     private final StorageRepository storageRepository;
     private final AdsRepository adsRepository;
-    private final AuthRepository authRepository;
     private final MutableLiveData<ProfileItem> profileItem;
     private final MutableLiveData<Boolean> isTaskRunning;
     private final MutableLiveData<Long> usedSpace;
@@ -70,7 +69,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         storageRepository = StorageRepository.getInstance();
         adsRepository=new AdsRepository(context);
         firestoreRepository=FirestoreRepository.getInstance();
-        authRepository = new AuthRepository();
+        AuthRepository authRepository = new AuthRepository();
         profileItem=new MutableLiveData<>(new AuthRepository().getProfileItem());
         uploadList=new ArrayList<>();
         downloadList=new ArrayList<>();

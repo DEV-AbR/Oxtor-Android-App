@@ -155,12 +155,12 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                 return;
             }
         }
-        uploadTask.addOnSuccessListener(unit -> {
+        uploadTask.addOnSuccessListener(activity,unit -> {
                         if(fileItems.indexOf(fileItem)==fileItems.size()-1){
                             makeToast("Upload Completed");
                         }
                     })
-                    .addOnFailureListener(e -> makeToast(e.toString()));
+                    .addOnFailureListener(activity,e -> makeToast(e.toString()));
     }
 
     private void downloadFile(FileItem fileItem) {
@@ -178,11 +178,11 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             }
             return;
         }
-        downloadTask.addOnSuccessListener(unit -> {
+        downloadTask.addOnSuccessListener(activity,unit -> {
             if (fileItems.indexOf(fileItem) == fileItems.size() - 1) {
                 makeToast("Items saved at Oxtor/download/");
             }
-        }).addOnFailureListener(ex -> makeToast(ex.toString()));
+        }).addOnFailureListener(activity,ex -> makeToast(ex.toString()));
     }
 
     private boolean canContinueAction(FileItem fileItem){

@@ -37,20 +37,18 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
         user=new MutableLiveData<>(authRepository.getUser());
     }
 
-    public Task<Unit> signIn(AuthCredential credential){
+    public Unit signIn(AuthCredential credential){
         setIsTaskRunning(true);
-        return authRepository.signIn(credential)
-                .continueWith(task->{
-                    setIsTaskRunning(!task.isComplete());
-                    if(task.isSuccessful()) {
-                        try{
-                            user.setValue(authRepository.getUser());
-                        }catch (Exception e) {
-                            user.postValue(authRepository.getUser());
-                        }
+        authRepository.signIn(credential)
+                .addOnCompleteListener(task->setIsTaskRunning(!task.isComplete()))
+                .addOnSuccessListener(task->{
+                    try{
+                        user.setValue(authRepository.getUser());
+                    }catch (Exception e) {
+                        user.postValue(authRepository.getUser());
                     }
-                    return Unit.INSTANCE;
                 });
+        return Unit.INSTANCE;
     }
 
     public Task<Unit> checkPendingSignIn() {
@@ -59,24 +57,13 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
             setIsTaskRunning(true);
             return authResultTask.continueWithTask(task -> {
                 if(task.isSuccessful())
-                    return signIn(task.getResult().getCredential());
+                    return Tasks.forResult(signIn(task.getResult().getCredential()));
                 else
-                    return Tasks.forResult(Unit.INSTANCE);
+                    return Tasks.forException(new Exception("Couldn't sign in with credentials found using email and dynamic link"));
             });
         }
         else
             return Tasks.forException(new Exception("No pending sign in session found"));
-    }
-
-    public Task<Unit> getGoogleSignInAccount(Task<GoogleSignInAccount> googleSignInAccountTask) {
-        setIsTaskRunning(true);
-        return googleSignInAccountTask.continueWith(task->{
-            setIsTaskRunning(!task.isComplete());
-            GoogleSignInAccount gsa=task.getResult();
-            AuthCredential authCredential=GoogleAuthProvider.getCredential(gsa.getIdToken(),null);
-            signIn(authCredential);
-            return Unit.INSTANCE;
-        });
     }
 
     public Task<Unit> signInWithEmail(String email,String link){

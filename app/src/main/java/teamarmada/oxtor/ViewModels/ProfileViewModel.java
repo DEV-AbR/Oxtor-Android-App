@@ -78,9 +78,10 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
 
     public Task<HttpsCallableResult> updateUsername(String un) {
         setIsTaskRunning(true);
-        return functionsRepository.updateUsername(un).continueWithTask(task->{
-            setIsTaskRunning(!task.isComplete());
-            return task;
+        return functionsRepository.updateUsername(un)
+                .continueWithTask(task->{
+                    setIsTaskRunning(!task.isComplete());
+                    return task;
         });
     }
     

@@ -32,6 +32,10 @@
         <item name="shapeAppearanceOverlay">@style/dialogAppearance</item>
 <!--        <item name="android:textSize">12sp</item>-->
     </style>
+    <style name="Theme.Oxtor.ProgressDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/dialogAppearance</item>
+        <!--        <item name="android:textSize">12sp</item>-->
+    </style>
 
     <style name="Theme.Oxtor.BottomSheetStyle" parent="ThemeOverlay.Material3.BottomSheetDialog">>
         <item name="shapeAppearanceOverlay">@style/dialogAppearance</item>

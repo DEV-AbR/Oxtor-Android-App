@@ -15,6 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firestore.v1.FirestoreGrpc;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;

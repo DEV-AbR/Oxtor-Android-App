@@ -5,6 +5,8 @@ import static android.content.Context.ACTIVITY_SERVICE;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,13 +17,7 @@ import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnCanceledListener;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.storage.FileDownloadTask;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
@@ -79,7 +75,7 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
                         if(item.getTask().isPaused()) {
                             item.getTask().resume();
                         }
-                        int progress= getProgress(item,snapshot);
+                        int progress= getTaskProgress(item,snapshot);
                         if(progress>0){
                             holder.binding.progressbarTaskItem.setIndeterminate(false);
                             holder.binding.progressbarTaskItem.setProgress(progress);
@@ -94,42 +90,9 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
                     }
                 });
 
-//        item.beginTask(context,new FileTask.Callback() {
-//            @Override
-//            public void onTaskProgress(int progress) {
-//                if(item.getTask().isInProgress())
-//                if(progress>0){
-//                    holder.binding.progressbarTaskItem.setIndeterminate(false);
-//                    holder.binding.progressbarTaskItem.setProgress(progress);
-//                    String s="Progress : "+progress+"%";
-//                    holder.binding.timestamp.setText(s);
-//                }
-//                else{
-//                    holder.binding.progressbarTaskItem.setIndeterminate(true);
-//                    String s="Connecting...";
-//                    holder.binding.timestamp.setText(s);
-//                }
-//            }
-//
-//            @Override
-//            public void onTaskSuccess() {
-//                onTaskFailed(null);
-//            }
-//
-//            @Override
-//            public void onTaskCancel() {onTaskFailed(null);}
-//
-//            @Override
-//            public void onTaskFailed(Exception ex) {
-//                list.remove(item);
-//                listObserver.onChanged(list);
-//                notifyDataSetChanged();
-//            }
-//        });
-
     }
 
-    private int getProgress(FileTask<T> item,Object snapshot){
+    private int getTaskProgress(FileTask<T> item,Object snapshot){
         if(item.getTask() instanceof UploadTask){
             UploadTask.TaskSnapshot taskSnapshot= (UploadTask.TaskSnapshot) snapshot;
             double progress=(100.0*taskSnapshot.getBytesTransferred())/item.getFileItem().getFileSize();
@@ -154,6 +117,10 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
         ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
         am.getMemoryInfo(memoryInfo);
         return memoryInfo;
+    }
+
+    private void makeToast(String msg){
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -188,17 +155,12 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
             if(getItem().getTask() instanceof FileDownloadTask)
                 FileItemUtils.loadPhoto(fileItem,binding.picture);
             binding.removeButton.setOnClickListener(v->{
-                cancelTask();
-                try {
-                    Toast.makeText(context, fileItem.getFileName() + " Removed", Toast.LENGTH_SHORT).show();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+                removeTask();
+                makeToast(fileItem.getFileName() + " Removed");
             });
         }
 
         public void  cancelTask(){
-            
             try {
                 getItem().getTask().cancel();
                 list.remove(getAbsoluteAdapterPosition());
@@ -207,15 +169,14 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
                 e.printStackTrace();
                 return;
             }
-             try{
-                 notifyItemRemoved(getAbsoluteAdapterPosition());
-             }catch (Exception e){
-                 notifyDataSetChanged();
-             }
+            try{
+                notifyItemRemoved(getAbsoluteAdapterPosition());
+            }catch (Exception e){
+                notifyDataSetChanged();
+            }
         }
 
-        public void  cancelTask(){
-            
+        public void  removeTask(){
             try {
                 list.remove(getAbsoluteAdapterPosition());
                 listObserver.onChanged(list);
@@ -223,11 +184,11 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
                 e.printStackTrace();
                 return;
             }
-             try{
-                 notifyItemRemoved(getAbsoluteAdapterPosition());
-             }catch (Exception e){
-                 notifyDataSetChanged();
-             }
+            try{
+                notifyItemRemoved(getAbsoluteAdapterPosition());
+            }catch (Exception e){
+                notifyDataSetChanged();
+            }
         }
     }
 

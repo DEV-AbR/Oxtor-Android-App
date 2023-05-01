@@ -144,14 +144,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
             fileTaskItems.forEach(fileItemTask->
                     fileItemTask.getTask().addOnCompleteListener(task -> mainViewModel.removeUploadItem(fileItemTask)));
             whenListIsEmpty(mainViewModel.mutableUploadList.getValue().isEmpty(), v -> {
-                if(!taskBottomSheet.isInLayout()) {
-                    taskBottomSheet.setTab(0);
-                    try {
-                        taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }else taskBottomSheet.dismiss();
+                if(!taskBottomSheet.isAdded()) {
+                    taskBottomSheet.setTab(0).showNow(getSupportFragmentManager(), "Tasks");
+                }
+                else {
+                    taskBottomSheet.dismiss();
+                }
             });
         });
     }
@@ -161,14 +159,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
             fileTaskItems.forEach(fileTaskItem->
                 fileTaskItem.getTask().addOnCompleteListener(task -> mainViewModel.removeDownloadItem(fileTaskItem)));
             whenListIsEmpty(mainViewModel.mutableDownloadList.getValue().isEmpty(), v -> {
-                if(!taskBottomSheet.isInLayout()) {
-                    taskBottomSheet.setTab(1);
-                    try {
-                        taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }else taskBottomSheet.dismiss();
+                if(!taskBottomSheet.isAdded()) {
+                    taskBottomSheet.setTab(1).showNow(getSupportFragmentManager(), "Tasks");
+                }
+                else {
+                    taskBottomSheet.dismiss();
+                }
             });
         });
     }

@@ -127,7 +127,7 @@ public class InAppUpdate implements InstallStateUpdatedListener, DefaultLifecycl
     @Override
     public void onResume(@NonNull LifecycleOwner owner) {
         DefaultLifecycleObserver.super.onResume(owner);
-        appUpdateManager.getAppUpdateInfo().addOnSuccessListener (info -> {
+        appUpdateManager.getAppUpdateInfo().addOnSuccessListener (parentActivity,info -> {
                     if (currentType == FLEXIBLE) {
                         // If the update is downloaded but not installed, notify the user to complete the update.
                         if (info.installStatus() == InstallStatus.DOWNLOADED)

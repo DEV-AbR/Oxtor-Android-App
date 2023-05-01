@@ -27,11 +27,10 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
         this.layoutID=layoutID;
     }
 
-    public void showBottomSheet(FragmentManager fragmentManager, BottomSheetCallback callback){
+    public BottomSheetDialogFragment addCallback(BottomSheetCallback callback){
         this.callback=callback;
-        showNow(fragmentManager,TAG);
+        return this;
     }
-
 
     public void setItemPosition(int i){
         binding.viewpagerHome.setCurrentItem(i,false);
@@ -50,6 +49,15 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void setStyle(int style, int theme) {
         super.setStyle(STYLE_NORMAL, R.style.Theme_Oxtor_BottomSheetStyle);
+    }
+
+    @Override
+    public void showNow(@NonNull FragmentManager manager, @Nullable String tag) {
+        try {
+            super.showNow(manager, tag);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public interface BottomSheetCallback extends View.OnClickListener{
