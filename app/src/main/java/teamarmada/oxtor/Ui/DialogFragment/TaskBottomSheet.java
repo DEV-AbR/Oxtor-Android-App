@@ -94,9 +94,9 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
         super.setStyle(STYLE_NORMAL, R.style.Theme_Oxtor_BottomSheetStyle);
     }
 
-    public DialogFragment setTab(int pos){
+    public void setTab(int pos){
         this.pos=pos;
-        return this;
+       
     }
 
     @Override
