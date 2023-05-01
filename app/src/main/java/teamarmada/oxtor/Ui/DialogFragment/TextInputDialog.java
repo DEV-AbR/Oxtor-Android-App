@@ -75,9 +75,8 @@ public class TextInputDialog extends DialogFragment {
         return builder.create();
     }
 
-    public DialogFragment addCallback(SimpleCallback callback){
+    public void addCallback(SimpleCallback callback){
         this.callback=callback;
-        return this;
     }
 
     @Override

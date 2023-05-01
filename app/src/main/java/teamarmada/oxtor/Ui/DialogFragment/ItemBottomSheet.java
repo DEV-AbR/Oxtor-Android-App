@@ -27,9 +27,8 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
         this.layoutID=layoutID;
     }
 
-    public BottomSheetDialogFragment addCallback(BottomSheetCallback callback){
+    public void addCallback(BottomSheetCallback callback){
         this.callback=callback;
-        return this;
     }
 
     public void setItemPosition(int i){

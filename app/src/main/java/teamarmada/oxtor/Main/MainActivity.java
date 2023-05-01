@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
             whenListIsEmpty(mainViewModel.mutableUploadList.getValue().isEmpty(), v -> {
                 if(!taskBottomSheet.isInLayout()) {
                     taskBottomSheet.setTab(0);
-taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
+                    taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
                 }
                 else {
                     taskBottomSheet.dismiss();
@@ -162,7 +162,7 @@ taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
             whenListIsEmpty(mainViewModel.mutableDownloadList.getValue().isEmpty(), v -> {
                 if(!taskBottomSheet.isInLayout()) {
                     taskBottomSheet.setTab(1);
-taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
+                    taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
                 }
                 else {
                     taskBottomSheet.dismiss();

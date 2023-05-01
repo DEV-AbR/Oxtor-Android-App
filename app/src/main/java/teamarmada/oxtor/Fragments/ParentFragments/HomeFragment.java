@@ -246,20 +246,21 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 @Override
                 public void bind(ListFileitemBinding recBinding,FileItem item,int position) {
                     if (item.getFileType().contains("image")) {
-                        Glide.with(recBinding.picture)
-                                .load(item)
-                                .into(recBinding.picture);
+                        Glide.with(recBinding.picture).load(item).into(recBinding.picture);
                     }
-                    else FileItemUtils.loadPhoto(item,recBinding.picture);
-                    recBinding.name.setText(item.getFileName());
+                    else {
+                        FileItemUtils.loadPhoto(item,recBinding.picture);
+                    }
                     if(item.getTimeStamp()!=null) {
                         recBinding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
                     }
+                    recBinding.name.setText(item.getFileName());
                     recBinding.size.setText(FileItemUtils.byteToString(item.getFileSize()));
                     recBinding.getRoot().setOnClickListener(v->{
                         if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()){
                             itemBottomSheet.setItemPosition(position);
-                            itemBottomSheet.addCallback(bottomSheetCallback).showNow(getChildFragmentManager(),"Preview");
+                            itemBottomSheet.addCallback(bottomSheetCallback);
+                            itemBottomSheet.showNow(getChildFragmentManager(),"Preview");
                         }
                         else if(itemBottomSheet.isInLayout()) itemBottomSheet.dismiss();
                     });
@@ -272,23 +273,25 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                                 .startSupportActionMode(new ActionMode.Callback() {
                                     @Override
                                     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                                        if(!items.isEmpty())
-                                        {
+                                        if(!items.isEmpty()) {
                                             try{
                                                 mode.setTitle("1");
                                             }catch (Exception e){
-                                                Log.e(TAG, "onCreateActionMode: ",e);
+                                                e.printStackTrace();
                                             }
                                             mode.getMenuInflater().inflate(R.menu.home_action_mode_menu,menu);
-                                        return true;}
-                                        else { onDestroyActionMode(mode);
-                                        return false;}
+                                            return true;
+                                        }
+                                        else {
+                                            onDestroyActionMode(mode);
+                                            return false;
+                                        }
                                     }
                                     @Override
                                     public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
                                         if(actionmode!=null){
                                             mode.setTitle("1");
-                                        return true;
+                                            return true;
                                         }
                                         return false;
                                     }
@@ -386,8 +389,8 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private void onClickRenameButton(List<FileItem> fileItems){
         TextInputDialog dialog=new TextInputDialog(R.string.rename_file,null,
                 "Current FileName : "+fileItems.get(0).getFileName(), InputType.TYPE_CLASS_TEXT, requireContext());
-        dialog.addCallback(msg -> homeViewModel.renameFile(msg,fileItems.get(0)))
-                .show(getChildFragmentManager(),"Input");
+        dialog.addCallback(msg -> homeViewModel.renameFile(msg,fileItems.get(0)));
+        dialog.show(getChildFragmentManager(),"Input");
     }
 
     private void onClickDeleteButton(List<FileItem> fileItems){
@@ -428,7 +431,8 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 e.printStackTrace();
                 Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
             }
-        }).show(getChildFragmentManager(),"Input");
+        });
+        dialog.show(getChildFragmentManager(),"Input");
     }
 
     private AlertDialog createPreferenceChooserDialog(){

@@ -119,7 +119,8 @@ public class LoginFragment extends Fragment {
                 }
                 else
                     Snackbar.make(binding.getRoot(),R.string.enter_country_code,Snackbar.LENGTH_SHORT).show();
-            }).show(getChildFragmentManager(),"Input");
+            });
+            textInputDialog.show(getChildFragmentManager(),"Input");
         });
         emailSignIn.setOnClickListener(v -> {
             loginViewModel.setIsTaskRunning(false);
@@ -133,7 +134,8 @@ public class LoginFragment extends Fragment {
                 }
                 else
                     Snackbar.make(binding.getRoot(),"Enter valid email",Snackbar.LENGTH_SHORT).show();
-            }).show(getChildFragmentManager(),"Input");
+            });
+            emailDialog.show(getChildFragmentManager(),"Input");
         });
         return binding.getRoot();
     }
@@ -300,7 +302,8 @@ public class LoginFragment extends Fragment {
                 loginViewModel.signIn(credential);
                 sharedPreferences.edit().remove(EMAIL).apply();
             }
-        }).show(getChildFragmentManager(),"Input");
+        });
+        enterCode.show(getChildFragmentManager(),"Input");
     }
 
     private void observeLoadingState() {
