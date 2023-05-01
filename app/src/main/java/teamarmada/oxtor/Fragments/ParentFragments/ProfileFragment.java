@@ -22,7 +22,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -154,10 +153,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                     profileItem.setUsername(msg);
                     profileViewModel.getProfileItem().postValue(profileItem);
                     binding.username.setText(msg);
-                    Toast.makeText(getContext(),R.string.username_updated,Toast.LENGTH_SHORT).show();
-                }).addOnFailureListener(e-> Toast.makeText(getContext(),"Username already taken",Toast.LENGTH_SHORT).show());
+                    Snackbar.make(binding.getRoot(),R.string.username_updated,Snackbar.LENGTH_SHORT).show();
+                }).addOnFailureListener(e-> Snackbar.make(binding.getRoot(),"Username already taken",Snackbar.LENGTH_SHORT).show());
             }
-            else Toast.makeText(getContext(),R.string.dont_use_any_special_character,Toast.LENGTH_SHORT).show();
+            else {
+                Snackbar.make(binding.getRoot(), R.string.dont_use_any_special_character, Snackbar.LENGTH_SHORT).show();
+            }
         });
         textInputDialog.show(getChildFragmentManager(),"Input");
     }
@@ -196,10 +197,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     private void deleteAccount() {
         profileViewModel.deleteAccount().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
-                Toast.makeText(getContext(), "Come back again to signIn, bye... :-)", Toast.LENGTH_SHORT).show();
+                Snackbar.make(binding.getRoot(), "Come back again to signIn, bye... :-)", Snackbar.LENGTH_SHORT).show();
             }
             else {
-                Toast.makeText(getContext(),R.string.some_error_occurred,Toast.LENGTH_SHORT).show();
+                Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
             }
             getActivity().finish();
         });
@@ -209,7 +210,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         profileViewModel.abortAllTasks();
         profileViewModel.signOut().addOnCompleteListener(task->{
             if(task.isSuccessful()){
-                Toast.makeText(getContext(), "Come back again to signIn, bye... :-)", Toast.LENGTH_SHORT).show();
+                Snackbar.make(binding.getRoot(), "Come back again to signIn, bye... :-)", Snackbar.LENGTH_SHORT).show();
                 try {
                     navController.navigate(R.id.action_navigation_profile_to_navigation_login);
                 }catch (Exception e){
@@ -226,7 +227,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         Intent i= new Intent(Intent.ACTION_VIEW,url);
         startActivity(i);
         }catch (Exception e){
-            Toast.makeText(getContext(),"Some error occurred",Toast.LENGTH_SHORT).show();
+            Snackbar.make(binding.getRoot(),"Some error occurred",Snackbar.LENGTH_SHORT).show();
         }
     }
 

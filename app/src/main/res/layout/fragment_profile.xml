@@ -8,13 +8,11 @@
       android:layout_height="match_parent"
       android:id="@+id/navigation_profile"
       tools:context=".Fragments.ParentFragments.ProfileFragment"
-      android:clickable="true"
-      >
+      android:clickable="true">
 
   <RelativeLayout
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      >
+      android:layout_height="wrap_content">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/dp_card"

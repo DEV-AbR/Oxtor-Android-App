@@ -14,7 +14,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -79,6 +78,7 @@ public class LoginFragment extends Fragment {
         Log.d(TAG, "onCreateView: ");
         binding = FragmentLoginBinding.inflate(inflater, container, false);
         binding.setLifecycleOwner(this);
+
         try {
             fullscreenManager=(ScreenManager) requireActivity();
             fullscreenManager.enableFullscreen();
@@ -257,9 +257,9 @@ public class LoginFragment extends Fragment {
                 sharedPreferences.edit().remove(EMAIL).apply();
                 loginViewModel.signIn(credential);
                 loginViewModel.setIsTaskRunning(false);
+            } else {
+                Snackbar.make(binding.getRoot(), "Couldn't receive sms code, try again...", Snackbar.LENGTH_SHORT).show();
             }
-            else
-                Toast.makeText(getContext(), "Couldn't receive sms code, try again...",Toast.LENGTH_SHORT).show();
         }
 
         @Override

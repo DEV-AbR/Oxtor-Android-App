@@ -11,10 +11,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -145,8 +145,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
                     fileItemTask.getTask().addOnCompleteListener(task -> mainViewModel.removeUploadItem(fileItemTask)));
             whenListIsEmpty(mainViewModel.mutableUploadList.getValue().isEmpty(), v -> {
                 if(!taskBottomSheet.isInLayout()) {
-                    taskBottomSheet.setTab(0);
                     taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
+                    taskBottomSheet.setTab(0);
                 }
                 else {
                     taskBottomSheet.dismiss();
@@ -161,8 +161,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
                 fileTaskItem.getTask().addOnCompleteListener(task -> mainViewModel.removeDownloadItem(fileTaskItem)));
             whenListIsEmpty(mainViewModel.mutableDownloadList.getValue().isEmpty(), v -> {
                 if(!taskBottomSheet.isInLayout()) {
-                    taskBottomSheet.setTab(1);
                     taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
+                    taskBottomSheet.setTab(1);
                 }
                 else {
                     taskBottomSheet.dismiss();
@@ -281,6 +281,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         adViewContainer.removeAllViews();
         getSupportActionBar().hide();
         hideNavigationBar();
+        try {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -288,6 +294,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         adViewContainer.post(() -> ActivityLifecycleObserver.getInstance(this).loadBanner(adViewContainer));
         getSupportActionBar().show();
         showNavigationBar();
+        try {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override

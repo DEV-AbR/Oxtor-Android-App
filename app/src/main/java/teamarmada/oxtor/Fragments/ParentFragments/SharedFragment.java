@@ -196,76 +196,74 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                     recBinding.getRoot().setOnClickListener(v->{
                         if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()) {
                             itemBottomSheet.setItemPosition(position);
-                            itemBottomSheet.addCallback(bottomSheetCallback).show(getChildFragmentManager(),"Preview");
+                            itemBottomSheet.addCallback(bottomSheetCallback);
+                            itemBottomSheet.show(getChildFragmentManager(),"Preview");
                         }
                         else
                             if(itemBottomSheet.isInLayout()) itemBottomSheet.dismiss();
                     });
                 }
-
                 @Override
                 public void onChanged(List<SharedItem> items) {
-                    if(!adapter.getSelectionTracker().getSelection().isEmpty()){
-                        if(actionmode==null)
-                        {   actionmode=((AppCompatActivity) requireActivity())
-                                .startSupportActionMode(new ActionMode.Callback() {
-                                    @Override
-                                    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                                        if(!items.isEmpty()) {
-                                            try{
-                                            mode.setTitle("1");
-                                            }catch (Exception e){
-                                                e.printStackTrace();
+                    if (!adapter.getSelectionTracker().getSelection().isEmpty()) {
+                        if (actionmode == null) {
+                            actionmode = ((AppCompatActivity) requireActivity())
+                                    .startSupportActionMode(new ActionMode.Callback() {
+                                        @Override
+                                        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                                            if (!items.isEmpty()) {
+                                                try {
+                                                    mode.setTitle("1");
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                                mode.getMenuInflater().inflate(R.menu.shared_action_mode_menu, menu);
+                                                return true;
+                                            } else {
+                                                onDestroyActionMode(mode);
+                                                return false;
                                             }
-                                            mode.getMenuInflater().inflate(R.menu.shared_action_mode_menu,menu);
+                                        }
+
+                                        @Override
+                                        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
                                             return true;
                                         }
-                                        else {
-                                            onDestroyActionMode(mode);
-                                            return false;
+
+                                        @Override
+                                        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                                            if (item.getItemId() == R.id.select_all_button) {
+                                                if (adapter.selectActionForAll()) {
+                                                    item.setTitle(R.string.unselect_all_item);
+                                                } else {
+                                                    item.setTitle(R.string.selectall);
+                                                }
+                                            } else {
+                                                onOptionSelected(item.getItemId(), items);
+                                                onDestroyActionMode(mode);
+                                            }
+                                            return true;
                                         }
-                                    }
-                                    @Override
-                                    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                                        return true;
-                                    }
-                                    @Override
-                                    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                                       if(item.getItemId()==R.id.select_all_button){
-                                           if(adapter.selectActionForAll()){
-                                               item.setTitle(R.string.unselect_all_item);
-                                           }
-                                           else{
-                                               item.setTitle(R.string.selectall);
-                                           }
-                                       }
-                                       else{
-                                           onOptionSelected(item.getItemId(), items);
-                                           onDestroyActionMode(mode);
-                                       }
-                                       return true;
-                                    }
-                                    @Override
-                                    public void onDestroyActionMode(ActionMode mode) {
-                                        mode.finish();
-                                        actionmode=null;
-                                        adapter.getSelectedItems().clear();
-                                        adapter.getSelectionTracker().clearSelection();
-                                    }
-                                });
+
+                                        @Override
+                                        public void onDestroyActionMode(ActionMode mode) {
+                                            mode.finish();
+                                            actionmode = null;
+                                            adapter.getSelectedItems().clear();
+                                            adapter.getSelectionTracker().clearSelection();
+                                        }
+                                    });
+                        } else {
+                            try {
+                                String s = String.valueOf(adapter.getSelectionTracker().getSelection().size());
+                                actionmode.setTitle(s);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-                        else
-                        {   try{
-                            String s=String.valueOf(adapter.getSelectionTracker().getSelection().size());
-                            actionmode.setTitle(s);
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
-                        }
+                    } else if (actionmode != null) {
+                        actionmode.finish();
                     }
-                    else if(actionmode!=null)actionmode.finish();
-
-
                 }
             };
 

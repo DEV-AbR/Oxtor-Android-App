@@ -14,6 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ProcessLifecycleOwner;
@@ -216,7 +217,8 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private void makeToast(String msg){
-        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
+        new Handler(Looper.getMainLooper())
+                .post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
     }
 
     private ActivityManager.MemoryInfo getAvailableMemory(Context context) {

@@ -39,7 +39,7 @@ public class AppCheckInitializer implements Initializer<FirebaseAppCheck> {
     @NonNull
     @Override
     public List<Class<? extends Initializer<?>>> dependencies() {
-        return Collections.singletonList(WorkManagerInitializer.class);
+        return Collections.emptyList();
     }
 
 }
