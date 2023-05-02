@@ -209,7 +209,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                         }
                     });
                     recBinding.setLifecycleOwner(SharedFragment.this);
-                    recBinding.executePendingBindings();
                 }
                 @Override
                 public void onChanged(List<SharedItem> items) {

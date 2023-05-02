@@ -91,6 +91,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     }
 
     private void initUI() {
+        binding.executePendingBindings();
         Long usedSpace=sharedPreferences.getLong(USED_SPACE,0L);
         String a = "Used Space : " + FileItemUtils.byteToString(usedSpace);
         binding.usedSpace.setText(a);

@@ -97,18 +97,21 @@ public class LoginFragment extends Fragment {
             Intent intent=new Intent(Intent.ACTION_VIEW, Uri.parse("https://oxt.web.app"));
             startActivity(intent);
         });
-        SignInButton googleSignIn = binding.googlesigin;
-        MaterialButton phoneSignIn = binding.phonesignin;
-        MaterialButton emailSignIn=binding.emailsignin;
         enterCode=new TextInputDialog(R.string.enter_sms_code,null,null, InputType.TYPE_CLASS_NUMBER,requireContext());
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
         loginViewModel.getUser().observe(getViewLifecycleOwner(),this::updateUI);
         observeLoadingState();
-        googleSignIn.setOnClickListener(v -> {
+        initUI();
+        return binding.getRoot();
+    }
+
+    public void initUI(){
+        binding.executePendingBindings();
+        binding.googlesigin.setOnClickListener(v -> {
             loginViewModel.setIsTaskRunning(false);
             initGoogleSignIn();
         });
-        phoneSignIn.setOnClickListener(v -> {
+        binding.phonesignin.setOnClickListener(v -> {
             loginViewModel.setIsTaskRunning(false);
             TextInputDialog textInputDialog = new TextInputDialog(R.string.sign_in_with_phone,getString(R.string.india_country_code),
                     "Enter your no. with Country Code",InputType.TYPE_CLASS_PHONE, getContext());
@@ -122,22 +125,21 @@ public class LoginFragment extends Fragment {
             });
             textInputDialog.show(getChildFragmentManager(),"Input");
         });
-        emailSignIn.setOnClickListener(v -> {
+        binding.emailsignin.setOnClickListener(v -> {
             loginViewModel.setIsTaskRunning(false);
             TextInputDialog emailDialog=new TextInputDialog(R.string.sign_in_with_email,null,
-            "Enter your Email address",InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, getContext());
+                    "Enter your Email address",InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, getContext());
             emailDialog.addCallback(msg -> {
                 if(emailDialog.isEmailValid(msg)){
-                sharedPreferences.edit().putString(EMAIL,msg).apply();
-                email=msg;
-                initEmailSignIn();
+                    sharedPreferences.edit().putString(EMAIL,msg).apply();
+                    email=msg;
+                    initEmailSignIn();
                 }
                 else
                     Snackbar.make(binding.getRoot(),"Enter valid email",Snackbar.LENGTH_SHORT).show();
             });
             emailDialog.show(getChildFragmentManager(),"Input");
         });
-        return binding.getRoot();
     }
 
     @Override

@@ -133,7 +133,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void initUI(){
-
         switch (sharedPreferences.getInt(SORT_PREFERENCE,1)){
             default:
             case 1:
@@ -272,7 +271,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                         }
                     });
                     recBinding.setLifecycleOwner(HomeFragment.this);
-                    recBinding.executePendingBindings();
                 }
                 @Override
                 public void onChanged(List<FileItem> items) {
