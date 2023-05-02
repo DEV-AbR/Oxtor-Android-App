@@ -47,6 +47,7 @@ public class SharedItem {
             Gson gson=new Gson();
             return gson.fromJson(s,FileItem.class);
         }catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }

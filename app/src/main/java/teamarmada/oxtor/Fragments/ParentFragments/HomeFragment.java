@@ -245,6 +245,10 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             new ListItemCallback<FileItem, ListFileitemBinding>() {
                 @Override
                 public void bind(ListFileitemBinding recBinding,FileItem item,int position) {
+                    if(item==null){
+                        Snackbar.make(binding.getRoot(),"Some error occurred while loading Items",Snackbar.LENGTH_SHORT).show();
+                        return;
+                    }
                     if (item.getFileType().contains("image")) {
                         Glide.with(recBinding.picture).load(item).into(recBinding.picture);
                     }
@@ -252,7 +256,8 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                         FileItemUtils.loadPhoto(item,recBinding.picture);
                     }
                     if(item.getTimeStamp()!=null) {
-                        recBinding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
+                        String time = FileItemUtils.getTimestampString(item.getTimeStamp());
+                        recBinding.timestamp.setText(time);
                     }
                     recBinding.name.setText(item.getFileName());
                     recBinding.size.setText(FileItemUtils.byteToString(item.getFileSize()));
@@ -266,6 +271,8 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                             itemBottomSheet.dismiss();
                         }
                     });
+                    recBinding.setLifecycleOwner(HomeFragment.this);
+                    recBinding.executePendingBindings();
                 }
                 @Override
                 public void onChanged(List<FileItem> items) {

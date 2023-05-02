@@ -135,10 +135,11 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
     @Override
     public void onBindViewHolder(@NonNull RecyclerViewAdapter.ViewHolder holder, int position) {
         try{
-            listener.bind((VB) holder.binding, getItem(holder.getBindingAdapterPosition()),
-                    holder.getBindingAdapterPosition());
+            final int i=holder.getBindingAdapterPosition();
+            listener.bind((VB) holder.binding, getItem(i), i);
         }
         catch (ClassCastException e){
+            e.printStackTrace();
         }
     }
 
@@ -146,23 +147,18 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
     public T getItem(int position) {
         DocumentSnapshot snapshot=snapshotList.get(position);
         try{
-        return snapshot.toObject(tClass);
+            return snapshot.toObject(tClass);
         }catch (Exception e){
+            e.printStackTrace();
             Constructor<T> tConstructor;
-
             try {
                 tConstructor = tClass.getConstructor(DocumentSnapshot.class);
                 return tConstructor.newInstance(snapshot);
             } catch (Exception ex) {
-
-                try{
-                    (new Gson()).fromJson(snapshot.toString(),tClass);
-                }catch (Exception eu){
-                    return null;
-                }
+               ex.printStackTrace();
+               return null;
             }
         }
-        return null;
     }
 
     @Override
@@ -217,7 +213,6 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
     }
 
     public void onDocumentAdded(DocumentChange change){
-
         snapshotList.add(change.getNewIndex(), change.getDocument());
         notifyItemInserted(change.getNewIndex());
     }
@@ -235,13 +230,8 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
     }
 
     public void onDocumentRemoved(DocumentChange change){
-
         snapshotList.remove(change.getOldIndex());
-        try{
-           notifyItemRemoved(change.getOldIndex());
-        }catch(Exception e){
         notifyDataSetChanged();
-        }
     }
 
     public Query getQuery() {

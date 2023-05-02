@@ -166,42 +166,50 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 @SuppressLint("SuspiciousIndentation")
                 @Override
                 public void bind(ListFileitemBinding recBinding, SharedItem item, int position) {
-                    recBinding.setLifecycleOwner(SharedFragment.this);
-                    if (item.getFileItem().getFileType().contains("image")) {
-                        Glide.with(recBinding.picture)
-                                .load(item.getFileItem())
-                                .into(recBinding.picture);
+                    final FileItem fileItem=item.getFileItem();
+                    if(fileItem==null){
+                        Snackbar.make(binding.getRoot(),"Some error occurred while loading shared items",Snackbar.LENGTH_SHORT).show();
+                        return;
                     }
-                else
-                    FileItemUtils.loadPhoto(item.getFileItem(),recBinding.picture);
-
-                    recBinding.size.setText(item.getFileItem().getFileName());
+                    if (fileItem.getFileType().contains("image")) {
+                        Glide.with(recBinding.picture).load(fileItem).into(recBinding.picture);
+                    }
+                    else{
+                        FileItemUtils.loadPhoto(fileItem,recBinding.picture);
+                    }
+                    recBinding.size.setText(fileItem.getFileName());
                     try {
                         if (item.getEmailOfReceiver().equals(shareViewModel.getProfileItem().getValue().getEmail()))
                             recBinding.name.setText(item.getUsernameOfSender());
-                        if (item.getPhoneNumberOfReceiver().equals(shareViewModel.getProfileItem().getValue().getPhoneNumber()))
+                        else if (item.getPhoneNumberOfReceiver().equals(shareViewModel.getProfileItem().getValue().getPhoneNumber()))
                             recBinding.name.setText(item.getUsernameOfSender());
-                    }catch (Exception ignored){}
-
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                     try {
                         if (item.getEmailOfSender().equals(shareViewModel.getProfileItem().getValue().getEmail()))
                             recBinding.name.setText(item.getUsernameOfReceiver());
-                        if (item.getPhoneNumberOfSender().equals(shareViewModel.getProfileItem().getValue().getPhoneNumber()))
+                        else if (item.getPhoneNumberOfSender().equals(shareViewModel.getProfileItem().getValue().getPhoneNumber()))
                             recBinding.name.setText(item.getUsernameOfReceiver());
-                    }catch (Exception ignored){}
-
-                    String a= FileItemUtils.getTimestampString(item.getTimeStamp());
-                    recBinding.timestamp.setText(a);
-
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    if(item.getTimeStamp()!=null){
+                        String time= FileItemUtils.getTimestampString(item.getTimeStamp());
+                        recBinding.timestamp.setText(time);
+                    }
                     recBinding.getRoot().setOnClickListener(v->{
                         if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()) {
                             itemBottomSheet.setItemPosition(position);
                             itemBottomSheet.addCallback(bottomSheetCallback);
                             itemBottomSheet.show(getChildFragmentManager(),"Preview");
                         }
-                        else
-                            if(itemBottomSheet.isInLayout()) itemBottomSheet.dismiss();
+                        else if(itemBottomSheet.isInLayout()){
+                            itemBottomSheet.dismiss();
+                        }
                     });
+                    recBinding.setLifecycleOwner(SharedFragment.this);
+                    recBinding.executePendingBindings();
                 }
                 @Override
                 public void onChanged(List<SharedItem> items) {
