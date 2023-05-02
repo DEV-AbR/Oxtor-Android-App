@@ -20,72 +20,57 @@ public class FileItem {
     private boolean encrypted;
     private String iv,encryptionPassword;
     @ServerTimestamp private Date timeStamp;
+
     public static final String STORAGE_REFERENCE="storageReference";
     public static final String DOWNLOAD_URL="downloadUrl";
     public static final String ENCRYPTED="encrypted";
-    public static final String FILEEXTENSION="fileExtension";
+    public static final String FILE_EXTENSION="fileExtension";
     public static final String TIMESTAMP="timeStamp";
     public static final String FILETYPE="fileType";
     public static final String FILENAME="fileName";
     public static final String FILEPATH="filePath";
-    public static final String FILESIZE="fileSize";
+    public static final String FILE_SIZE="fileSize";
     public static final String UID="uid";
     public static final String IV="iv";
     public static final String ENCRYPTION_PASSWORD="encryptionPassword";
 
     public FileItem(){}
-    public FileItem(DocumentSnapshot documentSnapshot) {
 
+    public FileItem(DocumentSnapshot documentSnapshot) {
+        this.iv=documentSnapshot.getString(IV);
         this.uid = documentSnapshot.getString(UID);
-        this.fileSize = documentSnapshot.getLong(FILESIZE);
+        this.fileSize = documentSnapshot.getLong(FILE_SIZE);
         this.filePath = documentSnapshot.getString(FILEPATH);
         this.fileName = documentSnapshot.getString(FILENAME);
         this.fileType = documentSnapshot.getString(FILETYPE);
         this.timeStamp = documentSnapshot.getDate(TIMESTAMP);
+        this.downloadUrl = documentSnapshot.getString(DOWNLOAD_URL);
+        this.fileExtension = documentSnapshot.getString(FILE_EXTENSION);
+        this.storageReference = documentSnapshot.getString(STORAGE_REFERENCE);
+        this.encryptionPassword=documentSnapshot.getString(ENCRYPTION_PASSWORD);
         try {
-            this.encrypted=documentSnapshot.get(ENCRYPTED,Boolean.class);
+            encrypted=iv!=null?documentSnapshot.get(ENCRYPTED,Boolean.class):false;
         }
         catch (Exception e){
-            encrypted=true;
+            e.printStackTrace();
         }
-        this.downloadUrl = documentSnapshot.getString(DOWNLOAD_URL);
-        this.fileExtension = documentSnapshot.getString(FILEEXTENSION);
-        this.storageReference = documentSnapshot.getString(STORAGE_REFERENCE);
-        this.iv=documentSnapshot.getString(IV);
-        this.encryptionPassword=documentSnapshot.getString(ENCRYPTION_PASSWORD);
     }
 
-    public FileItem(String storageReference,
-                    String downloadUrl, String filePath,
-                    String fileName, String uid,
-                    String fileType, String fileExtension,
-                    Long fileSize, boolean encrypted, Date timeStamp) {
+    public FileItem(String storageReference, String downloadUrl, String filePath,
+                    String fileName, String uid, String fileType, String fileExtension,
+                    Long fileSize, boolean encrypted,String iv, Date timeStamp) {
         this.storageReference = storageReference;
-        this.downloadUrl = downloadUrl;
-        this.filePath = filePath;
-        this.fileName = fileName;
-        this.uid = uid;
-        this.fileType = fileType;
         this.fileExtension = fileExtension;
-        this.fileSize = fileSize;
+        this.downloadUrl = downloadUrl;
         this.encrypted = encrypted;
         this.timeStamp = timeStamp;
+        this.filePath = filePath;
+        this.fileName = fileName;
+        this.fileType = fileType;
+        this.fileSize = fileSize;
+        this.uid = uid;
+        this.iv=iv;
     }
-
-//    public FileItem(JSONObject jsonObject) throws JSONException {
-//        this.uid = jsonObject.getString(UID);
-//        this.fileSize = jsonObject.getLong(FILESIZE);
-//        this.filePath = jsonObject.getString(FILEPATH);
-//        this.fileName = jsonObject.getString(FILENAME);
-//        this.fileType = jsonObject.getString(FILETYPE);
-//        this.timeStamp = (Date) jsonObject.get(TIMESTAMP) ;
-//        this.encrypted=(Boolean) jsonObject.get(ENCRYPTED);
-//        this.downloadUrl = jsonObject.getString(DOWNLOAD_URL);
-//        this.fileExtension = jsonObject.getString(FILEEXTENSION);
-//        this.storageReference = jsonObject.getString(STORAGE_REFERENCE);
-//        this.iv=jsonObject.getString(IV);
-//        this.encryptionPassword=jsonObject.getString(ENCRYPTION_PASSWORD);
-//    }
 
     public String getStorageReference() {
         return storageReference;

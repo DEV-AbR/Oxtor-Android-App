@@ -1,7 +1,7 @@
 package teamarmada.oxtor.Repository;
 
 import static teamarmada.oxtor.Model.FileItem.FILENAME;
-import static teamarmada.oxtor.Model.FileItem.FILESIZE;
+import static teamarmada.oxtor.Model.FileItem.FILE_SIZE;
 import static teamarmada.oxtor.Model.FileItem.TIMESTAMP;
 import static teamarmada.oxtor.Model.FileItem.UID;
 
@@ -183,7 +183,7 @@ public class FirestoreRepository {
     public Query sortBySize(ProfileItem profileItem){
         if(profileItem.getUid()!=null)
             return db.collection(USERS).document(profileItem.getUid())
-                .collection(POSTS).orderBy(FILESIZE, Query.Direction.DESCENDING);
+                .collection(POSTS).orderBy(FILE_SIZE, Query.Direction.DESCENDING);
         else return null;
     }
 
@@ -204,7 +204,7 @@ public class FirestoreRepository {
     public Query sortSharedPostBySize(ProfileItem profileItem) {
         if(profileItem.getUid()!=null)
             return db.collection(USERS).document(profileItem.getUid())
-                .collection(SHARED_POSTS).orderBy(FILESIZE, Query.Direction.ASCENDING);
+                .collection(SHARED_POSTS).orderBy(FILE_SIZE, Query.Direction.ASCENDING);
         else return null;
     }
 

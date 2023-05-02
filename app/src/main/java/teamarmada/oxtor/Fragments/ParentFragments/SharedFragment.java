@@ -167,10 +167,8 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 @Override
                 public void bind(ListFileitemBinding recBinding, SharedItem item, int position) {
                     final FileItem fileItem=item.getFileItem();
-                    if(fileItem==null){
-                        Snackbar.make(binding.getRoot(),"Some error occurred while loading shared items",Snackbar.LENGTH_SHORT).show();
-                        return;
-                    }
+                    if(fileItem==null) return;
+
                     if (fileItem.getFileType().contains("image")) {
                         Glide.with(recBinding.picture).load(fileItem).into(recBinding.picture);
                     }
@@ -208,7 +206,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                             itemBottomSheet.dismiss();
                         }
                     });
-                    recBinding.setLifecycleOwner(SharedFragment.this);
                 }
                 @Override
                 public void onChanged(List<SharedItem> items) {

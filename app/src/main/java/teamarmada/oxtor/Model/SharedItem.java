@@ -43,9 +43,9 @@ public class SharedItem {
 
     private FileItem parseFileItem(DocumentSnapshot documentSnapshot){
         try {
-            String s=documentSnapshot.get("fileItem", String.class);
+            String string=documentSnapshot.get("fileItem", String.class);
             Gson gson=new Gson();
-            return gson.fromJson(s,FileItem.class);
+            return gson.fromJson(string,FileItem.class);
         }catch (Exception e) {
             e.printStackTrace();
             return null;
