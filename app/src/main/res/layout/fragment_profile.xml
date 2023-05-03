@@ -20,16 +20,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+
       <androidx.cardview.widget.CardView
           android:id="@+id/dpofuser_layout"
-          android:layout_width="@dimen/width_of_dp"
-          android:layout_height="@dimen/height_of_dp"
-          app:cardCornerRadius="32dp"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          app:cardCornerRadius="@dimen/corner_radius_card"
+          app:cardBackgroundColor="?attr/colorSecondary"
           app:layout_constraintBottom_toBottomOf="parent"
           app:layout_constraintEnd_toEndOf="parent"
           app:layout_constraintStart_toStartOf="parent"
           app:layout_constraintTop_toTopOf="parent">
 
+        <androidx.cardview.widget.CardView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          app:cardCornerRadius="@dimen/corner_radius_card"
+          android:layout_margin="1dp">
         <ImageView
             android:id="@+id/dpofuser"
             android:layout_width="@dimen/width_of_dp"
@@ -38,8 +45,8 @@
             android:contentDescription="@string/display_picture"
             android:scaleType="centerCrop"
             android:background="?attr/colorPrimaryVariant"
-            android:src="@drawable/ic_baseline_account_circle_24" />
-
+            android:src="@drawable/user_account" />
+      </androidx.cardview.widget.CardView>
       </androidx.cardview.widget.CardView>
 
       <androidx.cardview.widget.CardView
@@ -48,13 +55,13 @@
           app:layout_constraintStart_toEndOf="@+id/dpofuser_layout"
           android:layout_marginStart="-8dp"
           android:layout_marginBottom="8dp"
-          app:cardCornerRadius="@dimen/corner_radius"
+          app:cardCornerRadius="@dimen/corner_radius_round"
           app:layout_constraintBottom_toBottomOf="@id/dpofuser_layout">
 
         <ImageButton
             android:id="@+id/editimage"
-            android:layout_width="@dimen/smallbuttonwidth"
-            android:layout_height="@dimen/smallbuttonheight"
+            android:layout_width="@dimen/small_button_width"
+            android:layout_height="@dimen/small_button_height"
             android:background="?attr/colorSecondary"
             android:src="@drawable/ic_baseline_edit_24"
             android:contentDescription="@string/editimage" />
@@ -67,37 +74,49 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="@dimen/margin"
         android:id="@+id/emailofuser_layout"
         android:layout_below="@id/dp_card"
+        android:layout_marginVertical="@dimen/margin"
         android:layout_marginHorizontal="@dimen/margin_horizontal"
-        app:cardCornerRadius="16dp"
-        android:padding="4dp"
-        app:cardElevation="0dp">
+        app:cardCornerRadius="@dimen/corner_radius_button"
+        app:cardBackgroundColor="?attr/colorSecondary">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/emailofuser"
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/dp_card"
-        android:background="?attr/colorOnPrimary"
-        android:enabled="false"
-        android:foregroundGravity="center"
-        android:gravity="center"
-        android:hint="@string/email"
-        android:paddingVertical="8dp" />
+        android:layout_margin="1dp"
+        app:cardCornerRadius="@dimen/corner_radius_button">
+
+      <com.google.android.material.textfield.TextInputEditText
+          android:id="@+id/emailofuser"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_below="@id/dp_card"
+          android:background="?attr/colorOnPrimary"
+          android:enabled="false"
+          android:foregroundGravity="center"
+          android:gravity="center"
+          android:hint="@string/email"
+          android:paddingVertical="8dp" />
+
+    </androidx.cardview.widget.CardView>
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/name_of_user_layout"
         android:layout_marginVertical="@dimen/margin"
-        android:id="@+id/nameofuser_layout"
+        app:cardCornerRadius="@dimen/corner_radius_button"
+        app:cardBackgroundColor="?attr/colorSecondary"
         android:layout_below="@id/emailofuser_layout"
-        android:layout_marginHorizontal="@dimen/margin_horizontal"
-        app:cardCornerRadius="16dp"
-        android:padding="4dp"
-        app:cardElevation="0dp">
+        android:layout_marginHorizontal="@dimen/margin_horizontal">
+
+      <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="@dimen/corner_radius_button"
+        android:layout_margin="1dp">
 
       <com.google.android.material.textfield.TextInputEditText
           android:id="@+id/nameofuser"
@@ -124,132 +143,162 @@
           android:contentDescription="@string/editname" />
     </androidx.cardview.widget.CardView>
 
+    </androidx.cardview.widget.CardView>
+
+
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin"
         android:layout_marginBottom="@dimen/margin"
         android:id="@+id/username_layout"
-        android:layout_below="@id/nameofuser_layout"
+        android:layout_below="@id/name_of_user_layout"
         android:layout_marginHorizontal="@dimen/margin_horizontal"
-        app:cardCornerRadius="16dp"
-        android:padding="4dp"
-        app:cardElevation="0dp">
+        app:cardCornerRadius="@dimen/corner_radius_button"
+        app:cardBackgroundColor="?attr/colorSecondary">
 
-      <com.google.android.material.textfield.TextInputEditText
-          android:id="@+id/username"
+      <androidx.cardview.widget.CardView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:background="?attr/colorOnPrimary"
-          android:clickable="true"
-          android:focusable="true"
-          android:inputType="text"
-          android:hint="@string/user_username"
-          android:maxLines="1"
-          android:enabled="false"
-          android:gravity="center"
-          android:foregroundGravity="center"
-          android:paddingVertical="8dp" />
+          android:layout_margin="1dp"
+          app:cardCornerRadius="@dimen/corner_radius_button">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorOnPrimary"
+            android:clickable="true"
+            android:focusable="true"
+            android:inputType="text"
+            android:hint="@string/user_username"
+            android:maxLines="1"
+            android:enabled="false"
+            android:gravity="center"
+            android:foregroundGravity="center"
+            android:paddingVertical="8dp" />
 
-      <ImageButton
-          android:id="@+id/editusername"
-          android:layout_width="38dp"
-          android:layout_height="match_parent"
-          android:layout_gravity="end"
-          android:background="?attr/colorSecondary"
-          android:contentDescription="@string/editusername"
-          android:src="@drawable/ic_baseline_edit_24" />
+        <ImageButton
+            android:id="@+id/editusername"
+            android:layout_width="38dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="?attr/colorSecondary"
+            android:contentDescription="@string/editusername"
+            android:src="@drawable/ic_baseline_edit_24" />
+      </androidx.cardview.widget.CardView>
+
     </androidx.cardview.widget.CardView>
 
-    <LinearLayout
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/encryption_layout"
         android:layout_marginVertical="@dimen/margin_vertical"
         android:layout_marginHorizontal="@dimen/margin_horizontal"
         android:layout_below="@id/username_layout"
-        android:id="@+id/encryption_layout"
-        android:orientation="vertical"
-        >
-
-      <androidx.appcompat.widget.SwitchCompat
-          android:layout_height="wrap_content"
+        app:cardBackgroundColor="?attr/colorSecondary"
+        app:cardCornerRadius="@dimen/corner_radius_dialog">
+      <androidx.cardview.widget.CardView
           android:layout_width="match_parent"
-          android:text="@string/enable_encryption"
-          android:id="@+id/encryption_switch"
-          />
-
-      <TextView
-          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:hint="@string/encryption_password"
-          android:padding="4dp"
-          android:visibility="invisible"
-          android:id="@+id/password"
-          />
-      <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="@string/generatenewtoken"
-          android:padding="4dp"
-          android:visibility="invisible"
-          android:textColor="?attr/colorSecondary"
-          android:id="@+id/editpassword"
-          />
-    </LinearLayout>
+          android:layout_margin="1dp"
+          app:cardCornerRadius="@dimen/corner_radius_dialog">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="4dp">
 
-    <LinearLayout
+          <androidx.appcompat.widget.SwitchCompat
+              android:layout_height="wrap_content"
+              android:layout_width="match_parent"
+              android:text="@string/enable_encryption"
+              android:id="@+id/encryption_switch"
+              />
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:hint="@string/encryption_password"
+              android:padding="4dp"
+              android:visibility="gone"
+              android:id="@+id/password"
+              />
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="@string/generatenewtoken"
+              android:padding="4dp"
+              android:visibility="gone"
+              android:textColor="?attr/colorSecondary"
+              android:id="@+id/editpassword"
+
+              />
+        </LinearLayout>
+      </androidx.cardview.widget.CardView>
+
+    </androidx.cardview.widget.CardView>
+
+
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_marginVertical="@dimen/activity_vertical_margin"
         android:layout_marginHorizontal="@dimen/margin_horizontal"
+        app:cardBackgroundColor="?attr/colorSecondary"
+        app:cardCornerRadius="@dimen/corner_radius_dialog"
+        android:padding="4dp"
         android:id="@+id/storage_status_layout"
-        android:layout_below="@id/encryption_layout"
-        >
-        <LinearLayout
+        android:layout_below="@id/encryption_layout">
+      <androidx.cardview.widget.CardView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:orientation="vertical"
-          android:layout_weight="3"
-
-       >
+          app:cardCornerRadius="@dimen/corner_radius_dialog"
+          android:layout_margin="1dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="3"
+            android:padding="4dp">
           <com.google.android.material.textview.MaterialTextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:id="@+id/used_space"
+              android:text="@string/used_space"
+              android:padding="4dp"
+              />
+          <com.google.android.material.textview.MaterialTextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:id="@+id/available_space"
+              android:padding="4dp"
+              android:text="@string/available_space"/>
+
+          <com.google.android.material.textview.MaterialTextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:id="@+id/total_space"
+              android:padding="4dp"
+              android:text="@string/total_space"
+              />
+
+
+        </LinearLayout>
+        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/used_space"
-            android:text="@string/used_space"
-            android:padding="4dp"
-            />
-          <com.google.android.material.textview.MaterialTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/available_space"
-            android:padding="4dp"
-            android:text="@string/available_space"/>
+            android:src="@drawable/ic_baseline_refresh_24"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:layout_gravity="center_vertical|end"
+            android:id="@+id/refresh_button"
+            android:layout_weight="1"
+            app:tint="?attr/colorSecondary" />
 
-          <com.google.android.material.textview.MaterialTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/total_space"
-            android:padding="4dp"
-            android:text="@string/total_space"
-            />
+      </androidx.cardview.widget.CardView>
 
 
-      </LinearLayout>
-
-      <ImageButton
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:src="@drawable/ic_baseline_refresh_24"
-          style="@style/Widget.AppCompat.Button.Borderless.Colored"
-          android:layout_gravity="center_vertical"
-          android:id="@+id/refresh_button"
-          android:layout_weight="1"
-          app:tint="?attr/colorSecondary" />
-
-
-    </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/space_indicator"
@@ -261,9 +310,7 @@
         app:trackColor="@color/white_grey"
         android:layout_marginHorizontal="@dimen/margin_horizontal"
         android:layout_marginVertical="@dimen/margin_vertical"
-
        />
-
 
   </RelativeLayout>
   </ScrollView>

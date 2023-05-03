@@ -61,7 +61,7 @@ import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
 import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.HomeViewModel;
-import teamarmada.oxtor.databinding.FragmentBottomsheetItemBinding;
+import teamarmada.oxtor.databinding.BottomsheetItemBinding;
 import teamarmada.oxtor.databinding.FragmentHomeBinding;
 import teamarmada.oxtor.databinding.ListFileitemBinding;
 
@@ -154,7 +154,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 itemCallback);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(),
                 RecyclerView.VERTICAL, false));
-        itemBottomSheet =new ItemBottomSheet(R.layout.fragment_bottomsheet_item);
+        itemBottomSheet =new ItemBottomSheet(R.layout.bottomsheet_item);
         recyclerView.setAdapter(adapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -209,7 +209,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
             new ItemBottomSheet.BottomSheetCallback() {
                 @Override
-                public void bind(FragmentBottomsheetItemBinding binding) {
+                public void bind(BottomsheetItemBinding binding) {
                     binding.viewpagerHome.setAdapter(new FragmentStateAdapter(itemBottomSheet) {
                         @NonNull
                         @Override

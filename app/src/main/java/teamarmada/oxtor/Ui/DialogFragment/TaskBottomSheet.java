@@ -20,7 +20,7 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import teamarmada.oxtor.Fragments.ChildFragments.DownloadTaskFragment;
 import teamarmada.oxtor.Fragments.ChildFragments.UploadTaskFragment;
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.databinding.FragmentBottomsheetFiletaskBinding;
+import teamarmada.oxtor.databinding.BottomsheetFiletaskBinding;
 
 
 public class TaskBottomSheet extends BottomSheetDialogFragment {
@@ -36,7 +36,7 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        FragmentBottomsheetFiletaskBinding binding = FragmentBottomsheetFiletaskBinding.inflate(inflater, container, false);
+        BottomsheetFiletaskBinding binding = BottomsheetFiletaskBinding.inflate(inflater, container, false);
         binding.setLifecycleOwner(this);
         tablayout= binding.tabLayout;
         viewpager2= binding.viewpagerFiletasks;

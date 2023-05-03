@@ -23,7 +23,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.databinding.FragmentDialogEditBinding;
+import teamarmada.oxtor.databinding.DialogEditBinding;
+
 
 public class TextInputDialog extends DialogFragment {
 
@@ -31,7 +32,7 @@ public class TextInputDialog extends DialogFragment {
     private final String message;
     private final int inputType;
     private SimpleCallback callback;
-    private FragmentDialogEditBinding binding;
+    private DialogEditBinding binding;
     private final Context context;
     private TextInputEditText editText;
     private final InputMethodManager imm;
@@ -50,7 +51,7 @@ public class TextInputDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        binding=FragmentDialogEditBinding.inflate(getLayoutInflater());
+        binding=DialogEditBinding.inflate(getLayoutInflater());
         binding.setLifecycleOwner(this);
         editText=binding.editText;
         binding.editText.setInputType(inputType);

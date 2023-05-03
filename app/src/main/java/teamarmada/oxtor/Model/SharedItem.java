@@ -37,8 +37,13 @@ public class SharedItem {
         phoneNumberOfSender = documentSnapshot.getString("phoneNumberOfSender");
         phoneNumberOfReceiver = documentSnapshot.getString("phoneNumberOfReceiver");
         uid = documentSnapshot.getString(UID);
-        timeStamp = documentSnapshot.getLong(TIMESTAMP);
-        fileItem=parseFileItem(documentSnapshot);
+        fileItem = parseFileItem(documentSnapshot);
+        try {
+            timeStamp = documentSnapshot.getLong(TIMESTAMP);
+        }catch (Exception e){
+            e.printStackTrace();
+            timeStamp=new Date().getTime();
+        }
     }
 
     private FileItem parseFileItem(DocumentSnapshot documentSnapshot){

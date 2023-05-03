@@ -1,5 +1,6 @@
 package teamarmada.oxtor.Fragments.ParentFragments;
 
+import static android.view.View.GONE;
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 import static teamarmada.oxtor.Main.MainActivity.ENCRYPTION_PASSWORD;
@@ -184,8 +185,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
             binding.password.setText(MainActivity.getEncryptionPassword());
         }
         else{
-            binding.password.setVisibility(INVISIBLE);
-            binding.editpassword.setVisibility(INVISIBLE);
+            binding.password.setVisibility(GONE);
+            binding.editpassword.setVisibility(GONE);
         }
     }
 

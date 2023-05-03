@@ -13,7 +13,7 @@ import java.util.Map;
 public class ProfileItem {
 
     private String displayName,username,email,uid,phoneNumber,photoUrl,storageReference,messagingToken;
-//    private boolean toEncrypt;
+
     @ServerTimestamp
     private Date timeStamp;
 

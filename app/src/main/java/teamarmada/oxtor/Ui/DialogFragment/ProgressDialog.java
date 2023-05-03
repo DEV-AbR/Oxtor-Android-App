@@ -2,9 +2,6 @@ package teamarmada.oxtor.Ui.DialogFragment;
 
 import android.app.Dialog;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,7 +19,7 @@ public class ProgressDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext(),
-                R.style.Theme_Oxtor_ProgressDialog).setView(R.layout.fragment_dialog_progress)
+                R.style.Theme_Oxtor_ProgressDialog).setView(R.layout.dialog_progress)
                 .setCancelable(false);
         setCancelable(false);
         return builder.create();

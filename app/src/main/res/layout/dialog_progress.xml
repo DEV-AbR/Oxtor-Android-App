@@ -9,7 +9,8 @@
             android:layout_height="wrap_content"
             android:id="@+id/progress_bar"
             android:paddingVertical="16dp"
-            android:paddingHorizontal="8dp"/>
+            android:paddingHorizontal="8dp"
+            android:indeterminateOnly="true" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

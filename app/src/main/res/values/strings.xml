@@ -154,4 +154,5 @@
     <string name="update_now">Update now</string>
     <string name="later">Later</string>
     <string name="dialog_update_available_message">A newer version of Oxtor is available on PlayStore</string>
+    <string name="add_button">Add files to oxtor cloud storage</string>
 </resources>

@@ -2,25 +2,17 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-
-    <RelativeLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
+        android:layout_height="match_parent">
 
-        <ScrollView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview_tasks"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            tools:listitem="@layout/list_task_item" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerview_tasks"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
-                tools:listitem="@layout/list_task_item" />
-
-        </ScrollView>
-
-    </RelativeLayout>
+    </ScrollView>
 
 </layout>

@@ -18,6 +18,7 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentStart="true"
+            android:src="@drawable/ic_baseline_photo_24"
             />
 
     <LinearLayout
@@ -41,7 +42,6 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
             android:background="@color/black_transparent"
             android:paddingHorizontal="@dimen/margin_horizontal"
             android:paddingVertical="@dimen/text_padding_vertical">

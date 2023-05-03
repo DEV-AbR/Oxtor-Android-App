@@ -10,7 +10,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -40,7 +39,6 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -55,7 +53,7 @@ import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter;
 import teamarmada.oxtor.Ui.DialogFragment.ItemBottomSheet;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.ShareViewModel;
-import teamarmada.oxtor.databinding.FragmentBottomsheetItemBinding;
+import teamarmada.oxtor.databinding.BottomsheetItemBinding;
 import teamarmada.oxtor.databinding.FragmentSharedBinding;
 import teamarmada.oxtor.databinding.ListFileitemBinding;
 
@@ -86,7 +84,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
         binding.setLifecycleOwner(this);
         sharedPreferences=requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         recyclerView= binding.recyclerviewShared;
-        swipeRefreshLayout= binding.swipeShared;
+        swipeRefreshLayout= binding.navigationShared;
         swipeRefreshLayout.setOnRefreshListener(this);
         swipeRefreshLayout.setOnChildScrollUpCallback((parent, child) -> actionmode!=null);
         shareViewModel=new ViewModelProvider(this).get(ShareViewModel.class);
@@ -118,14 +116,14 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 itemCallback);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(),
                 RecyclerView.VERTICAL, false));
-        itemBottomSheet =new ItemBottomSheet(R.layout.fragment_bottomsheet_item);
+        itemBottomSheet =new ItemBottomSheet(R.layout.bottomsheet_item);
         recyclerView.setAdapter(adapter);
     }
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
             new ItemBottomSheet.BottomSheetCallback() {
                 @Override
-                public void bind(FragmentBottomsheetItemBinding binding) {
+                public void bind(BottomsheetItemBinding binding) {
                     binding.viewpagerHome.setAdapter(new FragmentStateAdapter(itemBottomSheet) {
                         @NonNull
                         @Override

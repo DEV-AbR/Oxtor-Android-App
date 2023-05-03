@@ -89,6 +89,16 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         }
     };
 
+    public static String getEncryptionPassword() {
+        String s=sharedPreferences.getString(ENCRYPTION_PASSWORD,null);
+        if(s==null){
+            final String t=UUID.randomUUID().toString();
+            sharedPreferences.edit().putString(ENCRYPTION_PASSWORD,t).apply();
+            s=t;
+        }
+        return s;
+    }
+
     public MainActivity(){}
 
     @Override
@@ -332,16 +342,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         }catch(Exception e){
             e.printStackTrace();
         }
-    }
-
-    public static String getEncryptionPassword() {
-        String s=sharedPreferences.getString(ENCRYPTION_PASSWORD,null);
-        if(s==null){
-            final String t=UUID.randomUUID().toString();
-            sharedPreferences.edit().putString(ENCRYPTION_PASSWORD,t).apply();
-            s=t;
-        }
-        return s;
     }
 
 }

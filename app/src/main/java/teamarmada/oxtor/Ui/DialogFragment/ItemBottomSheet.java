@@ -8,20 +8,19 @@ import android.view.ViewGroup;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.databinding.FragmentBottomsheetItemBinding;
+import teamarmada.oxtor.databinding.BottomsheetItemBinding;
 
 public class ItemBottomSheet extends BottomSheetDialogFragment {
 
     private static final String TAG = ItemBottomSheet.class.getSimpleName();
     private BottomSheetCallback callback;
     private final int layoutID;
-    private FragmentBottomsheetItemBinding binding;
+    private BottomsheetItemBinding binding;
 
     public ItemBottomSheet(@LayoutRes int layoutID){
         this.layoutID=layoutID;
@@ -39,7 +38,7 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, layoutID, container, false);
+        binding = BottomsheetItemBinding.inflate(inflater,container,false);
         binding.setLifecycleOwner(this);
         callback.bind(binding);
         return binding.getRoot();
@@ -60,7 +59,7 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
     }
 
     public interface BottomSheetCallback extends View.OnClickListener{
-        void bind(FragmentBottomsheetItemBinding binding);
+        void bind(BottomsheetItemBinding binding);
     }
 
 }

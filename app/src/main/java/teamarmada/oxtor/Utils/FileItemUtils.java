@@ -100,7 +100,7 @@ public class FileItemUtils {
         else if(postDay-currentDay==1)
             return "Yesterday "+getTimeString(postDate);
         else
-            return getTimeString(postDate)+" "+getDateString(postDate);
+            return getTimeString(postDate)+"  "+getDateString(postDate);
     }
 
     public static String getTimestampString(long timeStamp){

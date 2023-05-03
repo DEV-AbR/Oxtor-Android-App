@@ -8,30 +8,37 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="2dp"
+        android:padding="4dp"
         android:id="@+id/list_file_item_layout"
-        android:background="@drawable/list_item_background"
-        >
+        android:background="@drawable/list_item_background">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:cardElevation="0dp"
+            app:cardBackgroundColor="?attr/colorSecondary"
             android:background="?attr/colorPrimaryVariant"
-            app:cardCornerRadius="32dp"
+            app:cardCornerRadius="@dimen/corner_radius_card"
             android:layout_margin="4dp">
 
-            <ImageView
-                android:id="@+id/picture"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_gravity="center"
-                android:scaleType="centerCrop"
-                android:background="?attr/colorPrimaryVariant"
-                tools:srcCompat="@drawable/ic_baseline_photo_24"
-                />
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="@dimen/corner_radius_card"
+                android:layout_margin="1dp">
 
+                <ImageView
+                    android:id="@+id/picture"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:scaleType="centerCrop"
+                    android:background="?attr/colorPrimaryVariant"
+                    tools:srcCompat="@drawable/ic_baseline_photo_24"
+                    />
+
+            </androidx.cardview.widget.CardView>
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
@@ -40,48 +47,56 @@
             android:layout_alignTop="@id/cardview"
             android:layout_alignBottom="@id/cardview"
             android:layout_toEndOf="@id/cardview"
-            app:cardCornerRadius="32dp"
+            app:cardCornerRadius="@dimen/corner_radius_card"
             android:layout_margin="4dp"
-            app:cardElevation="0dp">
+            app:cardBackgroundColor="?attr/colorSecondary">
 
-            <RelativeLayout
-                android:id="@+id/relative_layout"
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="16dp"
-                android:background="?attr/colorOnPrimary"
-                >
+                android:layout_height="wrap_content"
+                android:layout_margin="1dp"
+                app:cardCornerRadius="@dimen/corner_radius_card">
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:singleLine="true"
-                    style="@style/TextAppearance.Material3.TitleMedium"
-                    android:text="@string/filename" />
+                <RelativeLayout
+                    android:id="@+id/relative_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="16dp"
+                    android:background="?attr/colorOnPrimary">
 
-                <com.google.android.material.textview.MaterialTextView
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        style="@style/TextAppearance.Material3.TitleMedium"
+                        android:text="@string/filename" />
 
-                    android:id="@+id/size"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/name"
-                    android:singleLine="true"
-                    style="@style/TextAppearance.Material3.TitleSmall"
-                    android:text="@string/filesize" />
+                    <com.google.android.material.textview.MaterialTextView
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:singleLine="true"
-                    android:id="@+id/timestamp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/size"
-                    style="@style/TextAppearance.Material3.TitleSmall"
-                    android:text="Timestamp" />
+                        android:id="@+id/size"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/name"
+                        android:singleLine="true"
+                        style="@style/TextAppearance.Material3.TitleSmall"
+                        android:text="@string/filesize" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:singleLine="true"
+                        android:id="@+id/timestamp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/size"
+                        style="@style/TextAppearance.Material3.TitleSmall"
+                        android:text="Timestamp" />
 
 
-            </RelativeLayout>
+                </RelativeLayout>
+
+            </androidx.cardview.widget.CardView>
+
         </androidx.cardview.widget.CardView>
 
     </RelativeLayout>
