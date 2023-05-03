@@ -24,8 +24,8 @@ public class SharedItem {
     private FileItem fileItem;
 
     private String uid;
-    @ServerTimestamp
-    private Date timeStamp;
+
+    private long timeStamp;
 
     public SharedItem(){}
 
@@ -37,7 +37,7 @@ public class SharedItem {
         phoneNumberOfSender = documentSnapshot.getString("phoneNumberOfSender");
         phoneNumberOfReceiver = documentSnapshot.getString("phoneNumberOfReceiver");
         uid = documentSnapshot.getString(UID);
-        timeStamp = documentSnapshot.getDate(TIMESTAMP);
+        timeStamp = documentSnapshot.getLong(TIMESTAMP);
         fileItem=parseFileItem(documentSnapshot);
     }
 
@@ -99,11 +99,11 @@ public class SharedItem {
         return phoneNumberOfReceiver;
     }
 
-    public Date getTimeStamp() {
+    public long getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimeStamp(Date timeStamp) {
+    public void setTimeStamp(long timeStamp) {
         this.timeStamp = timeStamp;
     }
 

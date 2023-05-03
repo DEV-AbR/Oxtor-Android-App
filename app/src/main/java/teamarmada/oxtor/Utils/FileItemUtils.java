@@ -76,18 +76,18 @@ public class FileItemUtils {
             return size;
     }
 
-    public static String getTimeString(Date timestamp){
+    private static String getTimeString(Date timestamp){
         Calendar calendar = Calendar.getInstance();
         if(timestamp==null)return null;
         calendar.setTimeInMillis(timestamp.getTime());
         return DateFormat.format("hh:mm aa", calendar).toString();
     }
 
-    public static String getDateString(Date timestamp){
+    private static String getDateString(Date timestamp){
         Calendar calendar = Calendar.getInstance();
         if(timestamp==null) return null;
         calendar.setTimeInMillis(timestamp.getTime());
-        return DateFormat.format("dd-MM-yyyy", calendar).toString();
+        return DateFormat.format("dd-mm-yyyy", calendar).toString();
     }
 
     public static String getTimestampString(Date postDate){
@@ -101,6 +101,10 @@ public class FileItemUtils {
             return "Yesterday "+getTimeString(postDate);
         else
             return getTimeString(postDate)+" "+getDateString(postDate);
+    }
+
+    public static String getTimestampString(long timeStamp){
+        return getTimestampString(new Date(timeStamp));
     }
 
     public static String getFileTypeString(String extension){

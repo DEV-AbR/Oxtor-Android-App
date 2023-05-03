@@ -168,7 +168,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 public void bind(ListFileitemBinding recBinding, SharedItem item, int position) {
                     final FileItem fileItem=item.getFileItem();
                     if(fileItem==null) return;
-
                     if (fileItem.getFileType().contains("image")) {
                         Glide.with(recBinding.picture).load(fileItem).into(recBinding.picture);
                     }
@@ -192,10 +191,8 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                     }catch (Exception e){
                         e.printStackTrace();
                     }
-                    if(item.getTimeStamp()!=null){
-                        String time= FileItemUtils.getTimestampString(item.getTimeStamp());
-                        recBinding.timestamp.setText(time);
-                    }
+                    String time= FileItemUtils.getTimestampString(item.getTimeStamp());
+                    recBinding.timestamp.setText(time);
                     recBinding.getRoot().setOnClickListener(v->{
                         if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()) {
                             itemBottomSheet.setItemPosition(position);
