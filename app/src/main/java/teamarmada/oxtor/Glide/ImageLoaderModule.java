@@ -30,6 +30,7 @@ public class ImageLoaderModule extends AppGlideModule {
     @Override
     public void applyOptions(@NonNull Context context, @NonNull GlideBuilder builder) {
         builder.setDefaultRequestOptions(() -> new RequestOptions()
+                        .centerCrop()
                         .placeholder(R.drawable.ic_baseline_photo_24)
                         .error(R.drawable.ic_baseline_error_24)
                         .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)

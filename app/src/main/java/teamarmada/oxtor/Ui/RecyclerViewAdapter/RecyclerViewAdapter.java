@@ -1,5 +1,8 @@
 package teamarmada.oxtor.Ui.RecyclerViewAdapter;
 
+import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
+
 import android.annotation.SuppressLint;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -39,6 +42,7 @@ import teamarmada.oxtor.Interfaces.ListItemCallback;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Model.SharedItem;
+import teamarmada.oxtor.R;
 
 
 public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
@@ -344,6 +348,7 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public VB binding;
+
         public ViewHolder(VB binding){
             super(binding.getRoot());
             this.binding=binding;
@@ -389,6 +394,8 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
             if(viewHolder!=null) {
                 rv.findViewHolderForItemId(key).setIsRecyclable(!selected);
                 rv.findViewHolderForItemId(key).itemView.setSelected(selected);
+                rv.findViewHolderForItemId(key).itemView.findViewById(R.id.selection_icon)
+                        .setVisibility(selected?VISIBLE:INVISIBLE);
             }
             listener.onChanged(selectedItems);
         }
