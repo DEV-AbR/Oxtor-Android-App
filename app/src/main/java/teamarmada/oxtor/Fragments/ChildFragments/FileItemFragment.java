@@ -38,7 +38,6 @@ public class FileItemFragment extends Fragment {
             binding.isencrypted.setText("Encrypted: "+item.isEncrypted());
             binding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
             Glide.with(this).load(item).into(binding.pictureOfFile);
-
         }catch (NullPointerException e){
             e.printStackTrace();
         }

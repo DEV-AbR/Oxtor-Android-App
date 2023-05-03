@@ -70,7 +70,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
     private SharedPreferences sharedPreferences;
     private ActionMode actionmode=null;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private final String[] array={"Sort by size","Sort by Time","Sort by Name"};
+    private final String[] array={"Sort by size", "Sort by Time", "Sort by Name"};
     private final String[] permissions=new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private ActivityLifecycleObserver activityLifecycleObserver;
 
@@ -140,10 +140,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                             binding.downloadButton.setOnClickListener(listener);
                             binding.renameButton.setVisibility(View.GONE);
                             binding.shareButton.setVisibility(View.GONE);
-                            if(fileItem!=null)
-                                return new FileItemFragment(fileItem);
-                            else
-                                throw new NullPointerException("Shared item has not been converted to fileItem");
+                            return new FileItemFragment(fileItem);
                         }
 
                         @Override
@@ -165,7 +162,8 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 @Override
                 public void bind(ListFileitemBinding recBinding, SharedItem item, int position) {
                     final FileItem fileItem=item.getFileItem();
-                    if(fileItem==null) return;
+                    if(fileItem==null)
+                        return;
                     if (fileItem.getFileType().contains("image")) {
                         Glide.with(recBinding.picture).load(fileItem).into(recBinding.picture);
                     }
