@@ -107,9 +107,9 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
 
         sharedPreferences = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         isDarkModeOn = sharedPreferences.getBoolean(IS_DARK_MODE_ON, false);
-        if (isDarkModeOn) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
+        //if (isDarkModeOn) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        //else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        AppCompatDelegate.setDefaultNightMode(isDarkModeOn? AppCompatDelegate.MODE_NIGHT_YES:AppCompatDelegate.MODE_NIGHT_NO);
         binding =ActivityMainBinding.inflate(getLayoutInflater());
         binding.setLifecycleOwner(this);
         setContentView(binding.getRoot());
@@ -262,14 +262,16 @@ item.setItcon(isDarkModeOn?R.drawable.ic_baseline_wb_sunny_24:R.drawable.ic_base
 
     private void changeTheme(MenuItem item) {
         isDarkModeOn=!isDarkModeOn;
-        if (isDarkModeOn) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-            item.setIcon(R.drawable.ic_baseline_wb_sunny_24);
-        }
-        else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-            item.setIcon(R.drawable.ic_baseline_dark_mode_24);
-        }
+        //if (isDarkModeOn) {
+           // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+           // item.setIcon(R.drawable.ic_baseline_wb_sunny_24);
+       // }
+        //else {
+        //    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        //    item.setIcon(R.drawable.ic_baseline_dark_mode_24);
+        //}
+        AppCompatDelegate.setDefaultNightMode(isDarkModeOn?AppCompatDelegate.MODE_NIGHT_YES:AppCompateDelegate.MODE_NIGHT_NO);
+        item.setIcon(isDarkModeOn?R.drawable.ic_baseline_wb_sunny_24:R.drawable.ic_baseline_dark_mode_24);
         sharedPreferences.edit().putBoolean(IS_DARK_MODE_ON, isDarkModeOn).apply();
     }
 
