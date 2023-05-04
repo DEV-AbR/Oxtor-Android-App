@@ -33,17 +33,17 @@ public class FileItemFragment extends Fragment {
         FragmentFileitemBinding binding = FragmentFileitemBinding.inflate(inflater, container, false);
         binding.setLifecycleOwner(this);
         try {
-            binding.filename.setText(item.getFileName());
-            binding.fileSize.setText(FileItemUtils.byteToString(item.getFileSize()));
-            binding.isencrypted.setText("Encrypted: "+item.isEncrypted());
-            binding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
-            Glide.with(this).load(item).into(binding.pictureOfFile);
+            if(item!=null) {
+                binding.filename.setText(item.getFileName());
+                binding.fileSize.setText(FileItemUtils.byteToString(item.getFileSize()));
+                binding.isencrypted.setText("Encrypted: " + item.isEncrypted());
+                binding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
+                Glide.with(this).load(item).into(binding.pictureOfFile);
+            }
         }catch (NullPointerException e){
             e.printStackTrace();
         }
-        if(item.getDownloadUrl()==null&&item.getFilePath()==null) {
-            Toast.makeText(getContext(), R.string.Item_only_available_on_Local_storage, Toast.LENGTH_SHORT).show();
-        }
+        binding.executePendingBindings();
         return binding.getRoot();
     }
 

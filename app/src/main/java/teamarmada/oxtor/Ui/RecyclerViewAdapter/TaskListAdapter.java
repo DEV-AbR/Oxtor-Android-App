@@ -27,7 +27,7 @@ import java.util.List;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.Utils.FileItemUtils;
-import teamarmada.oxtor.databinding.ListTaskItemBinding;
+import teamarmada.oxtor.databinding.ListFiletaskBinding;
 
 public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapter<TaskListAdapter.ViewHolder> {
 
@@ -54,7 +54,7 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         context=parent.getContext();
         LayoutInflater layoutInflater=LayoutInflater.from(context);
-        ListTaskItemBinding binding=ListTaskItemBinding.inflate(layoutInflater);
+        ListFiletaskBinding binding= ListFiletaskBinding.inflate(layoutInflater);
         return new ViewHolder(binding);
     }
 
@@ -126,9 +126,9 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        public ListTaskItemBinding binding;
+        public ListFiletaskBinding binding;
 
-        public ViewHolder(ListTaskItemBinding binding){
+        public ViewHolder(ListFiletaskBinding binding){
             super(binding.getRoot());
             this.binding=binding;
 

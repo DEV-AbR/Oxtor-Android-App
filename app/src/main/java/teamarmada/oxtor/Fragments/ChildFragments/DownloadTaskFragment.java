@@ -27,7 +27,7 @@ public class DownloadTaskFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        teamarmada.oxtor.databinding.FragmentTaskBinding bindings = FragmentTaskBinding.inflate(inflater, container, false);
+        FragmentTaskBinding bindings = FragmentTaskBinding.inflate(inflater, container, false);
         bindings.setLifecycleOwner(this);
         MainViewModel mainViewModel=new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         RecyclerView recyclerView = bindings.recyclerviewTasks;

@@ -54,7 +54,6 @@
           android:layout_height="wrap_content"
           app:layout_constraintStart_toEndOf="@+id/dpofuser_layout"
           android:layout_marginStart="-8dp"
-          android:layout_marginBottom="8dp"
           app:cardCornerRadius="@dimen/corner_radius_round"
           app:layout_constraintBottom_toBottomOf="@id/dpofuser_layout">
 

@@ -30,7 +30,6 @@ public class UploadTaskFragment extends Fragment {
         FragmentTaskBinding bindings = FragmentTaskBinding.inflate(inflater, container, false);
         bindings.setLifecycleOwner(this);
         MainViewModel mainViewModel=new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-
         RecyclerView recyclerView = bindings.recyclerviewTasks;
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL,false));
         TaskListAdapter<UploadTask> adapter = new TaskListAdapter<>(

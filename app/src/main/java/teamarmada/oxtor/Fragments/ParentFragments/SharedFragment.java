@@ -53,7 +53,8 @@ import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter;
 import teamarmada.oxtor.Ui.DialogFragment.ItemBottomSheet;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.ShareViewModel;
-import teamarmada.oxtor.databinding.BottomsheetItemBinding;
+import teamarmada.oxtor.databinding.BottomsheetFileitemBinding;
+
 import teamarmada.oxtor.databinding.FragmentSharedBinding;
 import teamarmada.oxtor.databinding.ListFileitemBinding;
 
@@ -116,14 +117,14 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 itemCallback);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(),
                 RecyclerView.VERTICAL, false));
-        itemBottomSheet =new ItemBottomSheet(R.layout.bottomsheet_item);
+        itemBottomSheet =new ItemBottomSheet(R.layout.bottomsheet_fileitem);
         recyclerView.setAdapter(adapter);
     }
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
             new ItemBottomSheet.BottomSheetCallback() {
                 @Override
-                public void bind(BottomsheetItemBinding binding) {
+                public void bind(BottomsheetFileitemBinding binding) {
                     binding.viewpagerHome.setAdapter(new FragmentStateAdapter(itemBottomSheet) {
                         @NonNull
                         @Override

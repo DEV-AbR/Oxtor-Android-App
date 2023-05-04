@@ -13,14 +13,14 @@ import androidx.fragment.app.FragmentManager;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.databinding.BottomsheetItemBinding;
+import teamarmada.oxtor.databinding.BottomsheetFileitemBinding;
 
 public class ItemBottomSheet extends BottomSheetDialogFragment {
 
     private static final String TAG = ItemBottomSheet.class.getSimpleName();
     private BottomSheetCallback callback;
     private final int layoutID;
-    private BottomsheetItemBinding binding;
+    private BottomsheetFileitemBinding binding;
 
     public ItemBottomSheet(@LayoutRes int layoutID){
         this.layoutID=layoutID;
@@ -38,7 +38,7 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = BottomsheetItemBinding.inflate(inflater,container,false);
+        binding = BottomsheetFileitemBinding.inflate(inflater,container,false);
         binding.setLifecycleOwner(this);
         callback.bind(binding);
         return binding.getRoot();
@@ -59,7 +59,7 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
     }
 
     public interface BottomSheetCallback extends View.OnClickListener{
-        void bind(BottomsheetItemBinding binding);
+        void bind(BottomsheetFileitemBinding binding);
     }
 
 }
