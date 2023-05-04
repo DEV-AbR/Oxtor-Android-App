@@ -255,8 +255,9 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
         MenuItem item=menu.getItem(0);
-        if(isDarkModeOn) item.setIcon(R.drawable.ic_baseline_wb_sunny_24);
-        else item.setIcon(R.drawable.ic_baseline_dark_mode_24);
+       // if(isDarkModeOn) //item.setIcon(R.drawable.ic_baseline_wb_sunny_24);
+        //else item.setIcon(R.drawable.ic_baseline_dark_mode_24);
+item.setItcon(isDarkModeOn?R.drawable.ic_baseline_wb_sunny_24:R.drawable.ic_baseline_dark_mode_24);
     }
 
     private void changeTheme(MenuItem item) {
