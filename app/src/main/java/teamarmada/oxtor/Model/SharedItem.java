@@ -1,5 +1,13 @@
 package teamarmada.oxtor.Model;
 
+import static teamarmada.oxtor.Model.FileItem.DOWNLOAD_URL;
+import static teamarmada.oxtor.Model.FileItem.ENCRYPTED;
+import static teamarmada.oxtor.Model.FileItem.FILENAME;
+import static teamarmada.oxtor.Model.FileItem.FILETYPE;
+import static teamarmada.oxtor.Model.FileItem.FILE_EXTENSION;
+import static teamarmada.oxtor.Model.FileItem.FILE_SIZE;
+import static teamarmada.oxtor.Model.FileItem.IV;
+import static teamarmada.oxtor.Model.FileItem.STORAGE_REFERENCE;
 import static teamarmada.oxtor.Model.FileItem.TIMESTAMP;
 import static teamarmada.oxtor.Model.FileItem.UID;
 
@@ -20,12 +28,7 @@ public class SharedItem {
     private String emailOfReceiver;
     private String usernameOfReceiver;
     private String phoneNumberOfReceiver;
-
     private FileItem fileItem;
-
-    private String uid;
-
-    private long timeStamp;
 
     public SharedItem(){}
 
@@ -36,25 +39,24 @@ public class SharedItem {
         usernameOfReceiver = documentSnapshot.getString("usernameOfReceiver");
         phoneNumberOfSender = documentSnapshot.getString("phoneNumberOfSender");
         phoneNumberOfReceiver = documentSnapshot.getString("phoneNumberOfReceiver");
-        uid = documentSnapshot.getString(UID);
-        fileItem = parseFileItem(documentSnapshot);
-        try {
-            timeStamp = documentSnapshot.getLong(TIMESTAMP);
-        }catch (Exception e){
-            e.printStackTrace();
-            timeStamp=new Date().getTime();
-        }
+
+        String iv=documentSnapshot.getString(IV);
+        String uid = documentSnapshot.getString(UID);
+        Long timeStamp = documentSnapshot.getLong(TIMESTAMP);
+        Long fileSize = documentSnapshot.getLong(FILE_SIZE);
+        String fileName = documentSnapshot.getString(FILENAME);
+        String fileType = documentSnapshot.getString(FILETYPE);
+        String downloadUrl = documentSnapshot.getString(DOWNLOAD_URL);
+        String fileExtension = documentSnapshot.getString(FILE_EXTENSION);
+        String storageReference = documentSnapshot.getString(STORAGE_REFERENCE);
+        Boolean encrypted=documentSnapshot.getBoolean(ENCRYPTED);
+
+        fileItem=new FileItem(storageReference,downloadUrl,null,fileName,uid,
+                fileType,fileExtension,fileSize,encrypted,iv,new Date(timeStamp));
     }
 
-    private FileItem parseFileItem(DocumentSnapshot documentSnapshot){
-        try {
-            String string=documentSnapshot.get("fileItem", String.class);
-            Gson gson=new Gson();
-            return gson.fromJson(string,FileItem.class);
-        }catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    public FileItem getFileItem() {
+        return fileItem;
     }
 
     public String getUsernameOfSender() {
@@ -65,36 +67,14 @@ public class SharedItem {
         return usernameOfReceiver;
     }
 
-    public FileItem getFileItem() {
-        return fileItem;
-    }
-
-    public void setFileItem(FileItem fileItem) {
-        this.fileItem = fileItem;
-    }
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
-
-    public String getUid() {
-        return uid;
-    }
-
     public String getEmailOfSender() {
         return emailOfSender;
-    }
-
-    public void setEmailOfSender(String emailOfSender) {
-        this.emailOfSender = emailOfSender;
     }
 
     public String getEmailOfReceiver() {
         return emailOfReceiver;
     }
 
-    public void setEmailOfReceiver(String emailOfReceiver) {
-        this.emailOfReceiver = emailOfReceiver;
-    }
 
     public String getPhoneNumberOfSender() {
         return phoneNumberOfSender;
@@ -102,14 +82,6 @@ public class SharedItem {
 
     public String getPhoneNumberOfReceiver() {
         return phoneNumberOfReceiver;
-    }
-
-    public long getTimeStamp() {
-        return timeStamp;
-    }
-
-    public void setTimeStamp(long timeStamp) {
-        this.timeStamp = timeStamp;
     }
 
 }

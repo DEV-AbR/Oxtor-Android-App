@@ -165,13 +165,12 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                     final FileItem fileItem=item.getFileItem();
                     if(fileItem==null)
                         return;
-                    if (fileItem.getFileType().contains("image")) {
+                    if (fileItem.getFileType()!=null&&fileItem.getFileType().contains("image")) {
                         Glide.with(recBinding.picture).load(fileItem).into(recBinding.picture);
                     }
                     else{
                         FileItemUtils.loadPhoto(fileItem,recBinding.picture);
                     }
-                    recBinding.size.setText(fileItem.getFileName());
                     try {
                         if (item.getEmailOfReceiver().equals(shareViewModel.getProfileItem().getValue().getEmail()))
                             recBinding.name.setText(item.getUsernameOfSender());
@@ -188,8 +187,9 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                     }catch (Exception e){
                         e.printStackTrace();
                     }
-                    String time= FileItemUtils.getTimestampString(item.getTimeStamp());
+                    String time= FileItemUtils.getTimestampString(item.getFileItem().getTimeStamp());
                     recBinding.timestamp.setText(time);
+                    recBinding.size.setText(fileItem.getFileName());
                     recBinding.getRoot().setOnClickListener(v->{
                         if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()) {
                             itemBottomSheet.setItemPosition(position);

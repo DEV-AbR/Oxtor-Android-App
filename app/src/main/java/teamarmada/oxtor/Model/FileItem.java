@@ -17,7 +17,7 @@ public class FileItem {
     private String fileName,uid,fileType;
     private String fileExtension;
     private Long fileSize;
-    private boolean encrypted;
+    private Boolean encrypted;
     private String iv,encryptionPassword;
     @ServerTimestamp private Date timeStamp;
 

@@ -394,8 +394,6 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
             if(viewHolder!=null) {
                 rv.findViewHolderForItemId(key).setIsRecyclable(!selected);
                 rv.findViewHolderForItemId(key).itemView.setSelected(selected);
-//                rv.findViewHolderForItemId(key).itemView.findViewById(R.id.selection_icon)
-//                        .setVisibility(selected?VISIBLE:INVISIBLE);
             }
             listener.onChanged(selectedItems);
         }
