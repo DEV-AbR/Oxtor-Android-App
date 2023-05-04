@@ -22,12 +22,6 @@
             app:cardCornerRadius="@dimen/corner_radius_card"
             android:layout_margin="4dp">
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                android:layout_margin="1dp">
-
                 <ImageView
                     android:id="@+id/picture"
                     android:layout_width="100dp"
@@ -38,26 +32,25 @@
                     tools:srcCompat="@drawable/ic_baseline_photo_24"
                     />
 
-
-            </androidx.cardview.widget.CardView>
-
         </androidx.cardview.widget.CardView>
-        <androidx.cardview.widget.CardView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="0dp"
-            android:layout_alignBottom="@id/cardview"
-            android:layout_alignEnd="@id/cardview"
-            app:cardCornerRadius="12dp"
-            android:clickable="true"
-            android:id="@+id/selection_icon"
-            android:visibility="invisible">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_baseline_check_24"
-                android:background="@android:color/holo_green_light" />
-        </androidx.cardview.widget.CardView>
+
+<!--        <androidx.cardview.widget.CardView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:padding="0dp"-->
+<!--            android:layout_alignBottom="@id/cardview"-->
+<!--            android:layout_alignEnd="@id/cardview"-->
+<!--            app:cardCornerRadius="12dp"-->
+<!--            android:clickable="true"-->
+<!--            android:id="@+id/selection_icon"-->
+<!--            android:visibility="invisible">-->
+<!--            <ImageView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:src="@drawable/ic_baseline_check_24"-->
+<!--                android:background="@android:color/holo_green_light" />-->
+<!--        </androidx.cardview.widget.CardView>-->
+
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -66,19 +59,11 @@
             android:layout_toEndOf="@id/cardview"
             app:cardCornerRadius="@dimen/corner_radius_card"
             android:layout_margin="4dp"
-            cardElevation="0dp"
+            app:cardElevation="0dp"
             android:elevation="0dp"
             android:id="@+id/cardView2"
             app:cardBackgroundColor="?attr/colorPrimaryVariant">
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="1dp"
-                app:cardElevation="0dp"
-                android:elevation="0dp"
-                app:cardBackgroundColor="?attr/colorOnPrimary"
-                app:cardCornerRadius="@dimen/corner_radius_card">
 
                 <RelativeLayout
                     android:id="@+id/relative_layout"
@@ -117,7 +102,6 @@
 
 
                 </RelativeLayout>
-            </androidx.cardview.widget.CardView>
 
         </androidx.cardview.widget.CardView>
 

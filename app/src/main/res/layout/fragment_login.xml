@@ -70,10 +70,10 @@
                         android:id="@+id/phonesignin"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@android:color/transparent"
+                        android:background="?attr/colorOnPrimary"
                         android:text="@string/sign_in_with_phone"
                         android:textAllCaps="false"
-                        android:textColor="@color/grey" />
+                        android:textColor="?attr/colorPrimaryVariant" />
                 </androidx.cardview.widget.CardView>
 
             </androidx.cardview.widget.CardView>
@@ -94,11 +94,11 @@
                         android:id="@+id/emailsignin"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@android:color/transparent"
+                        android:background="?attr/colorOnPrimary"
                         android:text="@string/sign_in_with_email"
                         android:textAllCaps="false"
                         android:padding="4dp"
-                        android:textColor="@color/grey"
+                        android:textColor="?attr/colorPrimaryVariant"
                         android:layout_alignStart="@id/phone_sign_in_layout"
                         android:layout_alignEnd="@id/phone_sign_in_layout" />
 
