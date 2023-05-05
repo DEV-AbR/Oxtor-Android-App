@@ -10,8 +10,7 @@
         android:id="@+id/navigation_login"
         android:background="@drawable/side_nav_bar"
         tools:context=".Fragments.ParentFragments.LoginFragment"
-        android:clickable="true"
-        android:fitsSystemWindows="true">
+        android:clickable="true">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView"

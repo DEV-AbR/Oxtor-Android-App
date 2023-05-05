@@ -36,12 +36,15 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.storage.StreamDownloadTask;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.UUID;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 import teamarmada.oxtor.Interfaces.ScreenManager;
+import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.DialogFragment.ProgressDialog;
 import teamarmada.oxtor.Ui.DialogFragment.TaskBottomSheet;
@@ -107,8 +110,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
 
         sharedPreferences = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         isDarkModeOn = sharedPreferences.getBoolean(IS_DARK_MODE_ON, false);
-        //if (isDarkModeOn) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        //else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         AppCompatDelegate.setDefaultNightMode(isDarkModeOn? AppCompatDelegate.MODE_NIGHT_YES:AppCompatDelegate.MODE_NIGHT_NO);
         binding =ActivityMainBinding.inflate(getLayoutInflater());
         binding.setLifecycleOwner(this);
@@ -151,37 +152,23 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
 
     private void observeUploadTasks(){
         mainViewModel.mutableUploadList.observe(this, fileTaskItems -> {
-            fileTaskItems.forEach(fileItemTask->
-                    fileItemTask.getTask().addOnCompleteListener(task -> mainViewModel.removeUploadItem(fileItemTask)));
-            whenListIsEmpty(mainViewModel.mutableUploadList.getValue().isEmpty(), v -> {
-                if(!taskBottomSheet.isInLayout()) {
-                    taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
-                    taskBottomSheet.setTab(0);
-                }
-                else {
-                    taskBottomSheet.dismiss();
-                }
-            });
+            for (FileTask<UploadTask> fileTaskItem : fileTaskItems) {
+                fileTaskItem.getTask().addOnCompleteListener(task->mainViewModel.removeUploadItem(fileTaskItem));
+            }
+            whenListIsEmpty(mainViewModel.mutableUploadList.getValue().isEmpty(),0);
         });
     }
 
     private void observeDownloadTasks(){
         mainViewModel.mutableDownloadList.observe(this, fileTaskItems -> {
-            fileTaskItems.forEach(fileTaskItem->
-                fileTaskItem.getTask().addOnCompleteListener(task -> mainViewModel.removeDownloadItem(fileTaskItem)));
-            whenListIsEmpty(mainViewModel.mutableDownloadList.getValue().isEmpty(), v -> {
-                if(!taskBottomSheet.isInLayout()) {
-                    taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
-                    taskBottomSheet.setTab(1);
-                }
-                else {
-                    taskBottomSheet.dismiss();
-                }
-            });
+            for (FileTask<StreamDownloadTask> fileTaskItem : fileTaskItems) {
+                fileTaskItem.getTask().addOnCompleteListener(task->mainViewModel.removeDownloadItem(fileTaskItem));
+            }
+            whenListIsEmpty(mainViewModel.mutableDownloadList.getValue().isEmpty(),1);
         });
     }
 
-    private void whenListIsEmpty(boolean isEmpty,View.OnClickListener onClickListener){
+    private void whenListIsEmpty(boolean isEmpty,int tabPosition){
         if(isEmpty) {
             binding.taskButtonMain.clearAnimation();
             binding.taskButtonMain.hide();
@@ -189,7 +176,15 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         else{
             binding.taskButtonMain.show();
             binding.taskButtonMain.setAnimation(getInfiniteRotationAnim());
-            binding.taskButtonMain.setOnClickListener(onClickListener);
+            binding.taskButtonMain.setOnClickListener(v->{
+                if(!taskBottomSheet.isInLayout()) {
+                    taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
+                    taskBottomSheet.setTab(tabPosition);
+                }
+                else {
+                    taskBottomSheet.dismiss();
+                }
+            });
         }
     }
 
@@ -200,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
                 Animation.RELATIVE_TO_SELF, 0.5f
         );
 
-        rotate.setDuration(800);
+        rotate.setDuration(500); // it was 800 before
         rotate.setRepeatCount(Animation.INFINITE);
         return rotate;
     }
@@ -255,22 +250,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
         MenuItem item=menu.getItem(0);
-       // if(isDarkModeOn) //item.setIcon(R.drawable.ic_baseline_wb_sunny_24);
-        //else item.setIcon(R.drawable.ic_baseline_dark_mode_24);
-item.setItcon(isDarkModeOn?R.drawable.ic_baseline_wb_sunny_24:R.drawable.ic_baseline_dark_mode_24);
+        item.setIcon(isDarkModeOn?R.drawable.ic_baseline_wb_sunny_24:R.drawable.ic_baseline_dark_mode_24);
     }
 
     private void changeTheme(MenuItem item) {
         isDarkModeOn=!isDarkModeOn;
-        //if (isDarkModeOn) {
-           // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-           // item.setIcon(R.drawable.ic_baseline_wb_sunny_24);
-       // }
-        //else {
-        //    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        //    item.setIcon(R.drawable.ic_baseline_dark_mode_24);
-        //}
-        AppCompatDelegate.setDefaultNightMode(isDarkModeOn?AppCompatDelegate.MODE_NIGHT_YES:AppCompateDelegate.MODE_NIGHT_NO);
+        AppCompatDelegate.setDefaultNightMode(isDarkModeOn?AppCompatDelegate.MODE_NIGHT_YES:AppCompatDelegate.MODE_NIGHT_NO);
         item.setIcon(isDarkModeOn?R.drawable.ic_baseline_wb_sunny_24:R.drawable.ic_baseline_dark_mode_24);
         sharedPreferences.edit().putBoolean(IS_DARK_MODE_ON, isDarkModeOn).apply();
     }
@@ -294,12 +279,12 @@ item.setItcon(isDarkModeOn?R.drawable.ic_baseline_wb_sunny_24:R.drawable.ic_base
         adViewContainer.removeAllViews();
         getSupportActionBar().hide();
         hideNavigationBar();
-        try {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+//        try {
+//            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -307,12 +292,12 @@ item.setItcon(isDarkModeOn?R.drawable.ic_baseline_wb_sunny_24:R.drawable.ic_base
         adViewContainer.post(() -> ActivityLifecycleObserver.getInstance(this).loadBanner(adViewContainer));
         getSupportActionBar().show();
         showNavigationBar();
-        try {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+//        try {
+//            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
     }
 
     @Override

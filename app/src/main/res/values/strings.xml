@@ -155,4 +155,7 @@
     <string name="later">Later</string>
     <string name="dialog_update_available_message">A newer version of Oxtor is available on PlayStore</string>
     <string name="add_button">Add files to oxtor cloud storage</string>
+    <string name="please_wait">Please wait...</string>
+    <string name="send_message_to_a_user">Send message to a user</string>
+    <string name="enter_username_of_user">Enter username of user</string>
 </resources>

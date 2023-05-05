@@ -187,12 +187,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private boolean canContinueAction(FileItem fileItem){
-        //just want to be sure
-        return fileItem.getFileSize()<getAvailableMemory(activity).availMem
-                &&
-                fileItem.getFileSize()<getAvailableMemory(activity).threshold
-                &&
-                !getAvailableMemory(activity).lowMemory;
+        return fileItem.getFileSize()<getAvailableMemory(activity).availMem;
     }
 
     public void loadBanner(FrameLayout container){

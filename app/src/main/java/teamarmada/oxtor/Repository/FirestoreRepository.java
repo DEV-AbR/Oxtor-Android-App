@@ -117,7 +117,7 @@ public class FirestoreRepository {
         DocumentReference docRef=db.collection(USERS)
                 .document(profileItem.getUid())
                 .collection(SHARED_POSTS)
-                .document(sharedItem.getUid());
+                .document(sharedItem.getFileItem().getUid());
         return  db.batch().delete(docRef).commit();
     }
 

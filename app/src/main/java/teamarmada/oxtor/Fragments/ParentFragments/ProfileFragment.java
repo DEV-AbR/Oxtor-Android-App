@@ -115,7 +115,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         profileViewModel.getProfileItem().observe(getViewLifecycleOwner(), profileItem -> {
                     if(profileItem!=null)
                         try {
-
                             Glide.with(this).load(profileItem.getPhotoUrl()).into(binding.dpofuser);
                             if(profileItem.getUsername()!=null)
                                 binding.username.setText(profileItem.getUsername());

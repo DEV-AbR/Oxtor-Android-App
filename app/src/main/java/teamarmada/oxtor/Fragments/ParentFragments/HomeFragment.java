@@ -74,11 +74,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-    private static final String[] array={
-            "Sort by Name",
-            "Sort by Time",
-            "Sort by Size"
-    };
+    private static final String[] array={"Sort by Name", "Sort by Time", "Sort by Size"};
     private RecyclerView recyclerView;
     private FragmentHomeBinding binding;
     private HomeViewModel homeViewModel;

@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -49,6 +50,7 @@ import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.SharedItem;
 import teamarmada.oxtor.R;
+import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
 import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter;
 import teamarmada.oxtor.Ui.DialogFragment.ItemBottomSheet;
 import teamarmada.oxtor.Utils.FileItemUtils;
@@ -85,7 +87,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
         binding.setLifecycleOwner(this);
         sharedPreferences=requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         recyclerView= binding.recyclerviewShared;
-        swipeRefreshLayout= binding.navigationShared;
+        swipeRefreshLayout= binding.swipeShared;
         swipeRefreshLayout.setOnRefreshListener(this);
         swipeRefreshLayout.setOnChildScrollUpCallback((parent, child) -> actionmode!=null);
         shareViewModel=new ViewModelProvider(this).get(ShareViewModel.class);
@@ -119,6 +121,14 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 RecyclerView.VERTICAL, false));
         itemBottomSheet =new ItemBottomSheet(R.layout.bottomsheet_fileitem);
         recyclerView.setAdapter(adapter);
+        binding.createMessage.setOnClickListener(v->{
+            TextInputDialog textInputDialog=new TextInputDialog(R.string.enter_username_of_user,"@",null,
+                    InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
+            textInputDialog.addCallback(username -> {
+
+            });
+        });
+
     }
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=

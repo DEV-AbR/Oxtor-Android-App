@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/loading"
+            android:text="@string/please_wait"
             android:id="@+id/text_view"
             android:layout_alignTop="@id/progress_bar"
             android:layout_alignBottom="@id/progress_bar"
