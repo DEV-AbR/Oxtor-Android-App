@@ -121,14 +121,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 RecyclerView.VERTICAL, false));
         itemBottomSheet =new ItemBottomSheet(R.layout.bottomsheet_fileitem);
         recyclerView.setAdapter(adapter);
-        binding.createMessage.setOnClickListener(v->{
-            TextInputDialog textInputDialog=new TextInputDialog(R.string.enter_username_of_user,"@",null,
-                    InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
-            textInputDialog.addCallback(username -> {
-
-            });
-        });
-
     }
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
