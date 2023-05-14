@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 public class FunctionsRepository {
 
@@ -27,7 +28,7 @@ public class FunctionsRepository {
         return functionsRepository;
     }
 
-    public Task<HttpsCallableResult> shareByEmail(JSONObject payload)  {
+    public Task<HttpsCallableResult> shareByEmail(Map<String,Object> payload)  {
         try{
             URL url=new URL(SHARE_FILE);
             return functions.getHttpsCallableFromUrl(url).call(payload);

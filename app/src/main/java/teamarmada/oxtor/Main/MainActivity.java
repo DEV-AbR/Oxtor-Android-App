@@ -279,12 +279,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         adViewContainer.removeAllViews();
         getSupportActionBar().hide();
         hideNavigationBar();
-//        try {
-//            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-//            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
+        try {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -292,12 +292,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         adViewContainer.post(() -> ActivityLifecycleObserver.getInstance(this).loadBanner(adViewContainer));
         getSupportActionBar().show();
         showNavigationBar();
-//        try {
-//            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-//            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
+        try {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override

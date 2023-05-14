@@ -393,8 +393,13 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void onClickDeleteButton(List<FileItem> fileItems){
-        screenManager.showProgressDialog();
-        homeViewModel.deleteFiles(fileItems).addOnCompleteListener(task-> screenManager.hideProgressDialog());
+        int i=adapter.getItemCount()/10;
+        if(fileItems.size()>=i){
+            createFileDeleteDialog(fileItems).show();
+        }
+        else{
+            deleteSelectedFiles(fileItems);
+        }
     }
 
     private void uploadSelectedFiles(List<Uri> results){
@@ -404,6 +409,23 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             fileItems.add(FileItemUtils.getFileItemFromPath(requireContext(),uri));
         }
         activityLifecycleObserver.startUpload(fileItems);
+    }
+
+    private void deleteSelectedFiles(List<FileItem> fileItems){
+        screenManager.showProgressDialog();
+        homeViewModel.deleteFiles(fileItems).addOnCompleteListener(task-> screenManager.hideProgressDialog());
+    }
+    private void shareSelectedFiles(String senderUsername,List<FileItem> fileItems) {
+        TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
+                InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
+        dialog.addCallback(receiverUsername-> {
+            screenManager.showProgressDialog();
+            homeViewModel.shareFile(fileItems, senderUsername, receiverUsername)
+                    .addOnCompleteListener(task-> screenManager.hideProgressDialog())
+                    .addOnSuccessListener(result -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
+                    .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(), Snackbar.LENGTH_SHORT).show());
+        });
+        dialog.show(getChildFragmentManager(),"Input");
     }
 
     private AlertDialog createFileShareDialog(String username,List<FileItem> encryptedFiles,List<FileItem> fileItems){
@@ -416,24 +438,15 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 .create();
     }
 
-    private void shareSelectedFiles(String senderUsername,List<FileItem> fileItems) {
-        TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
-                InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
-        dialog.addCallback(receiverUsername-> {
-            try {
-                screenManager.showProgressDialog();
-                homeViewModel.shareFile(fileItems, senderUsername, receiverUsername)
-                        .addOnCompleteListener(task-> screenManager.hideProgressDialog())
-                        .addOnSuccessListener(result -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
-                        .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(), Snackbar.LENGTH_SHORT).show());
-            } catch (Exception e) {
-                e.printStackTrace();
-                Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show();
-            }
-        });
-        dialog.show(getChildFragmentManager(),"Input");
+    private AlertDialog createFileDeleteDialog(List<FileItem> fileItems){
+        return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
+                .setCancelable(false)
+                .setTitle("Are you sure ?")
+                .setMessage("Deleting "+fileItems.size()+" files from cloud storage")
+                .setPositiveButton("Share rest of the items", (dialogInterface, i) -> deleteSelectedFiles(fileItems))
+                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
+                .create();
     }
-
     private AlertDialog createPreferenceChooserDialog(){
         return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
                 .setCancelable(true).setTitle(R.string.sort)

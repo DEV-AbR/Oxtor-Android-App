@@ -18,11 +18,10 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.functions.HttpsCallableResult;
 import com.google.gson.Gson;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -84,18 +83,15 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
 
     public Task<HttpsCallableResult> shareFile(@NonNull List<FileItem> fileItems,
                                                @NonNull String senderUsername,
-                                               @NonNull String receiverUsername) throws Exception {
+                                               @NonNull String receiverUsername) {
         setIsTaskRunning(true);
-        JSONObject jsonObject=new JSONObject();
-        jsonObject.put("senderUsername",senderUsername);
-        jsonObject.put("receiverUsername",receiverUsername);
-        String[] strings=new String[fileItems.size()];
+        Map<String,Object> map =new HashMap<>();
         Gson gson=new Gson();
-        for (int i = 0; i < fileItems.size(); i++) {
-            strings[i]=gson.toJson(fileItems.get(i));
-        }
-        jsonObject.put("fileItems",strings);
-        return functionsRepository.shareByEmail(jsonObject).continueWithTask(task -> {
+        String files=gson.toJson(fileItems.toArray());
+        map.put("fileItems",files);
+        map.put("senderUsername",senderUsername);
+        map.put("receiverUsername",receiverUsername);
+        return functionsRepository.shareByEmail(map).continueWithTask(task -> {
             setIsTaskRunning(!task.isComplete());
             return task;
         });
