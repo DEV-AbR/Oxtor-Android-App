@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 
 public class InternetConnectionLiveData extends LiveData<Boolean> {
+
     private final ConnectivityManager connectivityManager;
     private final ConnectivityManager.NetworkCallback networkCallback;
 
@@ -20,7 +21,6 @@ public class InternetConnectionLiveData extends LiveData<Boolean> {
             public void onAvailable(@NonNull Network network) {
                 postValue(true);
             }
-
             @Override
             public void onLost(@NonNull Network network) {
                 postValue(false);
@@ -46,5 +46,5 @@ public class InternetConnectionLiveData extends LiveData<Boolean> {
             connectivityManager.unregisterNetworkCallback(networkCallback);
         }
     }
-}
 
+}
