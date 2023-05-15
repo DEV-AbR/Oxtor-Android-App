@@ -1,9 +1,5 @@
 package teamarmada.oxtor.Main;
 
-import static android.content.Context.ACTIVITY_SERVICE;
-
-import android.app.ActivityManager;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -14,7 +10,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.GravityCompat;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ProcessLifecycleOwner;
@@ -25,7 +20,6 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
@@ -34,10 +28,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import kotlin.Unit;
+
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.R;
-import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.MainViewModel;
 
 public class ActivityLifecycleObserver extends FullScreenContentCallback implements DefaultLifecycleObserver {
@@ -53,6 +46,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private int requestCode;
     private AdView adView;
 
+
     public static ActivityLifecycleObserver getInstance(@NonNull AppCompatActivity activity) {
         if(activityLifecycleObserver ==null)
             activityLifecycleObserver =new ActivityLifecycleObserver(activity);
@@ -62,18 +56,24 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private ActivityLifecycleObserver(@NonNull AppCompatActivity activity) {
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
         this.activity=activity;
-        mainViewModel=new ViewModelProvider(activity).get(MainViewModel.class);
-
-    }
-
-    private AlertDialog showAlertDialogForFileItem(String message) {
-        return new MaterialAlertDialogBuilder(activity, R.style.Theme_Oxtor_AlertDialog)
+        AlertDialog alertDialog=new MaterialAlertDialogBuilder(activity, R.style.Theme_Oxtor_AlertDialog)
                 .setTitle("Caution !")
-                .setMessage(message)
+                .setMessage("Running low memory, App might crash if continued")
                 .setCancelable(false)
-                .setPositiveButton("Continue with rest of the items", (dialogInterface,i)-> continueAction(fileItems,requestCode))
-                .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
+                .setPositiveButton("Continue anyway", (dialogInterface,i)-> executor.execute(thread))
+                .setNegativeButton("Abort task", (dialogInterface, i) -> thread.interrupt())
                 .create();
+        mainViewModel=new ViewModelProvider(activity).get(MainViewModel.class);
+        mainViewModel.getAvailableMemoryLiveData().observe(activity, aBoolean -> {
+            try {
+                if (aBoolean)
+                    alertDialog.show();
+                else if (alertDialog.isShowing())
+                    alertDialog.dismiss();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        });
     }
 
     private final Thread thread=new Thread(() -> continueAction(fileItems,requestCode));
@@ -104,40 +104,13 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
 
     private void continueUpload(List<FileItem> fileItems) {
         for (int i=0;i<fileItems.size();i++) {
-            final FileItem fileItem=fileItems.get(i);
-            if (mainViewModel.getUsedSpace().getValue() <= FileItemUtils.ONE_GIGABYTE || fileItem.getFileSize()<= FileItemUtils.ONE_GIGABYTE) {
-                if(canContinueAction(fileItem)) {
-                    uploadFile(fileItem);
-                }
-                else{
-                    fileItems.remove(fileItem);
-                    requestCode=UPLOAD_TASK;
-                    showAlertDialogForFileItem("Can't upload "
-                            +fileItem.getFileName()+
-                            " right now as the app will run out of memory and crash")
-                            .show();
-                }
-            }
-            else {
-                makeToast("Can't upload "+ fileItem.getFileName()+ "as you are only permitted 1GB of space on this account");
-            }
+            uploadFile(fileItems.get(i));
         }
     }
 
     private void continueDownload(List<FileItem> fileItems){
         for (int i=0;i<fileItems.size();i++) {
-            final FileItem fileItem=fileItems.get(i);
-            if(canContinueAction(fileItem)) {
-                downloadFile(fileItem);
-            }
-            else{
-                fileItems.remove(fileItem);
-                requestCode=DOWNLOAD_TASK;
-                showAlertDialogForFileItem("Can't download "
-                        +fileItem.getFileName()+
-                        " right now as the app will run out of memory and crash")
-                        .show();
-            }
+            downloadFile(fileItems.get(i));
         }
     }
 
@@ -186,10 +159,6 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         }).addOnFailureListener(activity,ex -> makeToast(ex.toString()));
     }
 
-    private boolean canContinueAction(FileItem fileItem){
-        return fileItem.getFileSize()<getAvailableMemory(activity).availMem;
-    }
-
     public void loadBanner(FrameLayout container){
         AdSize adSize = getAdSize(container);
         mainViewModel.loadAdView(adSize);
@@ -212,15 +181,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private void makeToast(String msg){
-        new Handler(Looper.getMainLooper())
-                .post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
-    }
-
-    private ActivityManager.MemoryInfo getAvailableMemory(Context context) {
-        ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
-        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-        am.getMemoryInfo(memoryInfo);
-        return memoryInfo;
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -264,10 +225,8 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
         if (mainViewModel != null && mainViewModel.getAppOpenAd() != null) {
-            if (!getAvailableMemory(activity).lowMemory&&!fileItems.isEmpty()) {
-                mainViewModel.getAppOpenAd().setFullScreenContentCallback(this);
-                mainViewModel.getAppOpenAd().show(activity);
-            }
+            mainViewModel.getAppOpenAd().setFullScreenContentCallback(this);
+            mainViewModel.getAppOpenAd().show(activity);
         }
         else if(mainViewModel!=null){
             if(!fileItems.isEmpty()) {
@@ -280,22 +239,25 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
 
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
-        if(adView!=null)
+        if(adView!=null) {
             adView.pause();
+        }
         DefaultLifecycleObserver.super.onPause(owner);
     }
 
     @Override
     public void onResume(@NonNull LifecycleOwner owner) {
-        if(adView!=null)
+        if(adView!=null) {
             adView.resume();
+        }
         DefaultLifecycleObserver.super.onResume(owner);
     }
 
     @Override
     public void onDestroy(@NonNull LifecycleOwner owner) {
-        if(adView!=null)
+        if(adView!=null) {
             adView.destroy();
+        }
         DefaultLifecycleObserver.super.onDestroy(owner);
     }
 

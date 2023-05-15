@@ -17,6 +17,10 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.functions.HttpsCallableResult;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.function.IntFunction;
 
 import javax.inject.Inject;
 
@@ -85,13 +90,13 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                                                @NonNull String senderUsername,
                                                @NonNull String receiverUsername) {
         setIsTaskRunning(true);
-        Map<String,Object> map =new HashMap<>();
-        Gson gson=new Gson();
-        String files=gson.toJson(fileItems.toArray());
-        map.put("fileItems",files);
+        Map<String,Object> map=new HashMap<>();
+        int size=fileItems.size();
+        FileItem[] array=fileItems.toArray(new FileItem[size]);
         map.put("senderUsername",senderUsername);
         map.put("receiverUsername",receiverUsername);
-        return functionsRepository.shareByEmail(map).continueWithTask(task -> {
+        map.put("fileItems",array);
+        return functionsRepository.shareFile(map).continueWithTask(task -> {
             setIsTaskRunning(!task.isComplete());
             return task;
         });

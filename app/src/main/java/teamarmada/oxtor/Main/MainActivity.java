@@ -123,6 +123,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         taskBottomSheet=new TaskBottomSheet();
         progressDialog= new ProgressDialog();
         mainViewModel =new ViewModelProvider(this).get(MainViewModel.class);
+        mainViewModel.getInternetConnectionLiveData().observe(this,
+                aBoolean -> binding.textView.setText(aBoolean?View.VISIBLE:View.GONE));
         NavHostFragment navHostMain = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
         assert navHostMain !=null;
         navControllerMain = navHostMain.getNavController();

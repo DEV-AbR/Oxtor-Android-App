@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.Date;
 
 public class SharedItem {
@@ -28,6 +29,7 @@ public class SharedItem {
     private String emailOfReceiver;
     private String usernameOfReceiver;
     private String phoneNumberOfReceiver;
+
     private FileItem fileItem;
 
     public SharedItem(){}

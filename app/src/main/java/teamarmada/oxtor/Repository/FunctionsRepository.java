@@ -28,7 +28,7 @@ public class FunctionsRepository {
         return functionsRepository;
     }
 
-    public Task<HttpsCallableResult> shareByEmail(Map<String,Object> payload)  {
+    public Task<HttpsCallableResult> shareFile(Object payload)  {
         try{
             URL url=new URL(SHARE_FILE);
             return functions.getHttpsCallableFromUrl(url).call(payload);

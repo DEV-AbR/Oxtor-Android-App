@@ -63,8 +63,19 @@
             android:src="@drawable/ic_baseline_refresh_24"
             app:fabSize="normal" />
 
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/progress_bar"
+            android:text="@string/no_connection_found"
+            android:textColor="?attr/colorPrimary"
+            android:gravity="center"
+            android:visibility="gone"
+            />
+
         <com.google.android.material.progressindicator.LinearProgressIndicator
-            android:id="@+id/progressBar"
+            android:id="@+id/progress_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="invisible"
@@ -73,7 +84,6 @@
             app:trackColor="@android:color/white"
             android:indeterminateOnly="true"
             android:layout_above="@id/nav_view"
-
             />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView

@@ -87,7 +87,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private SharedPreferences sharedPreferences;
     private ActivityLifecycleObserver activityLifecycleObserver;
     private ScreenManager screenManager;
-    private View addButtonView;
+
     public HomeFragment(){}
 
     @NonNull
@@ -102,7 +102,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         binding.setLifecycleOwner(this);
         sharedPreferences=requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         addButton=binding.add;
-
         swipeRefreshLayout=binding.swipeHome;
         recyclerView=binding.recyclerviewHome;
         try {
@@ -115,7 +114,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         observeLoadingState();
         initUI();
         addButton.setOnClickListener(v -> {
-            addButtonView=v;
             if (!checkForPermissions()){
                 askPermission();
             }
@@ -404,17 +402,25 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private void uploadSelectedFiles(List<Uri> results){
         List<FileItem> fileItems=new ArrayList<>();
+        long size=0;
         for(int i=0;i<results.size();i++){
             Uri uri=results.get(i);
             fileItems.add(FileItemUtils.getFileItemFromPath(requireContext(),uri));
+            size+=fileItems.get(i).getFileSize();
         }
-        activityLifecycleObserver.startUpload(fileItems);
+        if (size <= FileItemUtils.ONE_GIGABYTE) {
+            activityLifecycleObserver.startUpload(fileItems);
+        }
+        else {
+            Snackbar.make(binding.getRoot(), "Can't upload as you are only permitted 1GB of space on this account",Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     private void deleteSelectedFiles(List<FileItem> fileItems){
         screenManager.showProgressDialog();
         homeViewModel.deleteFiles(fileItems).addOnCompleteListener(task-> screenManager.hideProgressDialog());
     }
+
     private void shareSelectedFiles(String senderUsername,List<FileItem> fileItems) {
         TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
                 InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());

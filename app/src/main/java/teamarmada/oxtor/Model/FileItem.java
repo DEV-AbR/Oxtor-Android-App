@@ -3,14 +3,13 @@ package teamarmada.oxtor.Model;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.ServerTimestamp;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class FileItem {
-
 
     private String storageReference;
     private String downloadUrl,filePath;
@@ -76,27 +75,24 @@ public class FileItem {
         return storageReference;
     }
 
-    public FileItem setStorageReference(String storageReference) {
+    public void setStorageReference(String storageReference) {
         this.storageReference = storageReference;
-        return this;
     }
 
     public String getIv() {
         return iv;
     }
 
-    public FileItem setIv(String iv) {
+    public void setIv(String iv) {
         this.iv = iv;
-        return this;
     }
 
     public String getDownloadUrl() {
         return downloadUrl;
     }
 
-    public FileItem setDownloadUrl(String downloadUrl) {
+    public void setDownloadUrl(String downloadUrl) {
         this.downloadUrl = downloadUrl;
-        return this;
     }
 
     public String getFilePath() {
@@ -162,29 +158,12 @@ public class FileItem {
         return this;
     }
 
-    @Override
-    public String toString() {
-        return "FileItem{" +
-                "storageReference='" + storageReference + '\'' +
-                ", downloadUrl='" + downloadUrl + '\'' +
-                ", filePath='" + filePath + '\'' +
-                ", fileName='" + fileName + '\'' +
-                ", uid='" + uid + '\'' +
-                ", fileType='" + fileType + '\'' +
-                ", fileExtension='" + fileExtension + '\'' +
-                ", fileSize=" + fileSize +
-                ", encrypted=" + encrypted +
-                ", timeStamp=" + timeStamp +
-                '}';
-    }
-
     public String getEncryptionPassword() {
         return encryptionPassword;
     }
 
-    public FileItem setEncryptionPassword(String encryptionPassword) {
+    public void setEncryptionPassword(String encryptionPassword) {
         this.encryptionPassword = encryptionPassword;
-        return this;
     }
 
     public boolean isEncrypted() {
@@ -195,4 +174,22 @@ public class FileItem {
         this.encrypted = encrypted;
         return this;
     }
+
+    public Map<String,Object> toHashmap() {
+        Map<String,Object> hashMap=new HashMap<>();
+        hashMap.put(STORAGE_REFERENCE,storageReference);
+        hashMap.put(DOWNLOAD_URL,downloadUrl);
+        hashMap.put(FILEPATH,filePath);
+        hashMap.put(FILENAME,fileName);
+        hashMap.put(UID,uid);
+        hashMap.put(FILETYPE,fileType);
+        hashMap.put(FILE_EXTENSION,fileExtension);
+        hashMap.put(FILE_SIZE,fileSize);
+        hashMap.put(ENCRYPTED,encrypted);
+        hashMap.put(IV,iv);
+        hashMap.put(ENCRYPTION_PASSWORD,encryptionPassword);
+        hashMap.put(TIMESTAMP,timeStamp);
+        return hashMap;
+    }
+
 }

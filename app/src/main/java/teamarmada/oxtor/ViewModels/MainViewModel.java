@@ -7,7 +7,6 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Environment;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -20,8 +19,6 @@ import com.google.android.gms.ads.appopen.AppOpenAd;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
@@ -38,6 +35,8 @@ import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import kotlin.Unit;
+import teamarmada.oxtor.Livedata.InternetConnectionLiveData;
+import teamarmada.oxtor.Livedata.MemoryLiveData;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.Model.ProfileItem;
@@ -63,6 +62,8 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     private final MutableLiveData<Long> usedSpace;
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final SharedPreferences sharedPreferences;
+    private final MemoryLiveData memoryLiveData;
+    private InternetConnectionLiveData internetConnectionLiveData;
 
     @Inject
     public MainViewModel(@ApplicationContext Context context){
@@ -78,8 +79,18 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         isTaskRunning=new MutableLiveData<>(false);
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         usedSpace = new MutableLiveData<>(sharedPreferences.getLong(USED_SPACE, 0L));
+        memoryLiveData=new MemoryLiveData(context.getApplicationContext());
+        internetConnectionLiveData = new InternetConnectionLiveData(context.getApplicationContext());
     }
-    
+
+    public LiveData<Boolean> getInternetConnectionLiveData() {
+        return internetConnectionLiveData;
+    }
+
+    public LiveData<Boolean> getAvailableMemoryLiveData() {
+        return memoryLiveData;
+    }
+
     public LiveData<ProfileItem> getProfileItem() {
         return profileItem;
     }

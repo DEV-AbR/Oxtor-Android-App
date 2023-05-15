@@ -158,4 +158,5 @@
     <string name="please_wait">Please wait...</string>
     <string name="send_message_to_a_user">Send message to a user</string>
     <string name="enter_username_of_user">Enter username of user</string>
+    <string name="no_connection_found">No internet connection found</string>
 </resources>
