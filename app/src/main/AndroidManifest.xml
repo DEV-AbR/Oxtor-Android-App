@@ -92,6 +92,7 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="oxt.web.app"/>
+                <data android:scheme="https" android:host="oxtor.web.app"/>
                 <data android:scheme="app" android:host="@string/package_name" />
             </intent-filter>
 

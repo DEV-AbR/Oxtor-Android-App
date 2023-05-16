@@ -182,27 +182,22 @@ public class LoginFragment extends Fragment {
     private void initEmailSignIn(){
         loginViewModel.setIsTaskRunning(true);
         ActionCodeSettings acs = ActionCodeSettings.newBuilder()
-                .setUrl(getString(R.string.app_url))
+                .setUrl("https://oxtor.page.link/n3UL")
                 .setHandleCodeInApp(true)
-                .setAndroidPackageName(requireContext().getPackageName(), false, null)
+                .setAndroidPackageName(requireContext().getPackageName(), true, null)
                 .build();
         loginViewModel.getAuthInstance()
                 .sendSignInLinkToEmail(email,acs)
-                .addOnCompleteListener(requireActivity(),task -> {
-                    loginViewModel.setIsTaskRunning(!task.isComplete());
-                    if(task.isSuccessful()) {
-                        loginViewModel.setIsTaskRunning(false);
-                        MaterialAlertDialogBuilder builder= new MaterialAlertDialogBuilder(requireContext(), R.style.Theme_Oxtor_AlertDialog)
-                                        .setCancelable(false).setTitle("Link Sent")
-                                        .setMessage("Check spam if you don't find email in inbox")
-                                        .setPositiveButton("Open Email", (dialog, which) -> openEmailApp())
-                                        .setNegativeButton("Exit", (dialog, which) -> requireActivity().finish());
-                        AlertDialog dialog=builder.create();
-                        dialog.show();
-                        }
-                    else {
-                        Snackbar.make(binding.getRoot(), "An Error Occurred",Snackbar.LENGTH_SHORT).show();
-                    }
+                .addOnCompleteListener(requireActivity(),task -> loginViewModel.setIsTaskRunning(!task.isComplete()))
+                .addOnSuccessListener(requireActivity(), result->
+                        new MaterialAlertDialogBuilder(requireContext(), R.style.Theme_Oxtor_AlertDialog)
+                        .setCancelable(false).setTitle("Link Sent")
+                        .setMessage("Check spam if you don't find email in inbox")
+                        .setPositiveButton("Open Email", (dialog, which) -> openEmailApp())
+                        .setNegativeButton("Exit", (dialog, which) -> requireActivity().finish())
+                        .create().show())
+                .addOnFailureListener(requireActivity(), e->{
+                    Snackbar.make(binding.getRoot(), "An Error Occurred",Snackbar.LENGTH_SHORT).show();
                 });
     }
 

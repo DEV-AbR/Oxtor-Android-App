@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class FileItem {
+public class FileItem implements Serializable {
 
     private String storageReference;
     private String downloadUrl,filePath;
@@ -18,7 +18,7 @@ public class FileItem {
     private Long fileSize;
     private Boolean encrypted;
     private String iv,encryptionPassword;
-    @ServerTimestamp private Date timeStamp;
+    private transient @ServerTimestamp Date timeStamp;
 
     public static final String STORAGE_REFERENCE="storageReference";
     public static final String DOWNLOAD_URL="downloadUrl";

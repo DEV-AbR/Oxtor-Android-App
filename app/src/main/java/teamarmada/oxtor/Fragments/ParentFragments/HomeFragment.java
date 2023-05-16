@@ -188,8 +188,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private final ActivityResultLauncher<String> selectFileLauncher =
             registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), results -> {
                 if (!results.isEmpty()) {
-                    boolean b= Boolean.TRUE.equals(homeViewModel.getInternetConnectionLiveData(getContext()).getValue());
-                    if(b){
                     List<Uri> paths=new ArrayList<>();
                     for (int i = 0; i < results.size(); i++) {
                         final File file=new File(String.valueOf(results.get(i)));
@@ -200,14 +198,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                         }
                     }
                     uploadSelectedFiles(paths);
-                    }
-                    else {
-                        try {
-                            Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_SHORT).show();
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
-                    }
+
                 }
             });
 
@@ -221,20 +212,10 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                         public Fragment createFragment(int pos) {
                             final FileItem fileItem = adapter.getItem(pos);
                             View.OnClickListener listener= v1 -> {
-                                boolean b= Boolean.TRUE.equals(homeViewModel.getInternetConnectionLiveData(getContext()).getValue());
-                                if(b) {
-                                    itemBottomSheet.dismiss();
-                                    List<FileItem> fileItems = new ArrayList<>();
-                                    fileItems.add(fileItem);
-                                    onOptionSelected(v1.getId(), fileItems);
-                                }
-                                else {
-                                    try {
-                                        Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_SHORT).show();
-                                    }catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                }
+                                itemBottomSheet.dismiss();
+                                List<FileItem> fileItems = new ArrayList<>();
+                                fileItems.add(fileItem);
+                                onOptionSelected(v1.getId(), fileItems);
                             };
                             binding.deleteButton.setOnClickListener(listener);
                             binding.downloadButton.setOnClickListener(listener);
@@ -470,7 +451,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 .setCancelable(false)
                 .setTitle("Are you sure ?")
                 .setMessage("Deleting "+fileItems.size()+" files from cloud storage")
-                .setPositiveButton("Share rest of the items", (dialogInterface, i) -> deleteSelectedFiles(fileItems))
+                .setPositiveButton(R.string.delete, (dialogInterface, i) -> deleteSelectedFiles(fileItems))
                 .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
                 .create();
     }

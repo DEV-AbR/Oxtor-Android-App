@@ -140,16 +140,24 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
             e.printStackTrace();
         }
     }
+
     @Override
     protected void onStart() {
         super.onStart();
+        Snackbar snackbar=Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_SHORT)
+                .setAction("Check", v -> openInternetSetting());
         mainViewModel.getInternetConnectionLiveData(this).observe(this, isConnected->{
-            try {
-                Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_INDEFINITE)
-                        .setAction("Check connection", v -> openInternetSetting()).show();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
+                try {
+                    if(isConnected){
+                        snackbar.show();
+                    }
+                    else{
+                        snackbar.dismiss();
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
         });
         observeUploadTasks();
         observeDownloadTasks();
@@ -193,12 +201,15 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
             binding.taskButtonMain.show();
             binding.taskButtonMain.setAnimation(getInfiniteRotationAnim());
             binding.taskButtonMain.setOnClickListener(v->{
-                if(!taskBottomSheet.isInLayout()) {
-                    taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
-                    taskBottomSheet.setTab(tabPosition);
-                }
-                else {
-                    taskBottomSheet.dismiss();
+                try {
+                    if (!taskBottomSheet.isInLayout()) {
+                        taskBottomSheet.showNow(getSupportFragmentManager(), "Tasks");
+                        taskBottomSheet.setTab(tabPosition);
+                    } else {
+                        taskBottomSheet.dismiss();
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
             });
         }
@@ -211,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
                 Animation.RELATIVE_TO_SELF, 0.5f
         );
 
-        rotate.setDuration(500); // it was 800 before
+        rotate.setDuration(500);
         rotate.setRepeatCount(Animation.INFINITE);
         return rotate;
     }
@@ -279,8 +290,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if(item.getItemId()==R.id.nightmode){
-            if(!mainViewModel.mutableUploadList.getValue().isEmpty() ||
-                    !mainViewModel.mutableDownloadList.getValue().isEmpty())
+            if(!mainViewModel.mutableUploadList.getValue().isEmpty() || !mainViewModel.mutableDownloadList.getValue().isEmpty())
                 createAlertDialog().show();
             else
                 changeTheme(item);
