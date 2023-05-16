@@ -35,6 +35,7 @@ import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import kotlin.Unit;
+import teamarmada.oxtor.Livedata.InternetConnectionLiveData;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
@@ -52,6 +53,7 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
     private final Executor executor = Executors.newCachedThreadPool();
     private final MutableLiveData<ProfileItem> profileItem;
     private final SharedPreferences sharedPreferences;
+    private InternetConnectionLiveData internetConnectionLiveData;
 
     @Inject
     public HomeViewModel(@ApplicationContext Context context) {
@@ -62,6 +64,13 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
         isTaskRunning = new MutableLiveData<>(false);
         profileItem=new MutableLiveData<>(authRepository.getProfileItem());
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    }
+
+    public LiveData<Boolean> getInternetConnectionLiveData(Context context) {
+        if(internetConnectionLiveData==null){
+            internetConnectionLiveData = new InternetConnectionLiveData(context.getApplicationContext());
+        }
+        return internetConnectionLiveData;
     }
 
     public void renameFile(String s, FileItem fileItem) {

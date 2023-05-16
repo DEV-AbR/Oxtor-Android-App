@@ -62,7 +62,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     private final MutableLiveData<Long> usedSpace;
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final SharedPreferences sharedPreferences;
-    private final MemoryLiveData memoryLiveData;
+    private MemoryLiveData memoryLiveData;
     private InternetConnectionLiveData internetConnectionLiveData;
 
     @Inject
@@ -79,15 +79,21 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         isTaskRunning=new MutableLiveData<>(false);
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         usedSpace = new MutableLiveData<>(sharedPreferences.getLong(USED_SPACE, 0L));
-        memoryLiveData=new MemoryLiveData(context.getApplicationContext());
-        internetConnectionLiveData = new InternetConnectionLiveData(context.getApplicationContext());
+
+
     }
 
-    public LiveData<Boolean> getInternetConnectionLiveData() {
+    public LiveData<Boolean> getInternetConnectionLiveData(Context context) {
+        if(internetConnectionLiveData==null){
+            internetConnectionLiveData = new InternetConnectionLiveData(context.getApplicationContext());
+        }
         return internetConnectionLiveData;
     }
 
-    public LiveData<Boolean> getAvailableMemoryLiveData() {
+    public LiveData<Boolean> getMemoryLiveData(Context context) {
+        if(memoryLiveData==null) {
+            memoryLiveData = new MemoryLiveData(context.getApplicationContext());
+        }
         return memoryLiveData;
     }
 

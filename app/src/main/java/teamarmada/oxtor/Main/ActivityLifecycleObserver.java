@@ -1,5 +1,8 @@
 package teamarmada.oxtor.Main;
 
+import static teamarmada.oxtor.Main.ActivityLifecycleObserver.RequestCode.DOWNLOAD_TASK;
+import static teamarmada.oxtor.Main.ActivityLifecycleObserver.RequestCode.UPLOAD_TASK;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -38,12 +41,10 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     public static final String TAG= ActivityLifecycleObserver.class.getSimpleName();
     private static ActivityLifecycleObserver activityLifecycleObserver;
     private final ExecutorService executor= Executors.newSingleThreadExecutor();
-    public static final int UPLOAD_TASK=1;
-    public static final int DOWNLOAD_TASK=2;
+    private final List<FileItem> fileItems=new ArrayList<>();
+    private RequestCode requestCode;
     private final MainViewModel mainViewModel;
     private final AppCompatActivity activity;
-    private final List<FileItem> fileItems=new ArrayList<>();
-    private int requestCode;
     private AdView adView;
 
 
@@ -64,7 +65,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                 .setNegativeButton("Abort task", (dialogInterface, i) -> thread.interrupt())
                 .create();
         mainViewModel=new ViewModelProvider(activity).get(MainViewModel.class);
-        mainViewModel.getAvailableMemoryLiveData().observe(activity, aBoolean -> {
+        mainViewModel.getMemoryLiveData(activity).observe(activity, aBoolean -> {
             try {
                 if (aBoolean)
                     alertDialog.show();
@@ -80,17 +81,17 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
 
     public void startUpload(List<FileItem> fileItems) {
         this.fileItems.addAll(fileItems);
-        requestCode=UPLOAD_TASK;
+        requestCode= UPLOAD_TASK;
         executor.execute(thread);
     }
 
     public void startDownload(List<FileItem> fileItems) {
         this.fileItems.addAll(fileItems);
-        requestCode=DOWNLOAD_TASK;
+        requestCode= DOWNLOAD_TASK;
         executor.execute(thread);
     }
 
-    private void continueAction(@NonNull List<FileItem> fileItems,int requestCode){
+    private void continueAction(@NonNull List<FileItem> fileItems,RequestCode requestCode){
         switch (requestCode){
             case UPLOAD_TASK:
                 continueUpload(fileItems);
@@ -259,6 +260,21 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             adView.destroy();
         }
         DefaultLifecycleObserver.super.onDestroy(owner);
+    }
+
+    public enum RequestCode {
+        UPLOAD_TASK(1001),
+        DOWNLOAD_TASK(1002);
+
+        private final int requestCode;
+
+        RequestCode(int requestCode) {
+            this.requestCode = requestCode;
+        }
+
+        public int getRequestCode() {
+            return requestCode;
+        }
     }
 
 }

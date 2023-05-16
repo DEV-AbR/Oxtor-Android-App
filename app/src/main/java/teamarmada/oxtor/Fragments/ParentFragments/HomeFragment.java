@@ -19,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -187,6 +188,8 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private final ActivityResultLauncher<String> selectFileLauncher =
             registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), results -> {
                 if (!results.isEmpty()) {
+                    boolean b= Boolean.TRUE.equals(homeViewModel.getInternetConnectionLiveData(getContext()).getValue());
+                    if(b){
                     List<Uri> paths=new ArrayList<>();
                     for (int i = 0; i < results.size(); i++) {
                         final File file=new File(String.valueOf(results.get(i)));
@@ -197,6 +200,14 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                         }
                     }
                     uploadSelectedFiles(paths);
+                    }
+                    else {
+                        try {
+                            Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_SHORT).show();
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
                 }
             });
 
@@ -210,10 +221,20 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                         public Fragment createFragment(int pos) {
                             final FileItem fileItem = adapter.getItem(pos);
                             View.OnClickListener listener= v1 -> {
-                                itemBottomSheet.dismiss();
-                                List<FileItem> fileItems=new ArrayList<>();
-                                fileItems.add(fileItem);
-                                onOptionSelected(v1.getId(), fileItems);
+                                boolean b= Boolean.TRUE.equals(homeViewModel.getInternetConnectionLiveData(getContext()).getValue());
+                                if(b) {
+                                    itemBottomSheet.dismiss();
+                                    List<FileItem> fileItems = new ArrayList<>();
+                                    fileItems.add(fileItem);
+                                    onOptionSelected(v1.getId(), fileItems);
+                                }
+                                else {
+                                    try {
+                                        Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_SHORT).show();
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                }
                             };
                             binding.deleteButton.setOnClickListener(listener);
                             binding.downloadButton.setOnClickListener(listener);
@@ -471,7 +492,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
                     adapter.changeAdapterQuery(query,true);
                     sharedPreferences.edit().putInt(SORT_PREFERENCE,which).apply();
-                    dialog.dismiss();
                 }).create();
     }
 

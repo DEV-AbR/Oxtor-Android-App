@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -122,7 +123,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         taskBottomSheet=new TaskBottomSheet();
         progressDialog= new ProgressDialog();
         mainViewModel =new ViewModelProvider(this).get(MainViewModel.class);
-        mainViewModel.getInternetConnectionLiveData().observe(this, aBoolean -> binding.textView.setText(aBoolean?View.VISIBLE:View.GONE));
         NavHostFragment navHostMain = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
         assert navHostMain !=null;
         navControllerMain = navHostMain.getNavController();
@@ -132,9 +132,25 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         if(!checkForPermissions()) askPermission();
     }
 
+    private void openInternetSetting() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS);
+            startActivity(intent);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
     @Override
     protected void onStart() {
         super.onStart();
+        mainViewModel.getInternetConnectionLiveData(this).observe(this, isConnected->{
+            try {
+                Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_INDEFINITE)
+                        .setAction("Check connection", v -> openInternetSetting()).show();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        });
         observeUploadTasks();
         observeDownloadTasks();
         observeLoadingState();

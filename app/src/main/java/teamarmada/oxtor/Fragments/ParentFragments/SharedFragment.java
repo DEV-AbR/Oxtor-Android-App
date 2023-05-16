@@ -336,7 +336,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                     }
                     adapter.changeAdapterQuery(query,true);
                     sharedPreferences.edit().putInt(SORT_PREFERENCE,which).apply();
-                    dialog.dismiss();
                 });
         return builder.create();
     }

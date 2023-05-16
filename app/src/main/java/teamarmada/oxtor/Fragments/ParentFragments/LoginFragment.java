@@ -195,17 +195,8 @@ public class LoginFragment extends Fragment {
                         MaterialAlertDialogBuilder builder= new MaterialAlertDialogBuilder(requireContext(), R.style.Theme_Oxtor_AlertDialog)
                                         .setCancelable(false).setTitle("Link Sent")
                                         .setMessage("Check spam if you don't find email in inbox")
-                                        .setPositiveButton("Open Email", (dialog, which) -> {
-                                            dialog.dismiss();
-                                            Intent intent = new Intent(Intent.ACTION_MAIN);
-                                            intent.addCategory(Intent.CATEGORY_APP_EMAIL);
-                                            intent.putExtra(Intent.EXTRA_EMAIL,email);
-                                            startActivity(intent);
-                                        })
-                                        .setNegativeButton("Exit", (dialog, which) -> {
-                                            dialog.dismiss();
-                                            requireActivity().finish();
-                                        });
+                                        .setPositiveButton("Open Email", (dialog, which) -> openEmailApp())
+                                        .setNegativeButton("Exit", (dialog, which) -> requireActivity().finish());
                         AlertDialog dialog=builder.create();
                         dialog.show();
                         }
@@ -213,6 +204,13 @@ public class LoginFragment extends Fragment {
                         Snackbar.make(binding.getRoot(), "An Error Occurred",Snackbar.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void openEmailApp(){
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_APP_EMAIL);
+        intent.putExtra(Intent.EXTRA_EMAIL,email);
+        startActivity(intent);
     }
 
     public ActivityResultLauncher<Intent> googleSignInLauncher = registerForActivityResult(
