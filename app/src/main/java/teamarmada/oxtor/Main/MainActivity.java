@@ -126,6 +126,8 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         NavHostFragment navHostMain = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
         assert navHostMain !=null;
         navControllerMain = navHostMain.getNavController();
+        navControllerMain.addOnDestinationChangedListener(this);
+        NavigationUI.setupWithNavController(navView, navControllerMain);
         navControllerMain.setLifecycleOwner(this);
         if(!checkForPermissions()) askPermission();
     }
@@ -318,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         }catch (Exception e){
             e.printStackTrace();
         }
-        navControllerMain.addOnDestinationChangedListener(this);
+        
         getSupportActionBar().show();
         adViewContainer.post(() -> ActivityLifecycleObserver.getInstance(this).loadBanner(adViewContainer));
         showNavigationBar();
@@ -332,7 +334,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public void showNavigationBar() {
         navView.setVisibility(View.VISIBLE);
-        NavigationUI.setupWithNavController(navView, navControllerMain);
     }
 
     @SuppressLint("SuspiciousIndentation")
