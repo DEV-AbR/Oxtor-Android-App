@@ -12,13 +12,16 @@ import java.util.Map;
 public class FileItem implements Serializable {
 
     private String storageReference;
-    private String downloadUrl,filePath;
-    private String fileName,uid,fileType;
+    private String downloadUrl;
+    private String filePath;
+    private String fileName;
+    private String uid;
+    private String fileType;
     private String fileExtension;
     private Long fileSize;
     private Boolean encrypted;
     private String iv,encryptionPassword;
-    private transient @ServerTimestamp Date timeStamp;
+    private @ServerTimestamp Date timeStamp;
 
     public static final String STORAGE_REFERENCE="storageReference";
     public static final String DOWNLOAD_URL="downloadUrl";
@@ -48,7 +51,7 @@ public class FileItem implements Serializable {
         this.storageReference = documentSnapshot.getString(STORAGE_REFERENCE);
         this.encryptionPassword=documentSnapshot.getString(ENCRYPTION_PASSWORD);
         try {
-            encrypted=iv!=null?documentSnapshot.get(ENCRYPTED,Boolean.class):false;
+            encrypted=(iv!=null)?documentSnapshot.get(ENCRYPTED,Boolean.class):false;
         }
         catch (Exception e){
             e.printStackTrace();

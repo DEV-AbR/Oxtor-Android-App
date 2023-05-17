@@ -22,6 +22,7 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -238,25 +239,49 @@ public class FileItemUtils {
             return outputStream.toByteArray();
     }
 
-    public static InputStream uploadInputStream(FileItem item, ProfileItem profileItem, Context context) throws Exception {
+
+    public static InputStream uploadFromInputStream(FileItem item, ProfileItem profileItem, Context context) throws Exception {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        Uri uri=Uri.parse(item.getFilePath());
-        InputStream inputStream=context.getContentResolver().openInputStream(uri);
-        if (sharedPreferences.getBoolean(TO_ENCRYPT,false))
+        Uri uri = Uri.parse(item.getFilePath());
+        InputStream inputStream = context.getContentResolver().openInputStream(uri);
+        if (sharedPreferences.getBoolean(TO_ENCRYPT, false))
             inputStream = new CipherInputStream(inputStream, AES.getEncryptCipher(item, profileItem));
-        else
-            inputStream = new BufferedInputStream(inputStream, item.getFileSize().intValue());
-        return inputStream;
+        final int BUFFER_SIZE = 4096; // Adjust the buffer size as needed
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int bytesRead;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        } finally {
+            inputStream.close();
+            outputStream.close();
+        }
+        return new ByteArrayInputStream(outputStream.toByteArray());
     }
 
-    public static InputStream downloadInputStream(FileItem fileItem,ProfileItem profileItem,InputStream inputStream) throws Exception{
-        if(fileItem.isEncrypted())
-            inputStream=new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem,profileItem));
-        else
-            inputStream=new BufferedInputStream(inputStream, fileItem.getFileSize().intValue());
+
+    public static InputStream downloadFromInputStream(FileItem fileItem, ProfileItem profileItem, InputStream inputStream) throws Exception {
+        if (fileItem.isEncrypted()) {
+            inputStream = new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem, profileItem));
+        }
+        else {
+            final int BUFFER_SIZE = 4096; // Adjust the buffer size as needed
+            byte[] buffer = new byte[BUFFER_SIZE];
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            int bytesRead;
+            try {
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            } finally {
+                inputStream.close();
+                outputStream.close();
+            }
+            inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        }
         return inputStream;
     }
-
-
 
 }

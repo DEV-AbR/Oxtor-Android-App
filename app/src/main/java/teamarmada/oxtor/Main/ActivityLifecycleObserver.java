@@ -46,7 +46,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private final MainViewModel mainViewModel;
     private final AppCompatActivity activity;
     private AdView adView;
-
+    private final AlertDialog alertDialog;
 
     public static ActivityLifecycleObserver getInstance(@NonNull AppCompatActivity activity) {
         if(activityLifecycleObserver ==null)
@@ -57,7 +57,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private ActivityLifecycleObserver(@NonNull AppCompatActivity activity) {
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
         this.activity=activity;
-        AlertDialog alertDialog=new MaterialAlertDialogBuilder(activity, R.style.Theme_Oxtor_AlertDialog)
+        alertDialog=new MaterialAlertDialogBuilder(activity, R.style.Theme_Oxtor_AlertDialog)
                 .setTitle("Caution !")
                 .setMessage("Running low memory, App might crash if continued")
                 .setCancelable(false)
@@ -68,9 +68,9 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         mainViewModel.getMemoryLiveData(activity).observe(activity, aBoolean -> {
             try {
                 if (aBoolean)
-                    alertDialog.show();
+                    showAlertDialog();
                 else if (alertDialog.isShowing())
-                    alertDialog.dismiss();
+                    dismissAlertDialog();
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -121,14 +121,17 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             uploadTask= mainViewModel.uploadUsingInputStream(activity,fileItem);
         }catch (Exception e){
             e.printStackTrace();
-            try{
-                uploadTask= mainViewModel.uploadUsingByteArray(activity,fileItem);
-            }catch (Exception ex){
-                ex.printStackTrace();
-                mainViewModel.setIsTaskRunning(false);
-                makeToast(ex.toString());
-                return;
-            }
+//            try{
+//                uploadTask= mainViewModel.uploadUsingByteArray(activity,fileItem);
+//            }catch (Exception ex){
+//                ex.printStackTrace();
+//                mainViewModel.setIsTaskRunning(false);
+//                makeToast(ex.toString());
+//                return;
+//            }
+            mainViewModel.setIsTaskRunning(false);
+            makeToast(e.toString());
+            return;
         }
         uploadTask.addOnSuccessListener(activity,unit -> {
                         if(fileItems.indexOf(fileItem)==fileItems.size()-1){
@@ -144,13 +147,16 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             downloadTask= mainViewModel.downloadUsingInputStream(activity,fileItem);
         }catch (Exception e){
             e.printStackTrace();
-            try {
-                mainViewModel.downloadViaDownloadManager(activity,fileItem);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                mainViewModel.setIsTaskRunning(false);
-                makeToast(e.toString());
-            }
+//            try {
+//                mainViewModel.downloadViaDownloadManager(activity,fileItem);
+//            } catch (Exception ex) {
+//                ex.printStackTrace();
+//                mainViewModel.setIsTaskRunning(false);
+//                makeToast(e.toString());
+//            }
+//            return;
+            mainViewModel.setIsTaskRunning(false);
+            makeToast(e.toString());
             return;
         }
         downloadTask.addOnSuccessListener(activity,unit -> {
@@ -183,6 +189,14 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
 
     private void makeToast(String msg){
         new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
+    }
+
+    private void showAlertDialog() {
+        new Handler(Looper.getMainLooper()).post(alertDialog::show);
+    }
+
+    private void dismissAlertDialog() {
+        new Handler(Looper.getMainLooper()).post(alertDialog::dismiss);
     }
 
     @Override

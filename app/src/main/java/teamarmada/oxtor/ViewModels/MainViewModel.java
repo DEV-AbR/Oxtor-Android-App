@@ -79,8 +79,6 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         isTaskRunning=new MutableLiveData<>(false);
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         usedSpace = new MutableLiveData<>(sharedPreferences.getLong(USED_SPACE, 0L));
-
-
     }
 
     public LiveData<Boolean> getInternetConnectionLiveData(Context context) {
@@ -103,7 +101,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     
     public Task<Unit> uploadUsingInputStream(Context context,FileItem item) throws Exception {
         setIsTaskRunning(true);
-        InputStream inputStream= FileItemUtils.uploadInputStream(item,getProfileItem().getValue(), context);
+        InputStream inputStream= FileItemUtils.uploadFromInputStream(item,getProfileItem().getValue(), context);
         FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item, inputStream, getProfileItem().getValue());
         addUploadItem(uploadTaskFileTask);
         return uploadTaskFileTask.getTask()
@@ -120,21 +118,21 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 });
     }
 
-    public Task<Unit> uploadUsingByteArray(Context context, FileItem item) throws Exception {
-        setIsTaskRunning(true);
-        FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item,
-                FileItemUtils.readIntoByteArray(item, getProfileItem().getValue(), context),
-                getProfileItem().getValue());
-        addUploadItem(uploadTaskFileTask);
-        return uploadTaskFileTask.getTask()
-                .continueWithTask(executor,task-> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
-                .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
-                .continueWith(executor, task -> {
-                    setIsTaskRunning(!task.isComplete());
-                    sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
-                    return Unit.INSTANCE;
-                });
-    }
+//    public Task<Unit> uploadUsingByteArray(Context context, FileItem item) throws Exception {
+//        setIsTaskRunning(true);
+//        FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item,
+//                FileItemUtils.readIntoByteArray(item, getProfileItem().getValue(), context),
+//                getProfileItem().getValue());
+//        addUploadItem(uploadTaskFileTask);
+//        return uploadTaskFileTask.getTask()
+//                .continueWithTask(executor,task-> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
+//                .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
+//                .continueWith(executor, task -> {
+//                    setIsTaskRunning(!task.isComplete());
+//                    sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
+//                    return Unit.INSTANCE;
+//                });
+//    }
 
     public Task<Unit> downloadUsingInputStream(Context context,FileItem fileItem) throws Exception {
         setIsTaskRunning(true);
@@ -144,7 +142,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         return fileTask.getTask()
                 .continueWith(executor,task ->{
                     InputStream inputStream=task.getResult().getStream();
-                    inputStream= FileItemUtils.downloadInputStream(fileItem, getProfileItem().getValue(), inputStream);
+                    inputStream= FileItemUtils.downloadFromInputStream(fileItem, getProfileItem().getValue(), inputStream);
                     OutputStream outputStream=context.getContentResolver().openOutputStream(Uri.fromFile(output));
                     byte[] bytes=new byte[fileItem.getFileSize().intValue()];
                     int read;
@@ -160,16 +158,16 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 });
     }
 
-    public void downloadViaDownloadManager(Context context, FileItem item) throws Exception {
-        DownloadManager downloadManager=context.getSystemService(DownloadManager.class);
-        DownloadManager.Request request=new DownloadManager.Request(Uri.parse(item.getDownloadUrl()));
-        request.setTitle("Downloading...")
-                .setDescription(item.getFileName())
-                .setMimeType(item.getFileExtension())
-                .setDestinationUri(Uri.fromFile(FileItemUtils.createDownloadFile(item)))
-                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        downloadManager.enqueue(request);
-    }
+//    public void downloadViaDownloadManager(Context context, FileItem item) throws Exception {
+//        DownloadManager downloadManager=context.getSystemService(DownloadManager.class);
+//        DownloadManager.Request request=new DownloadManager.Request(Uri.parse(item.getDownloadUrl()));
+//        request.setTitle("Downloading...")
+//                .setDescription(item.getFileName())
+//                .setMimeType(item.getFileExtension())
+//                .setDestinationUri(Uri.fromFile(FileItemUtils.createDownloadFile(item)))
+//                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+//        downloadManager.enqueue(request);
+//    }
 
     public InterstitialAd getInterstitialAd(){
         return adsRepository.getInterstitialAd();

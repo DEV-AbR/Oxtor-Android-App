@@ -100,15 +100,9 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                                                @NonNull String receiverUsername) {
         setIsTaskRunning(true);
         Map<String,Object> map=new HashMap<>();
+        map.put("fileItems",new ArrayList<>(fileItems));
         map.put("senderUsername",senderUsername);
         map.put("receiverUsername",receiverUsername);
-        try {
-           map.put("fileItems",fileItems);
-        }catch (Exception e){
-            int size = fileItems.size();
-            FileItem[] array = fileItems.toArray(new FileItem[size]);
-            map.put("fileItems", array);
-        }
         return functionsRepository.shareFile(map).continueWithTask(task -> {
             setIsTaskRunning(!task.isComplete());
             return task;

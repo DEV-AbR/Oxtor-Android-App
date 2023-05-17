@@ -144,20 +144,19 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     protected void onStart() {
         super.onStart();
-        Snackbar snackbar=Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_SHORT)
+        Snackbar snackbar=Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_INDEFINITE)
                 .setAction("Check", v -> openInternetSetting());
         mainViewModel.getInternetConnectionLiveData(this).observe(this, isConnected->{
                 try {
                     if(isConnected){
-                        snackbar.show();
+                        snackbar.dismiss();
                     }
                     else{
-                        snackbar.dismiss();
+                        snackbar.show();
                     }
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-
         });
         observeUploadTasks();
         observeDownloadTasks();
