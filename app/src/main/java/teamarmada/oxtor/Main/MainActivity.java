@@ -127,8 +127,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         assert navHostMain !=null;
         navControllerMain = navHostMain.getNavController();
         navControllerMain.setLifecycleOwner(this);
-        NavigationUI.setupWithNavController(navView, navControllerMain);
-        navControllerMain.addOnDestinationChangedListener(this);
         if(!checkForPermissions()) askPermission();
     }
 
@@ -314,15 +312,16 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
 
     @Override
     public void disableFullscreen() {
-        adViewContainer.post(() -> ActivityLifecycleObserver.getInstance(this).loadBanner(adViewContainer));
-        getSupportActionBar().show();
-        showNavigationBar();
         try {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         }catch (Exception e){
             e.printStackTrace();
         }
+        navControllerMain.addOnDestinationChangedListener(this);
+        getSupportActionBar().show();
+        adViewContainer.post(() -> ActivityLifecycleObserver.getInstance(this).loadBanner(adViewContainer));
+        showNavigationBar();
     }
 
     @Override
@@ -333,6 +332,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public void showNavigationBar() {
         navView.setVisibility(View.VISIBLE);
+        NavigationUI.setupWithNavController(navView, navControllerMain);
     }
 
     @SuppressLint("SuspiciousIndentation")

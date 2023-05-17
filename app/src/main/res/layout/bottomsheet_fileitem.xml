@@ -11,7 +11,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/linearlayout_top">
+        android:id="@+id/linearlayout_top"
+        android:background="?attr/colorSecondary">
 
         <androidx.appcompat.widget.AppCompatButton
             android:layout_width="wrap_content"

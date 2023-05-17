@@ -121,17 +121,14 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             uploadTask= mainViewModel.uploadUsingInputStream(activity,fileItem);
         }catch (Exception e){
             e.printStackTrace();
-//            try{
-//                uploadTask= mainViewModel.uploadUsingByteArray(activity,fileItem);
-//            }catch (Exception ex){
-//                ex.printStackTrace();
-//                mainViewModel.setIsTaskRunning(false);
-//                makeToast(ex.toString());
-//                return;
-//            }
-            mainViewModel.setIsTaskRunning(false);
-            makeToast(e.toString());
-            return;
+            try{
+                uploadTask= mainViewModel.uploadUsingByteArray(activity,fileItem);
+            }catch (Exception ex){
+                ex.printStackTrace();
+                mainViewModel.setIsTaskRunning(false);
+                makeToast(ex.toString());
+                return;
+            }
         }
         uploadTask.addOnSuccessListener(activity,unit -> {
                         if(fileItems.indexOf(fileItem)==fileItems.size()-1){
@@ -147,16 +144,13 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             downloadTask= mainViewModel.downloadUsingInputStream(activity,fileItem);
         }catch (Exception e){
             e.printStackTrace();
-//            try {
-//                mainViewModel.downloadViaDownloadManager(activity,fileItem);
-//            } catch (Exception ex) {
-//                ex.printStackTrace();
-//                mainViewModel.setIsTaskRunning(false);
-//                makeToast(e.toString());
-//            }
-//            return;
-            mainViewModel.setIsTaskRunning(false);
-            makeToast(e.toString());
+            try {
+                mainViewModel.downloadViaDownloadManager(activity,fileItem);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                mainViewModel.setIsTaskRunning(false);
+                makeToast(e.toString());
+            }
             return;
         }
         downloadTask.addOnSuccessListener(activity,unit -> {

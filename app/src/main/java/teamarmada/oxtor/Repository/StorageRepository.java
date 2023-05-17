@@ -114,7 +114,7 @@ public class StorageRepository  {
         return new FileTask<>(fileItem,task);
     }
 
-    public Task<Void> abortAllTasks() {
+    public Task<Void> getTaskOfTasks() {
         Task<Void> downloadTasks= Tasks.whenAll(storage.getReference().getActiveDownloadTasks());
         Task<Void> uploadTasks=Tasks.whenAll(storage.getReference().getActiveUploadTasks());
         return Tasks.whenAll(uploadTasks,downloadTasks);

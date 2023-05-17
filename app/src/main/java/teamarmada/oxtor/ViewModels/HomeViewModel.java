@@ -66,13 +66,6 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
-    public LiveData<Boolean> getInternetConnectionLiveData(Context context) {
-        if(internetConnectionLiveData==null){
-            internetConnectionLiveData = new InternetConnectionLiveData(context.getApplicationContext());
-        }
-        return internetConnectionLiveData;
-    }
-
     public void renameFile(String s, FileItem fileItem) {
         setIsTaskRunning(true);
         storageRepository.RenameFile(s, fileItem, profileItem.getValue())
@@ -99,8 +92,14 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                                                @NonNull String senderUsername,
                                                @NonNull String receiverUsername) {
         setIsTaskRunning(true);
+        Gson gson=new Gson();
         Map<String,Object> map=new HashMap<>();
-        map.put("fileItems",new ArrayList<>(fileItems));
+        List<String> fileItemsJson = new ArrayList<>();
+        for (int i=0;i<fileItems.size();i++) {
+            String fileItemJson = gson.toJson(fileItems.get(i));
+            fileItemsJson.add(fileItemJson);
+        }
+        map.put("fileItems",fileItemsJson);
         map.put("senderUsername",senderUsername);
         map.put("receiverUsername",receiverUsername);
         return functionsRepository.shareFile(map).continueWithTask(task -> {

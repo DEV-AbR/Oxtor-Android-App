@@ -192,7 +192,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
 
     public void abortAllTasks() {
         try {
-            Tasks.await(storageRepository.abortAllTasks());
+            Tasks.await(storageRepository.getTaskOfTasks());
         }catch (Exception e){
             e.printStackTrace();
         }

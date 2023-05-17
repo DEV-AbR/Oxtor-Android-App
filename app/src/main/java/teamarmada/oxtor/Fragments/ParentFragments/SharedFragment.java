@@ -38,6 +38,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.Query;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,10 +140,10 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                                 onOptionSelected(v1.getId(),sharedItems);
                             };
                             final FileItem fileItem=sharedItem.getFileItem();
-                            binding.deleteButton.setOnClickListener(listener);
-                            binding.downloadButton.setOnClickListener(listener);
                             binding.renameButton.setVisibility(View.GONE);
                             binding.shareButton.setVisibility(View.GONE);
+                            binding.deleteButton.setOnClickListener(listener);
+                            binding.downloadButton.setOnClickListener(listener);
                             return new FileItemFragment(fileItem);
                         }
 
@@ -165,9 +166,10 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 @Override
                 public void bind(ListFileitemBinding recBinding, SharedItem item, int position) {
                     final FileItem fileItem=item.getFileItem();
+
                     if(fileItem==null)
                         return;
-                    if (fileItem.getFileType()!=null&&fileItem.getFileType().contains("image")) {
+                    if (fileItem.getFileType().contains("image")) {
                         Glide.with(recBinding.picture).load(fileItem).into(recBinding.picture);
                     }
                     else{
@@ -194,9 +196,9 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                     recBinding.size.setText(fileItem.getFileName());
                     recBinding.getRoot().setOnClickListener(v->{
                         if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()) {
-                            itemBottomSheet.setItemPosition(position);
                             itemBottomSheet.addCallback(bottomSheetCallback);
-                            itemBottomSheet.show(getChildFragmentManager(),"Preview");
+                            itemBottomSheet.showNow(getChildFragmentManager(),"Preview");
+                            itemBottomSheet.setItemPosition(position);
                         }
                         else if(itemBottomSheet.isInLayout()){
                             itemBottomSheet.dismiss();
