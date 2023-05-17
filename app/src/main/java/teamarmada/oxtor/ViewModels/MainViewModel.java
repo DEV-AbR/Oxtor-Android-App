@@ -142,7 +142,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         return fileTask.getTask()
                 .continueWith(executor,task ->{
                     InputStream inputStream=task.getResult().getStream();
-                    inputStream= FileItemUtils.downloadFromInputStream(fileItem, getProfileItem().getValue(), inputStream);
+                    inputStream= FileItemUtils.downloadFromInputStream(fileItem, getProfileItem().getValue(), context,inputStream);
                     OutputStream outputStream=context.getContentResolver().openOutputStream(Uri.fromFile(output));
                     byte[] bytes=new byte[fileItem.getFileSize().intValue()];
                     int read;

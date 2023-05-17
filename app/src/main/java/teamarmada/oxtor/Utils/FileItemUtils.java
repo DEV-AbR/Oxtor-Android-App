@@ -4,6 +4,7 @@ import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Model.ProfileItem.TO_ENCRYPT;
 
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -246,7 +247,8 @@ public class FileItemUtils {
         InputStream inputStream = context.getContentResolver().openInputStream(uri);
         if (sharedPreferences.getBoolean(TO_ENCRYPT, false))
             inputStream = new CipherInputStream(inputStream, AES.getEncryptCipher(item, profileItem));
-        final int BUFFER_SIZE = 4096; // Adjust the buffer size as needed
+
+        final int BUFFER_SIZE = calculateBufferSize(context,item.getFileSize()); // Adjust the buffer size as needed
         byte[] buffer = new byte[BUFFER_SIZE];
         int bytesRead;
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -262,12 +264,12 @@ public class FileItemUtils {
     }
 
 
-    public static InputStream downloadFromInputStream(FileItem fileItem, ProfileItem profileItem, InputStream inputStream) throws Exception {
+    public static InputStream downloadFromInputStream(FileItem fileItem, ProfileItem profileItem,Context context,InputStream inputStream) throws Exception {
         if (fileItem.isEncrypted()) {
             inputStream = new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem, profileItem));
         }
         else {
-            final int BUFFER_SIZE = 4096; // Adjust the buffer size as needed
+            final int BUFFER_SIZE = calculateBufferSize(context,fileItem.getFileSize()); // Adjust the buffer size as needed
             byte[] buffer = new byte[BUFFER_SIZE];
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             int bytesRead;
@@ -282,6 +284,20 @@ public class FileItemUtils {
             inputStream = new ByteArrayInputStream(outputStream.toByteArray());
         }
         return inputStream;
+    }
+
+    public static int calculateBufferSize(Context context, long fileSize) {
+        int maxBufferSize = 8192; // 8KB (adjust as needed)
+        int minBufferSize = 1024; // 1KB (adjust as needed)
+
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        int availableMemory = activityManager.getMemoryClass() * 1024 * 1024; // Available memory in bytes
+
+        // Calculate the buffer size based on available memory and file size
+        int bufferSize = (int) Math.min(Math.max(availableMemory / 4, fileSize / 100), maxBufferSize);
+        bufferSize = Math.max(bufferSize, minBufferSize);
+
+        return bufferSize;
     }
 
 }
