@@ -59,8 +59,7 @@ public class FirestoreRepository {
 
     public Task<Void> updateAccount(ProfileItem profileItem){
         DocumentReference documentReference=db.collection(USERS).document(profileItem.getUid());
-        FirebaseMessaging.getInstance().getToken().onSuccessTask(task->updateMessageToken(task,profileItem));
-        return db.runBatch(batch -> batch.update(documentReference,profileItem.toMap()));
+        return db.runBatch(batch -> batch.set(documentReference,profileItem));
     }
 
     public Task<Void> updateAccountField(Map<String,Object> map) throws NullPointerException {
@@ -108,6 +107,10 @@ public class FirestoreRepository {
                 .collection(POSTS)
                 .document(fileItem.getUid());
         return  db.batch().delete(docRef).commit();
+    }
+
+    public Task<Void> addMessageToken(ProfileItem profileItem){
+        return FirebaseMessaging.getInstance().getToken().onSuccessTask(task->updateMessageToken(task,profileItem));
     }
 
     public Task<Void> updateMessageToken(String token,ProfileItem profileItem){

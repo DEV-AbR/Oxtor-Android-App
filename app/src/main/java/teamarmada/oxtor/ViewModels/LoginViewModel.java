@@ -57,6 +57,7 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
         setIsTaskRunning(true);
         authRepository.signIn(credential)
                 .continueWithTask(task->{
+                    addMessageToken(task.getResult());
                     task.getResult().setUsername(sharedPreferences.getString(USERNAME,null));
                     return firestoreRepository.updateAccount(task.getResult());
                 })
@@ -68,8 +69,12 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
                     }
                 })
                 .addOnFailureListener(Throwable::printStackTrace)
-                .addOnCompleteListener(this);
+                .addOnCompleteListener(task -> setIsTaskRunning(!task.isComplete()));
         return Unit.INSTANCE;
+    }
+
+    private void addMessageToken(ProfileItem profileItem){
+        firestoreRepository.addMessageToken(profileItem).addOnFailureListener(Throwable::printStackTrace);
     }
 
     public Task<Unit> checkPendingSignIn() {
