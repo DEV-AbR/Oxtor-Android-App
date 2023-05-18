@@ -56,12 +56,12 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
     public Unit signIn(AuthCredential credential){
         setIsTaskRunning(true);
         authRepository.signIn(credential)
-                .continueWithTask(task->{
-                    addMessageToken(task.getResult());
-                    task.getResult().setUsername(sharedPreferences.getString(USERNAME,null));
+                .continueWithTask(task->{       
+         task.getResult().setUsername(sharedPreferences.getString(USERNAME,null));
                     return firestoreRepository.updateAccount(task.getResult());
                 })
                 .addOnSuccessListener(task->{
+                    addMessageToken(authRepository.getProfileItem());
                     try{
                         user.setValue(authRepository.getUser());
                     }catch (Exception e){
