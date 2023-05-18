@@ -36,6 +36,7 @@ public class App extends Application implements LifecycleObserver, Application.A
     public void onLowMemory() {
         super.onLowMemory();
         Glide.get(this).onLowMemory();
+
     }
 
     @Override

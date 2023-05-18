@@ -5,6 +5,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Icon;
 
 import androidx.annotation.NonNull;
 import androidx.navigation.NavDeepLinkBuilder;
@@ -24,6 +27,7 @@ public class NotificationWorker extends Worker {
     NotificationChannel supportNotificationChannel;
     Notification notification;
     PendingIntent pendingIntent;
+    Icon icon;
 
     private static RemoteMessage remoteMessage=null;
 
@@ -46,10 +50,12 @@ public class NotificationWorker extends Worker {
                 .setGraph(R.navigation.main_navigation)
                 .addDestination(R.id.navigation_shared)
                 .createPendingIntent();
-        if("from admin".equals(remoteMessage.getNotification().getTitle()))
+        icon= Icon.createWithResource(context, R.mipmap.ic_launcher);
+        if("From Admin".equals(remoteMessage.getNotification().getTitle()))
             notification=new Notification
                     .Builder(context, SUPPORT_NOTIFICATION_CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setLargeIcon(icon)
                     .setContentTitle(remoteMessage.getNotification().getTitle())
                     .setContentText(remoteMessage.getNotification().getBody())
                     .setCategory(Notification.CATEGORY_ALARM)
@@ -58,6 +64,7 @@ public class NotificationWorker extends Worker {
             notification=new Notification
                 .Builder(context, SHARE_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setLargeIcon(icon)
                 .setContentTitle(remoteMessage.getNotification().getTitle())
                 .setContentText(remoteMessage.getNotification().getBody())
                 .setContentIntent(pendingIntent)
@@ -72,7 +79,6 @@ public class NotificationWorker extends Worker {
             return Result.failure();
         notificationManager.notify(1,notification);
         return Result.success();
-
     }
 
 }

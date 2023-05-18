@@ -19,6 +19,5 @@
         android:icon="@drawable/ic_baseline_logout_24"
         app:showAsAction="never"
         android:title="@string/signout"/>
-
-
+   
 </menu>

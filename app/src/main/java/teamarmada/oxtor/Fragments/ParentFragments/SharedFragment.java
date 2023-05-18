@@ -166,7 +166,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 @Override
                 public void bind(ListFileitemBinding recBinding, SharedItem item, int position) {
                     final FileItem fileItem=item.getFileItem();
-
                     if(fileItem==null)
                         return;
                     if (fileItem.getFileType().contains("image")) {
@@ -298,7 +297,6 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 else {
                     downloadSelectedFiles(list);
                 }
-
                 break;
             case R.id.delete_button:
                 deleteSelectedFiles(list);

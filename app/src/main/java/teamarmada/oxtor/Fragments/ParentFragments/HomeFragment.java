@@ -393,13 +393,8 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void onClickDeleteButton(List<FileItem> fileItems){
-        int i=adapter.getItemCount()/10;
-        if(fileItems.size()>=i){
-            createFileDeleteDialog(fileItems).show();
-        }
-        else{
-            deleteSelectedFiles(fileItems);
-        }
+        screenManager.showProgressDialog();
+        homeViewModel.deleteFiles(fileItems).addOnCompleteListener(task-> screenManager.hideProgressDialog());
     }
 
     private void uploadSelectedFiles(List<Uri> results){
@@ -416,11 +411,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         else {
             Snackbar.make(binding.getRoot(), "Can't upload as you are only permitted 1GB of space on this account",Snackbar.LENGTH_SHORT).show();
         }
-    }
-
-    private void deleteSelectedFiles(List<FileItem> fileItems){
-        screenManager.showProgressDialog();
-        homeViewModel.deleteFiles(fileItems).addOnCompleteListener(task-> screenManager.hideProgressDialog());
     }
 
     private void shareSelectedFiles(String senderUsername,List<FileItem> fileItems) {
@@ -446,15 +436,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 .create();
     }
 
-    private AlertDialog createFileDeleteDialog(List<FileItem> fileItems){
-        return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
-                .setCancelable(false)
-                .setTitle("Are you sure ?")
-                .setMessage("Deleting "+fileItems.size()+" files from cloud storage")
-                .setPositiveButton(R.string.delete, (dialogInterface, i) -> deleteSelectedFiles(fileItems))
-                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
-                .create();
-    }
     private AlertDialog createPreferenceChooserDialog(){
         return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
                 .setCancelable(true).setTitle(R.string.sort)
@@ -488,8 +469,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             adapter.changeAdapterQuery(query,true);
         },500);
     }
-
-
 
     @Override
     public void onStop() {

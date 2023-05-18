@@ -67,7 +67,6 @@ public class MessageService extends FirebaseMessagingService implements OnComple
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
-
         OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(NotificationWorker.class)
                 .addTag(NOTIFICATION_WORK)
                 .setConstraints(constraints)

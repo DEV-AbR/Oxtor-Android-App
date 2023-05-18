@@ -42,11 +42,11 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private static ActivityLifecycleObserver activityLifecycleObserver;
     private final ExecutorService executor= Executors.newSingleThreadExecutor();
     private final List<FileItem> fileItems=new ArrayList<>();
-    private RequestCode requestCode;
     private final MainViewModel mainViewModel;
     private final AppCompatActivity activity;
-    private AdView adView;
+    private RequestCode requestCode;
     private final AlertDialog alertDialog;
+    private AdView adView;
 
     public static ActivityLifecycleObserver getInstance(@NonNull AppCompatActivity activity) {
         if(activityLifecycleObserver ==null)
