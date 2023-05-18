@@ -1,5 +1,12 @@
 package teamarmada.oxtor.ViewModels;
 
+import static teamarmada.oxtor.Main.MainActivity.PREFS;
+import static teamarmada.oxtor.Main.MainActivity.USED_SPACE;
+import static teamarmada.oxtor.Model.ProfileItem.USERNAME;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -19,35 +26,49 @@ import com.google.firebase.storage.FileDownloadTask;
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import dagger.hilt.android.qualifiers.ApplicationContext;
+import kotlin.Function;
 import kotlin.Unit;
+import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
+import teamarmada.oxtor.Repository.FirestoreRepository;
+import teamarmada.oxtor.Repository.FunctionsRepository;
 
 @HiltViewModel
 public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit> {
 
     public static final String TAG=LoginViewModel.class.getSimpleName();
     private final AuthRepository authRepository;
+    private final FirestoreRepository firestoreRepository;
     private final MutableLiveData<Boolean> isTaskRunning;
     private final MutableLiveData<FirebaseUser> user;
+    private SharedPreferences sharedPreferences;
 
     @Inject
-    public LoginViewModel(){
+    public LoginViewModel(@ApplicationContext Context context){
         this.authRepository = new AuthRepository();
+        this.firestoreRepository=FirestoreRepository.getInstance();
         isTaskRunning=new MutableLiveData<>(false);
         user=new MutableLiveData<>(authRepository.getUser());
+        sharedPreferences=context.getSharedPreferences(PREFS,Context.MODE_PRIVATE);
     }
 
     public Unit signIn(AuthCredential credential){
         setIsTaskRunning(true);
         authRepository.signIn(credential)
-                .addOnCompleteListener(task->setIsTaskRunning(!task.isComplete()))
+                .continueWithTask(task->{
+                    task.getResult().setUsername(sharedPreferences.getString(USERNAME,null));
+                    return firestoreRepository.updateAccount(task.getResult());
+                })
                 .addOnSuccessListener(task->{
                     try{
                         user.setValue(authRepository.getUser());
-                    }catch (Exception e) {
+                    }catch (Exception e){
                         user.postValue(authRepository.getUser());
                     }
-                });
+                })
+                .addOnFailureListener(Throwable::printStackTrace)
+                .addOnCompleteListener(this);
         return Unit.INSTANCE;
     }
 

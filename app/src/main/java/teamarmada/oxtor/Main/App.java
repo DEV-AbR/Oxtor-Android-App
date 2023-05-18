@@ -19,7 +19,6 @@
  import teamarmada.oxtor.Initializer.MobileAdsInitializer;
  import teamarmada.oxtor.R;
  import teamarmada.oxtor.Utils.InAppUpdate;
-
  @HiltAndroidApp
 public class App extends Application implements LifecycleObserver, Application.ActivityLifecycleCallbacks {
 

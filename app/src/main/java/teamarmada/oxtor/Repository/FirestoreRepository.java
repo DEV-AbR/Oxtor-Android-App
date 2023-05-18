@@ -19,8 +19,10 @@ import com.google.firestore.v1.FirestoreGrpc;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.Map;
 
+import kotlin.Unit;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Model.SharedItem;
@@ -30,6 +32,7 @@ public class FirestoreRepository {
 
     public static final String TAG= FirestoreRepository.class.getSimpleName();
     private static FirestoreRepository firestoreRepository=null;
+    private final FunctionsRepository functionsRepository;
     private final FirebaseFirestore db;
     public static final String USERS="users";
     public static final String POSTS="posts";
@@ -44,6 +47,7 @@ public class FirestoreRepository {
                 .Builder().setPersistenceEnabled(true).build();
         db=FirebaseFirestore.getInstance();
         db.setFirestoreSettings(settings);
+        functionsRepository = FunctionsRepository.getInstance();
     }
 
     public synchronized static FirestoreRepository getInstance(){
@@ -52,13 +56,14 @@ public class FirestoreRepository {
         return firestoreRepository;
     }
 
-    public Task<Void> createAccount(ProfileItem profileItem){
+
+    public Task<Void> updateAccount(ProfileItem profileItem){
         DocumentReference documentReference=db.collection(USERS).document(profileItem.getUid());
-        return FirebaseMessaging.getInstance().getToken()
-                .onSuccessTask(task->db.runBatch(batch -> batch.update(documentReference,profileItem.toMap()).update(documentReference,MESSAGING_TOKEN,task)));
+        FirebaseMessaging.getInstance().getToken().onSuccessTask(task->updateMessageToken(task,profileItem));
+        return db.runBatch(batch -> batch.update(documentReference,profileItem.toMap()));
     }
 
-    public Task<Void> updateAccount(Map<String,Object> map) throws NullPointerException {
+    public Task<Void> updateAccountField(Map<String,Object> map) throws NullPointerException {
         String uid =(String) map.get(UID);
         if(uid==null) throw new NullPointerException();
         else{

@@ -70,8 +70,11 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
         firestoreRepository.fetchUsername(getProfileItem().getValue())
                 .continueWith(executor,task -> {
                     final ProfileItem profileItem=getProfileItem().getValue();
+                    if(profileItem!=null){
                     profileItem.setUsername(task.getResult());
                     getProfileItem().postValue(profileItem);
+                    }
+                    sharedPreferences.edit().putString(USERNAME,task.getResult()).apply();
                     return Unit.INSTANCE;
                 }).addOnCompleteListener(this);
     }

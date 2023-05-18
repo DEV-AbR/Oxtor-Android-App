@@ -7,6 +7,7 @@ import static teamarmada.oxtor.Main.MainActivity.ENCRYPTION_PASSWORD;
 import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Main.MainActivity.USED_SPACE;
 import static teamarmada.oxtor.Model.ProfileItem.TO_ENCRYPT;
+import static teamarmada.oxtor.Model.ProfileItem.USERNAME;
 
 import android.Manifest;
 import android.content.Context;
@@ -154,6 +155,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                     profileItem.setUsername(msg);
                     profileViewModel.getProfileItem().postValue(profileItem);
                     binding.username.setText(msg);
+                    sharedPreferences.edit().putString(USERNAME,msg).apply();
                     Snackbar.make(binding.getRoot(),R.string.username_updated,Snackbar.LENGTH_SHORT).show();
                 }).addOnFailureListener(e-> Snackbar.make(binding.getRoot(),"Username already taken",Snackbar.LENGTH_SHORT).show());
             }

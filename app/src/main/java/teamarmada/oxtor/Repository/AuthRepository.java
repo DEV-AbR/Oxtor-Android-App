@@ -44,11 +44,12 @@ public class AuthRepository  {
         return new ProfileItem(user);
     }
 
-    public Task<Void> signIn(AuthCredential credential){
-        return auth.signInWithCredential(credential).onSuccessTask(task -> {
-            user=task.getUser();
-            return firestoreRepository.createAccount(getProfileItem());
-        });
+    public Task<ProfileItem> signIn(AuthCredential credential){
+        return auth.signInWithCredential(credential)
+                .continueWith(task->{
+                    user=task.getResult().getUser();
+                    return getProfileItem();
+                });
     }
 
     public Task<Void> UpdateProfileDisplayName(String name){
@@ -58,7 +59,7 @@ public class AuthRepository  {
            Map<String,Object> map=new HashMap<>();
            map.put(UID,user.getUid());
            map.put(DISPLAY_NAME,name);
-           return firestoreRepository.updateAccount(map);
+           return firestoreRepository.updateAccountField(map);
        });
     }
 
@@ -69,7 +70,7 @@ public class AuthRepository  {
             Map<String,Object> map=new HashMap<>();
             map.put(UID,user.getUid());
             map.put(PHOTO_URL,pictureUri.toString());
-            return firestoreRepository.updateAccount(map);
+            return firestoreRepository.updateAccountField(map);
     });
     }
 
