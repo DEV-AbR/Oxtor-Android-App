@@ -53,7 +53,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     private final FunctionsRepository functionsRepository;
     private final MutableLiveData<ProfileItem> profileItem;
     private final SharedPreferences sharedPreferences;
-
+    private final MutableLiveData<Long> usedSpace;
     @Inject
     public ProfileViewModel(@ApplicationContext Context context){
         this.authRepository = new AuthRepository();
@@ -63,6 +63,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
         isTaskRunning=new MutableLiveData<>(false);
         profileItem=new MutableLiveData<>(authRepository.getProfileItem());
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        usedSpace=new MutableLiveData<>(sharedPreferences.getLong(USED_SPACE,0L));
     }
 
     public void checkUsername(){
@@ -102,9 +103,18 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
         return profileItem;
     }
 
-    public void fetchUsedSpace(){
+    public LiveData<Long> getUsedSpace() {
+        return usedSpace;
+    }
+
+    public void checkUsedSpace(){
+        setIsTaskRunning(true);
         firestoreRepository.fetchUsedSpace(getProfileItem().getValue())
-                .addOnSuccessListener(aLong -> sharedPreferences.edit().putLong(USED_SPACE,aLong).apply());
+                .addOnCompleteListener(task->{
+                    sharedPreferences.edit().putLong(USED_SPACE,task.getResult()).apply();
+                    usedSpace.postValue(task.getResult());
+                    setIsTaskRunning(!task.isComplete());
+                });
     }
 
     private void uploadDisplayPicture(FileItem fileItem,byte[] bytes) {
@@ -175,8 +185,9 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
         return firestoreRepository.removeMessageToken(profileItem.getValue())
                 .onSuccessTask(task->firestoreRepository.clearCache())
                 .continueWith(task -> {
-                    setIsTaskRunning(!task.isComplete());
+                    sharedPreferences.edit().putLong(USED_SPACE,0L).apply();
                     getAuthInstance().signOut();
+                    setIsTaskRunning(!task.isComplete());
                     return Unit.INSTANCE;
                 });
     }

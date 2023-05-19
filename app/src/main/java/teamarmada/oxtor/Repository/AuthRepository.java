@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -46,9 +47,9 @@ public class AuthRepository  {
 
     public Task<ProfileItem> signIn(AuthCredential credential){
         return auth.signInWithCredential(credential)
-                .continueWith(task->{
-                    user=task.getResult().getUser();
-                    return getProfileItem();
+                .onSuccessTask(result->{
+                    user=result.getUser();
+                    return Tasks.forResult(getProfileItem());
                 });
     }
 
@@ -59,7 +60,7 @@ public class AuthRepository  {
            Map<String,Object> map=new HashMap<>();
            map.put(UID,user.getUid());
            map.put(DISPLAY_NAME,name);
-           return firestoreRepository.updateAccountField(map);
+           return firestoreRepository.updateAccount(map);
        });
     }
 
@@ -70,7 +71,7 @@ public class AuthRepository  {
             Map<String,Object> map=new HashMap<>();
             map.put(UID,user.getUid());
             map.put(PHOTO_URL,pictureUri.toString());
-            return firestoreRepository.updateAccountField(map);
+            return firestoreRepository.updateAccount(map);
     });
     }
 

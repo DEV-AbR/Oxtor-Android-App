@@ -80,7 +80,7 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
             tasks.add(storageRepository.deleteFile(fileItem, profileItem.getValue()));
         }
         return Tasks.whenAll(tasks)
-                .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(profileItem.getValue()))
+                .continueWithTask(executor, task -> firestoreRepository.fetchUsedSpace(profileItem.getValue()))
                 .continueWith(executor, task -> {
                     setIsTaskRunning(!task.isComplete());
                     sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();

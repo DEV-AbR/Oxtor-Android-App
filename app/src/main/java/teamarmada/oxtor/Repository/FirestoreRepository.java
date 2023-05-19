@@ -56,19 +56,18 @@ public class FirestoreRepository {
         return firestoreRepository;
     }
 
-
-    public Task<Void> updateAccount(ProfileItem profileItem){
+    public Task<Void> createAccount(ProfileItem profileItem){
         DocumentReference documentReference=db.collection(USERS).document(profileItem.getUid());
         return db.runBatch(batch -> batch.set(documentReference,profileItem));
     }
 
-    public Task<Void> updateAccountField(Map<String,Object> map) throws NullPointerException {
+    public Task<Void> updateAccount(Map<String,Object> map) {
         String uid =(String) map.get(UID);
-        if(uid==null) throw new NullPointerException();
-        else{
-            DocumentReference documentReference=db.collection(USERS).document(uid);
-            return db.batch().update(documentReference,map).commit();
+        if(uid==null) {
+            return Tasks.forException(new Exception("No UID found"));
         }
+        DocumentReference documentReference=db.collection(USERS).document(uid);
+        return db.batch().update(documentReference,map).commit();
     }
 
     public Task<Void> deleteAccount(ProfileItem  profileItem){
@@ -84,7 +83,7 @@ public class FirestoreRepository {
         return db.runBatch(batch -> batch.delete(posts));
     }
 
-    public Task<Void> createFile( FileItem fileItem, ProfileItem profileItem){
+    public Task<Void> createFile(FileItem fileItem, ProfileItem profileItem){
         DocumentReference docRef=db.collection(USERS)
                 .document(profileItem.getUid())
                 .collection(POSTS)
@@ -92,12 +91,12 @@ public class FirestoreRepository {
         return db.batch().set(docRef,fileItem).commit();
     }
 
-    public Task<Void> updateFile(Map<String,Object> map, ProfileItem profileItem) throws NullPointerException{
+    public Task<Void> updateFile(Map<String,Object> map, ProfileItem profileItem) {
         String uid =(String) map.get(UID);
-        if(uid==null)
-            throw new NullPointerException("Hashmap does not have any uid");
-        DocumentReference docRef=db.collection(USERS)
-                .document(profileItem.getUid()).collection(POSTS).document(uid);
+        if(uid==null){
+           return Tasks.forException(new Exception("No UID found"));
+        }
+        DocumentReference docRef=db.collection(USERS).document(profileItem.getUid()).collection(POSTS).document(uid);
         return db.batch().update(docRef,map).commit();
     }
 
@@ -153,8 +152,7 @@ public class FirestoreRepository {
                     }
                     return usedSpace;
                 });
-        else
-            return Tasks.forResult(0L);
+        else return Tasks.forResult(0L);
     }
 
     public Task<String> fetchUsername(ProfileItem profileItem){

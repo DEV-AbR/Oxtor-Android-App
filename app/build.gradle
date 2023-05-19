@@ -17,7 +17,7 @@ android {
         minSdk 28
         targetSdk 33
         versionCode 63
-         versionName "7.2"
+++         versionName "7.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

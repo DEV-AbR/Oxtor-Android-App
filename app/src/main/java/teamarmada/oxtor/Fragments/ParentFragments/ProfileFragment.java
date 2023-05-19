@@ -65,7 +65,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-
     public ProfileFragment(){}
 
     @Override
@@ -92,18 +91,20 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         return binding.getRoot();
     }
 
+
     private void initUI() {
-        binding.executePendingBindings();
-        Long usedSpace=sharedPreferences.getLong(USED_SPACE,0L);
-        String a = "Used Space : " + FileItemUtils.byteToString(usedSpace);
-        binding.usedSpace.setText(a);
-        long b = (FileItemUtils.ONE_GIGABYTE - usedSpace);
-        String c = "Available Space : " + FileItemUtils.byteToString(b);
-        binding.availableSpace.setText(c);
-        String d = "Total Space : " + FileItemUtils.byteToString(FileItemUtils.ONE_GIGABYTE);
-        binding.totalSpace.setText(d);
-        double e = ((usedSpace) * 100) / FileItemUtils.ONE_GIGABYTE;
-        binding.spaceIndicator.setProgress((int) e);
+
+        profileViewModel.getUsedSpace().observe(getViewLifecycleOwner(),usedSpace->{
+            String a = "Used Space : " + FileItemUtils.byteToString(usedSpace);
+            binding.usedSpace.setText(a);
+            long b = (FileItemUtils.ONE_GIGABYTE - usedSpace);
+            String c = "Available Space : " + FileItemUtils.byteToString(b);
+            binding.availableSpace.setText(c);
+            String d = "Total Space : " + FileItemUtils.byteToString(FileItemUtils.ONE_GIGABYTE);
+            binding.totalSpace.setText(d);
+            double e = ((usedSpace) * 100) / FileItemUtils.ONE_GIGABYTE;
+            binding.spaceIndicator.setProgress((int) e);
+        });
 
         boolean bl=sharedPreferences.getBoolean(TO_ENCRYPT,false);
         binding.encryptionSwitch.setChecked(bl);
@@ -293,7 +294,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                 generateNewPassword();
                 break;
             case R.id.refresh_button:
-                profileViewModel.fetchUsedSpace();
+                profileViewModel.checkUsedSpace();
                 profileViewModel.checkUsername();
                 break;
         }
