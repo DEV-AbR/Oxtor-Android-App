@@ -92,15 +92,19 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private void continueAction(@NonNull List<FileItem> fileItems,RequestCode requestCode){
-        switch (requestCode){
-            case UPLOAD_TASK:
-                continueUpload(fileItems);
-                break;
-            case DOWNLOAD_TASK:
-                continueDownload(fileItems);
-                break;
+        try {
+            switch (requestCode) {
+                case UPLOAD_TASK:
+                    continueUpload(fileItems);
+                    break;
+                case DOWNLOAD_TASK:
+                    continueDownload(fileItems);
+                    break;
+            }
+        }catch(Exception e){
+            this.requestCode=null;
+            this.fileItems.clear();
         }
-        fileItems.clear();
     }
 
     private void continueUpload(List<FileItem> fileItems) {

@@ -93,7 +93,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
 
 
     private void initUI() {
-
+        
         profileViewModel.getUsedSpace().observe(getViewLifecycleOwner(),usedSpace->{
             String a = "Used Space : " + FileItemUtils.byteToString(usedSpace);
             binding.usedSpace.setText(a);

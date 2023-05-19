@@ -64,6 +64,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
         profileItem=new MutableLiveData<>(authRepository.getProfileItem());
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         usedSpace=new MutableLiveData<>(sharedPreferences.getLong(USED_SPACE,0L));
+
     }
 
     public void checkUsername(){
