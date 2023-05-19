@@ -34,6 +34,7 @@ import kotlin.Unit;
 
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.R;
+import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.MainViewModel;
 
 public class ActivityLifecycleObserver extends FullScreenContentCallback implements DefaultLifecycleObserver {
@@ -140,11 +141,14 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private void uploadFile(FileItem fileItem) {
         Task<Unit> uploadTask;
         try {
-            uploadTask = mainViewModel.uploadUsingInputStream(activity, fileItem);
+            if(fileItem.getFileSize()<= FileItemUtils.ONE_MEGABYTE*500)
+                uploadTask = mainViewModel.uploadUsingByteArray(activity, fileItem);
+            else
+                uploadTask= mainViewModel.uploadUsingInputStream(activity,fileItem);
         } catch (Exception e) {
             e.printStackTrace();
             try {
-                uploadTask = mainViewModel.uploadUsingByteArray(activity, fileItem);
+                uploadTask = mainViewModel.uploadUsingInputStream(activity, fileItem);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 mainViewModel.setIsTaskRunning(false);
@@ -297,9 +301,14 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private void onResumeExecution() {
         synchronized (threadLock) {
             isPaused = false;
-            threadLock.notifyAll();
+            try {
+                threadLock.notifyAll();
+            } catch (IllegalMonitorStateException e) {
+                makeToast("_");
+            }
         }
     }
+
 
     public enum RequestCode {
         UPLOAD_TASK(1001),

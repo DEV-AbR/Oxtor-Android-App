@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -228,7 +229,6 @@ public class FileItemUtils {
                     outputStream.write(bytes, 0, read);
                 }
             } finally {
-                outputStream.flush();
                 outputStream.close();
                 inputStream.close();
             }
@@ -244,7 +244,7 @@ public class FileItemUtils {
         Uri uri = Uri.parse(item.getFilePath());
         InputStream inputStream = context.getContentResolver().openInputStream(uri);
         if (sharedPreferences.getBoolean(TO_ENCRYPT, false))
-            inputStream = new CipherInputStream(inputStream, AES.getEncryptCipher(item, profileItem));
+            return new CipherInputStream(inputStream, AES.getEncryptCipher(item, profileItem));
 
         int bufferSize = calculateBufferSize(context, item.getFileSize());
         byte[] buffer = new byte[bufferSize];
@@ -256,7 +256,6 @@ public class FileItemUtils {
                 outputStream.write(buffer, 0, bytesRead);
             }
         }finally {
-            outputStream.flush();
             outputStream.close();
             inputStream.close();
         }
@@ -265,7 +264,7 @@ public class FileItemUtils {
 
     public static InputStream downloadFromInputStream(FileItem fileItem, ProfileItem profileItem, Context context, InputStream inputStream) throws Exception {
         if (fileItem.isEncrypted()) {
-            inputStream = new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem, profileItem));
+            return new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem, profileItem));
         } else {
             int bufferSize = calculateBufferSize(context, fileItem.getFileSize());
             byte[] buffer = new byte[bufferSize];
@@ -279,9 +278,8 @@ public class FileItemUtils {
                 outputStream.close();
                 inputStream.close();
             }
-            inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+            return new ByteArrayInputStream(outputStream.toByteArray());
         }
-        return inputStream;
     }
 
     public static int calculateBufferSize(Context context, long fileSize) {
@@ -302,9 +300,7 @@ public class FileItemUtils {
 
         // Calculate the buffer size based on available memory and file size
         int bufferSize = (int) Math.min(Math.max(availableMemory / 4, fileSize / 100), maxBufferSize);
-        bufferSize = Math.max(bufferSize, minBufferSize);
-
-        return bufferSize;
+        return Math.max(bufferSize, minBufferSize);
     }
 
 }

@@ -114,7 +114,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         UploadTask uploadTask = storageRepository.UploadFile(item, inputStream, getProfileItem().getValue());
         FileTask<UploadTask> fileTask=new FileTask<>(item,uploadTask);
         addUploadItem(fileTask);
-        return fileTask.getTask()
+        return uploadTask
                 .continueWithTask(executor,task->{
                     if(task.isComplete())
                         inputStream.close();
@@ -135,7 +135,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 getProfileItem().getValue());
         FileTask<UploadTask> fileTask=new FileTask<>(item,uploadTask);
         addUploadItem(fileTask);
-        return fileTask.getTask()
+        return uploadTask
                 .continueWithTask(executor,task-> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
                 .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
                 .continueWith(executor, task -> {
@@ -151,7 +151,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         StreamDownloadTask streamDownloadTask =storageRepository.downloadFile(fileItem);
         FileTask<StreamDownloadTask> fileTask=new FileTask<>(fileItem,streamDownloadTask);
         addDownloadItem(fileTask);
-        return fileTask.getTask()
+        return streamDownloadTask
                 .continueWith(executor,task ->{
                     InputStream inputStream=task.getResult().getStream();
                     inputStream= FileItemUtils.downloadFromInputStream(fileItem, getProfileItem().getValue(), context,inputStream);
