@@ -54,7 +54,7 @@ public class ImageLoaderModule extends AppGlideModule {
         registry
                 .prepend(FileItem.class, InputStream.class,new GlideImageLoader.Factory())
                 .append(FileItem.class, ByteBuffer.class,new NewImageLoader.Factory(context))
-                .append(FileItem.class,Bitmap.class,new ImageLoader.Factory(context))
+                //.append(FileItem.class,Bitmap.class,new ImageLoader.Factory(context))
                 .append(InputStream.class,new StreamEncoder(context))
                 .append(Bitmap.class,new CustomBitmapEncoder(context));
     }

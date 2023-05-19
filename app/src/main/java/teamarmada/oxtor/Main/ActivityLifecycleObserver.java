@@ -119,7 +119,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                     break;
             }
         } catch (Exception e) {
-            this.requestCode = null;
+            fileItems.clear();
             this.fileItems.clear();
         }
     }
@@ -141,14 +141,11 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private void uploadFile(FileItem fileItem) {
         Task<Unit> uploadTask;
         try {
-            if(fileItem.getFileSize()<= FileItemUtils.ONE_MEGABYTE*500)
-                uploadTask = mainViewModel.uploadUsingByteArray(activity, fileItem);
-            else
-                uploadTask= mainViewModel.uploadUsingInputStream(activity,fileItem);
+            uploadTask = mainViewModel.uploadUsingByteArray(fileItem,activity);
         } catch (Exception e) {
             e.printStackTrace();
             try {
-                uploadTask = mainViewModel.uploadUsingInputStream(activity, fileItem);
+                uploadTask = mainViewModel.uploadUsingInputStream(fileItem,activity);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 mainViewModel.setIsTaskRunning(false);
@@ -166,11 +163,11 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private void downloadFile(FileItem fileItem) {
         Task<Unit> downloadTask;
         try {
-            downloadTask = mainViewModel.downloadUsingInputStream(activity, fileItem);
+            downloadTask = mainViewModel.downloadUsingInputStream(fileItem,activity);
         } catch (Exception e) {
             e.printStackTrace();
             try {
-                downloadTask = mainViewModel.downloadUsingDownloadManager(activity, fileItem);
+                downloadTask = mainViewModel.downloadUsingDownloadManager(fileItem, activity);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 mainViewModel.setIsTaskRunning(false);

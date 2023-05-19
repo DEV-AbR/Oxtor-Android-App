@@ -131,19 +131,18 @@ public class ImageLoader implements ModelLoader<FileItem, Bitmap> {
                             Log.d(TAG, "loadData: image found: "+fileItem.getFileName());
                             if(fileItem.isEncrypted()){
                                 try {
-                                    Log.d(TAG, "loadData: image is encrypted");
                                     byte[] bytes=new byte[fileItem.getFileSize().intValue()];
                                     InputStream is=taskSnapshot.getStream();
                                     is.read(bytes);
                                     bytes=AES.decrypt(bytes,fileItem,new AuthRepository().getProfileItem());
                                     bitmap=BitmapFactory.decodeByteArray(bytes,0,bytes.length,options);
                                     callback.onDataReady(bitmap);
+                                    is.close();
                                 } catch (Exception e) {
                                     callback.onLoadFailed(e);
                                 }
                             }
                             else {
-                                Log.d(TAG, "loadData: image is not encrypted");
                                 callback.onDataReady(BitmapFactory.decodeStream(taskSnapshot.getStream()));
                             }
                         }

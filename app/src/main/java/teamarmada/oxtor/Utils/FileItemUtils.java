@@ -208,79 +208,85 @@ public class FileItemUtils {
             throw new Exception("Couldn't create said file");
     }
 
-    public static byte[] readIntoByteArray(FileItem item, ProfileItem profileItem,Context context) throws Exception {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        Uri uri=Uri.parse(item.getFilePath());
-        byte[] bytes=new byte[item.getFileSize().intValue()];
-        ByteArrayOutputStream outputStream=new ByteArrayOutputStream(bytes.length);
-        File file=new File(uri.toString());
-        try (FileReader fileReader = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-            int read;
-            while ((read = bufferedReader.read()) != -1) {
-                outputStream.write(bytes, 0, read);
-            }
-        } catch (Exception e) {
-            InputStream inputStream = context.getContentResolver().openInputStream(uri);
-            try {
-                inputStream = new BufferedInputStream(inputStream, item.getFileSize().intValue());
-                outputStream = new ByteArrayOutputStream(bytes.length);
-                int read;
-                while ((read = inputStream.read(bytes)) != -1) {
-                    outputStream.write(bytes, 0, read);
-                }
-            } finally {
-                outputStream.close();
-                inputStream.close();
-            }
-        }
-        if(sharedPreferences.getBoolean(TO_ENCRYPT,false))
-            return AES.encrypt(outputStream.toByteArray(),item,profileItem);
-        else
-            return outputStream.toByteArray();
-    }
+//    public static byte[] readIntoByteArray(FileItem item, ProfileItem profileItem,Context context) throws Exception {
+//        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+//        Uri uri=Uri.parse(item.getFilePath());
+//        byte[] bytes=new byte[item.getFileSize().intValue()];
+//        ByteArrayOutputStream outputStream=new ByteArrayOutputStream(bytes.length);
+//        File file=new File(uri.toString());
+//        try (FileReader fileReader = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+//            int read;
+//            while ((read = bufferedReader.read()) != -1) {
+//                outputStream.write(bytes, 0, read);
+//            }
+//        } catch (Exception e) {
+//            InputStream inputStream = context.getContentResolver().openInputStream(uri);
+//            try {
+//                inputStream = new BufferedInputStream(inputStream, item.getFileSize().intValue());
+//                outputStream = new ByteArrayOutputStream(bytes.length);
+//                int read;
+//                while ((read = inputStream.read(bytes)) != -1) {
+//                    outputStream.write(bytes, 0, read);
+//                }
+//            } finally {
+//                outputStream.close();
+//                inputStream.close();
+//            }
+//        }
+//        if(sharedPreferences.getBoolean(TO_ENCRYPT,false))
+//            return AES.encrypt(outputStream.toByteArray(),item,profileItem);
+//        else
+//            return outputStream.toByteArray();
+//    }
 
-    public static InputStream uploadFromInputStream(FileItem item, ProfileItem profileItem, Context context) throws Exception {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        Uri uri = Uri.parse(item.getFilePath());
-        InputStream inputStream = context.getContentResolver().openInputStream(uri);
-        if (sharedPreferences.getBoolean(TO_ENCRYPT, false))
-            return new CipherInputStream(inputStream, AES.getEncryptCipher(item, profileItem));
+//    public static InputStream uploadFromInputStream(FileItem item, ProfileItem profileItem, Context context) throws Exception {
+//        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+//        Uri uri = Uri.parse(item.getFilePath());
+//        InputStream inputStream = context.getContentResolver().openInputStream(uri);
+//        if (sharedPreferences.getBoolean(TO_ENCRYPT, false))
+//            return new CipherInputStream(inputStream, AES.getEncryptCipher(item, profileItem));
+//
+//        int bufferSize = calculateBufferSize(context, item.getFileSize());
+//        byte[] buffer = new byte[bufferSize];
+//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//
+//        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
+//            int bytesRead;
+//            while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
+//                outputStream.write(buffer, 0, bytesRead);
+//            }
+//        }catch (Exception e){
+//            return inputStream;
+//        }
+//        finally {
+//            outputStream.close();
+//            inputStream.close();
+//        }
+//        return new ByteArrayInputStream(outputStream.toByteArray());
+//    }
 
-        int bufferSize = calculateBufferSize(context, item.getFileSize());
-        byte[] buffer = new byte[bufferSize];
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
-            int bytesRead;
-            while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-        }finally {
-            outputStream.close();
-            inputStream.close();
-        }
-        return new ByteArrayInputStream(outputStream.toByteArray());
-    }
-
-    public static InputStream downloadFromInputStream(FileItem fileItem, ProfileItem profileItem, Context context, InputStream inputStream) throws Exception {
-        if (fileItem.isEncrypted()) {
-            return new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem, profileItem));
-        } else {
-            int bufferSize = calculateBufferSize(context, fileItem.getFileSize());
-            byte[] buffer = new byte[bufferSize];
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            try {
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-            } finally {
-                outputStream.close();
-                inputStream.close();
-            }
-            return new ByteArrayInputStream(outputStream.toByteArray());
-        }
-    }
+//    public static InputStream downloadFromInputStream(FileItem fileItem, ProfileItem profileItem, Context context, InputStream inputStream) throws Exception {
+//        if (fileItem.isEncrypted()) {
+//            return new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem, profileItem));
+//        } else {
+//            int bufferSize = calculateBufferSize(context, fileItem.getFileSize());
+//            byte[] buffer = new byte[bufferSize];
+//            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//            try {
+//                int bytesRead;
+//                while ((bytesRead = inputStream.read(buffer)) != -1) {
+//                    outputStream.write(buffer, 0, bytesRead);
+//                }
+//            }catch (Exception e){
+//                return inputStream;
+//            }
+//            finally {
+//                outputStream.close();
+//                inputStream.close();
+//            }
+//            return new ByteArrayInputStream(outputStream.toByteArray());
+//        }
+//    }
 
     public static int calculateBufferSize(Context context, long fileSize) {
         int maxBufferSize = 8192; // 8KB (adjust as needed)

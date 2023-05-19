@@ -117,7 +117,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         setSupportActionBar(binding.toolbar);
         addMenuProvider(this,this);
         navView= binding.navView;
-        navView.inflateMenu(R.menu.bottom_nav_menu);
         progressIndicator = binding.progressBar;
         adViewContainer=binding.adView;
         inAppUpdate=InAppUpdate.getInstance(this);
@@ -129,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         navControllerMain = navHostMain.getNavController();
         navControllerMain.setLifecycleOwner(this);
         navControllerMain.addOnDestinationChangedListener(this);
-        NavigationUI.setupWithNavController(navView, navControllerMain);
+        NavigationUI.setupWithNavController(navView,navControllerMain);
         if(!checkForPermissions()) askPermission();
     }
 
@@ -335,8 +334,12 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public void showNavigationBar() {
         navView.setVisibility(View.VISIBLE);
-        navView.inflateMenu(R.menu.bottom_nav_menu);
-        NavigationUI.setupWithNavController(navView,navControllerMain);
+        try {
+            navView.inflateMenu(R.menu.bottom_nav_menu);
+            NavigationUI.setupWithNavController(navView, navControllerMain);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @SuppressLint("SuspiciousIndentation")

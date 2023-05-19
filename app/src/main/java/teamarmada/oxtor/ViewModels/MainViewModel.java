@@ -2,6 +2,7 @@ package teamarmada.oxtor.ViewModels;
 
 import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Main.MainActivity.USED_SPACE;
+import static teamarmada.oxtor.Model.ProfileItem.TO_ENCRYPT;
 
 import android.annotation.SuppressLint;
 import android.app.DownloadManager;
@@ -31,7 +32,12 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -39,6 +45,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import javax.crypto.CipherInputStream;
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -53,6 +60,7 @@ import teamarmada.oxtor.Repository.AdsRepository;
 import teamarmada.oxtor.Repository.AuthRepository;
 import teamarmada.oxtor.Repository.FirestoreRepository;
 import teamarmada.oxtor.Repository.StorageRepository;
+import teamarmada.oxtor.Utils.AES;
 import teamarmada.oxtor.Utils.FileItemUtils;
 
 @HiltViewModel
@@ -107,32 +115,79 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     public LiveData<ProfileItem> getProfileItem() {
         return profileItem;
     }
-    
-    public Task<Unit> uploadUsingInputStream(Context context,FileItem item) throws Exception {
+
+    public Task<Unit> uploadUsingInputStream(FileItem item, Context context) throws Exception {
         setIsTaskRunning(true);
-        InputStream inputStream= FileItemUtils.uploadFromInputStream(item,getProfileItem().getValue(), context);
-        UploadTask uploadTask = storageRepository.UploadFile(item, inputStream, getProfileItem().getValue());
-        FileTask<UploadTask> fileTask=new FileTask<>(item,uploadTask);
-        addUploadItem(fileTask);
-        return uploadTask
-                .continueWithTask(executor,task->{
-                    if(task.isComplete())
-                        inputStream.close();
-                    return storageRepository.getDownloadUrl(item, getProfileItem().getValue());
-                })
-                .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
-                .continueWith(executor, task -> {
-                    setIsTaskRunning(!task.isComplete());
-                    sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
-                    return Unit.INSTANCE;
-                });
+        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        Uri uri = Uri.parse(item.getFilePath());
+        InputStream inputStream = context.getContentResolver().openInputStream(uri);
+
+        if (sharedPreferences.getBoolean(TO_ENCRYPT, false)) {
+            inputStream = new CipherInputStream(inputStream, AES.getEncryptCipher(item, profileItem.getValue()));
+        }
+
+        int bufferSize = FileItemUtils.calculateBufferSize(context, item.getFileSize());
+        byte[] buffer = new byte[bufferSize];
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
+            int bytesRead;
+            while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            UploadTask uploadTask = storageRepository.UploadFile(item, inputStream, getProfileItem().getValue());
+            FileTask<UploadTask> fileTask = new FileTask<>(item, uploadTask);
+            addUploadItem(fileTask);
+
+            return uploadTask
+                    .continueWithTask(executor, task -> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
+                    .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(getProfileItem().getValue())
+                    .continueWith(executor, innerTask -> {
+                                setIsTaskRunning(!innerTask.isComplete());
+                                sharedPreferences.edit().putLong(USED_SPACE, innerTask.getResult()).apply();
+                                return Unit.INSTANCE;
+                            }));
+        }
+        finally {
+            outputStream.close();
+            inputStream.close();
+        }
     }
 
-    public Task<Unit> uploadUsingByteArray(Context context, FileItem item) throws Exception {
+    public Task<Unit> uploadUsingByteArray(FileItem item,Context context) throws Exception {
         setIsTaskRunning(true);
-        UploadTask uploadTask = storageRepository.UploadFile(item,
-                FileItemUtils.readIntoByteArray(item, getProfileItem().getValue(), context),
-                getProfileItem().getValue());
+        Uri uri=Uri.parse(item.getFilePath());
+        byte[] bytes=new byte[item.getFileSize().intValue()];
+        ByteArrayOutputStream outputStream=new ByteArrayOutputStream(bytes.length);
+        File file=new File(uri.toString());
+        byte[] bytes1;
+        try {
+            FileReader fileReader = new FileReader(file);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            int read;
+            while ((read = bufferedReader.read()) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+            bytes1=outputStream.toByteArray();
+        }
+        catch (Exception e) {
+            InputStream inputStream = context.getContentResolver().openInputStream(uri);
+            try {
+                inputStream = new BufferedInputStream(inputStream, item.getFileSize().intValue());
+                outputStream = new ByteArrayOutputStream(bytes.length);
+                int read;
+                while ((read = inputStream.read(bytes)) != -1) {
+                    outputStream.write(bytes, 0, read);
+                }
+                bytes1=outputStream.toByteArray();
+            } finally {
+                outputStream.close();
+                inputStream.close();
+            }
+        }
+        if(sharedPreferences.getBoolean(TO_ENCRYPT,false))
+            bytes1= AES.encrypt(outputStream.toByteArray(),item,profileItem.getValue());
+        UploadTask uploadTask = storageRepository.UploadFile(item, bytes1, getProfileItem().getValue());
         FileTask<UploadTask> fileTask=new FileTask<>(item,uploadTask);
         addUploadItem(fileTask);
         return uploadTask
@@ -145,7 +200,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 });
     }
 
-    public Task<Unit> downloadUsingInputStream(Context context,FileItem fileItem) throws Exception {
+    public Task<Unit> downloadUsingInputStream(FileItem fileItem,Context context) throws Exception {
         setIsTaskRunning(true);
         File output= FileItemUtils.createDownloadFile(fileItem);
         StreamDownloadTask streamDownloadTask =storageRepository.downloadFile(fileItem);
@@ -154,23 +209,30 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         return streamDownloadTask
                 .continueWith(executor,task ->{
                     InputStream inputStream=task.getResult().getStream();
-                    inputStream= FileItemUtils.downloadFromInputStream(fileItem, getProfileItem().getValue(), context,inputStream);
-                    OutputStream outputStream=context.getContentResolver().openOutputStream(Uri.fromFile(output));
-                    byte[] bytes=new byte[fileItem.getFileSize().intValue()];
-                    int read;
-                    while ((read=inputStream.read(bytes))!=-1){
-                        outputStream.write(bytes,0,read);
+                    if (fileItem.isEncrypted()) {
+                        inputStream = new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem, profileItem.getValue()));
                     }
-                    outputStream.flush();
-                    outputStream.close();
-                    inputStream.close();
-                    fileItem.setFilePath(output.getAbsolutePath());
-                    setIsTaskRunning(!task.isComplete());
+                    int bufferSize = FileItemUtils.calculateBufferSize(context, fileItem.getFileSize());
+                    byte[] buffer = new byte[bufferSize];
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    try {
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, bytesRead);
+                        }
+                        inputStream=new ByteArrayInputStream(outputStream.toByteArray());
+                    }
+                    finally {
+                        outputStream.close();
+                        inputStream.close();
+                        fileItem.setFilePath(output.getAbsolutePath());
+                        setIsTaskRunning(!task.isComplete());
+                    }
                     return Unit.INSTANCE;
                 });
     }
 
-    public Task<Unit> downloadUsingDownloadManager(Context context, FileItem item) throws Exception {
+    public Task<Unit> downloadUsingDownloadManager(FileItem item, Context context) throws Exception {
         TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
 
         DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);

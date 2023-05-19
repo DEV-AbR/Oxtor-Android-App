@@ -77,8 +77,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         observeLoadingState();
         initUI();
         try {
-            NavHostFragment navHostMain = (NavHostFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
-            if(navHostMain !=null);
+            NavHostFragment navHostMain = (NavHostFragment) requireActivity().getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
+            assert navHostMain != null;
             navController = navHostMain.getNavController();
         }catch (Exception e){
             e.printStackTrace();
@@ -158,7 +158,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                     binding.username.setText(msg);
                     sharedPreferences.edit().putString(USERNAME,msg).apply();
                     Snackbar.make(binding.getRoot(),R.string.username_updated,Snackbar.LENGTH_SHORT).show();
-                }).addOnFailureListener(e-> Snackbar.make(binding.getRoot(),"Username already taken",Snackbar.LENGTH_SHORT).show());
+                }).addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(),Snackbar.LENGTH_SHORT).show());
             }
             else {
                 Snackbar.make(binding.getRoot(), R.string.dont_use_any_special_character, Snackbar.LENGTH_SHORT).show();

@@ -1,7 +1,12 @@
 package teamarmada.oxtor.Glide;
 
 
+import static teamarmada.oxtor.Main.MainActivity.PREFS;
+import static teamarmada.oxtor.Model.ProfileItem.TO_ENCRYPT;
+
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +22,11 @@ import com.bumptech.glide.load.model.MultiModelLoaderFactory;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StreamDownloadTask;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -26,7 +36,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import teamarmada.oxtor.Model.FileItem;
+import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
+import teamarmada.oxtor.Utils.AES;
 import teamarmada.oxtor.Utils.FileItemUtils;
 
 public class NewImageLoader implements ModelLoader<FileItem, ByteBuffer> {
@@ -113,7 +125,7 @@ public class NewImageLoader implements ModelLoader<FileItem, ByteBuffer> {
             task.addOnSuccessListener(executor,taskSnapshot -> {
                 if(fileItem.getFileType().contains("image")){
                     try {
-                        byteBuffer=ByteBuffer.wrap(FileItemUtils.readIntoByteArray(fileItem,new AuthRepository().getProfileItem(),context));
+                        byteBuffer=ByteBuffer.wrap(readIntoByteArray(fileItem,new AuthRepository().getProfileItem(),context));
                         callback.onDataReady(byteBuffer);
                     }catch (Exception e){
                         callback.onLoadFailed(e);
@@ -122,6 +134,37 @@ public class NewImageLoader implements ModelLoader<FileItem, ByteBuffer> {
                 else callback.onLoadFailed(new Exception("Found item is not image"));
             }).addOnFailureListener(executor, callback::onLoadFailed);
 
+        }
+
+        public byte[] readIntoByteArray(FileItem item, ProfileItem profileItem, Context context) throws Exception {
+            SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            Uri uri=Uri.parse(item.getFilePath());
+            byte[] bytes=new byte[item.getFileSize().intValue()];
+            ByteArrayOutputStream outputStream=new ByteArrayOutputStream(bytes.length);
+            File file=new File(uri.toString());
+            try (FileReader fileReader = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+                int read;
+                while ((read = bufferedReader.read()) != -1) {
+                    outputStream.write(bytes, 0, read);
+                }
+            } catch (Exception e) {
+                InputStream inputStream = context.getContentResolver().openInputStream(uri);
+                try {
+                    inputStream = new BufferedInputStream(inputStream, item.getFileSize().intValue());
+                    outputStream = new ByteArrayOutputStream(bytes.length);
+                    int read;
+                    while ((read = inputStream.read(bytes)) != -1) {
+                        outputStream.write(bytes, 0, read);
+                    }
+                } finally {
+                    outputStream.close();
+                    inputStream.close();
+                }
+            }
+            if(sharedPreferences.getBoolean(TO_ENCRYPT,false))
+                return AES.encrypt(outputStream.toByteArray(),item,profileItem);
+            else
+                return outputStream.toByteArray();
         }
 
         @Override
