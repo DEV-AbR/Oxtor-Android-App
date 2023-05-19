@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.format.DateFormat;
@@ -218,9 +219,8 @@ public class FileItemUtils {
                 outputStream.write(bytes, 0, read);
             }
         } catch (Exception e) {
-            InputStream inputStream = null;
+            InputStream inputStream = context.getContentResolver().openInputStream(uri);
             try {
-                inputStream = context.getContentResolver().openInputStream(uri);
                 inputStream = new BufferedInputStream(inputStream, item.getFileSize().intValue());
                 outputStream = new ByteArrayOutputStream(bytes.length);
                 int read;
@@ -230,8 +230,7 @@ public class FileItemUtils {
             } finally {
                 outputStream.flush();
                 outputStream.close();
-                if (inputStream != null)
-                    inputStream.close();
+                inputStream.close();
             }
         }
         if(sharedPreferences.getBoolean(TO_ENCRYPT,false))
@@ -240,7 +239,6 @@ public class FileItemUtils {
             return outputStream.toByteArray();
     }
 
-
     public static InputStream uploadFromInputStream(FileItem item, ProfileItem profileItem, Context context) throws Exception {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         Uri uri = Uri.parse(item.getFilePath());
@@ -248,38 +246,38 @@ public class FileItemUtils {
         if (sharedPreferences.getBoolean(TO_ENCRYPT, false))
             inputStream = new CipherInputStream(inputStream, AES.getEncryptCipher(item, profileItem));
 
-        final int BUFFER_SIZE = calculateBufferSize(context,item.getFileSize()); // Adjust the buffer size as needed
-        byte[] buffer = new byte[BUFFER_SIZE];
-        int bytesRead;
+        int bufferSize = calculateBufferSize(context, item.getFileSize());
+        byte[] buffer = new byte[bufferSize];
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
+
+        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
+            int bytesRead;
+            while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
             }
-        } finally {
-            inputStream.close();
+        }finally {
+            outputStream.flush();
             outputStream.close();
+            inputStream.close();
         }
         return new ByteArrayInputStream(outputStream.toByteArray());
     }
 
-
-    public static InputStream downloadFromInputStream(FileItem fileItem, ProfileItem profileItem,Context context,InputStream inputStream) throws Exception {
+    public static InputStream downloadFromInputStream(FileItem fileItem, ProfileItem profileItem, Context context, InputStream inputStream) throws Exception {
         if (fileItem.isEncrypted()) {
             inputStream = new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem, profileItem));
-        }
-        else {
-            final int BUFFER_SIZE = calculateBufferSize(context,fileItem.getFileSize()); // Adjust the buffer size as needed
-            byte[] buffer = new byte[BUFFER_SIZE];
+        } else {
+            int bufferSize = calculateBufferSize(context, fileItem.getFileSize());
+            byte[] buffer = new byte[bufferSize];
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            int bytesRead;
             try {
+                int bytesRead;
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, bytesRead);
                 }
             } finally {
-                inputStream.close();
                 outputStream.close();
+                inputStream.close();
             }
             inputStream = new ByteArrayInputStream(outputStream.toByteArray());
         }
@@ -290,8 +288,17 @@ public class FileItemUtils {
         int maxBufferSize = 8192; // 8KB (adjust as needed)
         int minBufferSize = 1024; // 1KB (adjust as needed)
 
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        boolean isScreenOn = powerManager.isInteractive();
+
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        int availableMemory = activityManager.getMemoryClass() * 1024 * 1024; // Available memory in bytes
+        int availableMemory = isScreenOn ? activityManager.getMemoryClass() * 1024 * 1024 : activityManager.getLargeMemoryClass() * 1024 * 1024;
+
+        // Check if available memory is below a certain threshold
+        int minimumRequiredMemory = 128 * 1024 * 1024; // 128MB (adjust as needed)
+        if (availableMemory < minimumRequiredMemory) {
+            return minBufferSize;
+        }
 
         // Calculate the buffer size based on available memory and file size
         int bufferSize = (int) Math.min(Math.max(availableMemory / 4, fileSize / 100), maxBufferSize);

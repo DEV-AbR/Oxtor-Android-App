@@ -43,26 +43,24 @@ public class StorageRepository  {
         return storageRepository;
     }
 
-    public FileTask<UploadTask> UploadFile(FileItem fileItem, byte[] bytes, ProfileItem profileItem) {
+    public UploadTask UploadFile(FileItem fileItem, byte[] bytes, ProfileItem profileItem) {
         fileItem.setStorageReference(profileItem.getStorageReference()
                 + fileItem.getFileType() +"/" + fileItem.getUid() + "/" + fileItem.getFileName()+"/");
         StorageReference storageReference= storage.getReference().child(fileItem.getStorageReference());
         StorageMetadata metadata = new StorageMetadata.Builder().setContentType(fileItem.getFileType())
                 .setCustomMetadata(UID, fileItem.getUid()).setCustomMetadata(FILENAME, fileItem.getFileName())
                 .setCustomMetadata(ENCRYPTED,String.valueOf(fileItem.isEncrypted())).build();
-        UploadTask uploadTask=storageReference.putBytes(bytes,metadata);
-        return new FileTask<>(fileItem,uploadTask);
+        return storageReference.putBytes(bytes,metadata);
     }
 
-    public FileTask<UploadTask> UploadFile(FileItem fileItem, InputStream cis, ProfileItem profileItem) {
+    public UploadTask UploadFile(FileItem fileItem, InputStream cis, ProfileItem profileItem) {
         fileItem.setStorageReference(profileItem.getStorageReference()
                 + fileItem.getFileType() +"/" + fileItem.getUid() + "/" + fileItem.getFileName()+"/");
         StorageReference storageReference= storage.getReference().child(fileItem.getStorageReference());
         StorageMetadata metadata = new StorageMetadata.Builder().setContentType(fileItem.getFileType())
                 .setCustomMetadata(UID, fileItem.getUid()).setCustomMetadata(FILENAME, fileItem.getFileName())
                 .setCustomMetadata(ENCRYPTED,String.valueOf(fileItem.isEncrypted())).build();
-        UploadTask uploadTask=storageReference.putStream(cis,metadata);
-        return new FileTask<>(fileItem,uploadTask);
+        return storageReference.putStream(cis,metadata);
     }
 
     public Task<Void> RenameFile(String s,FileItem fileItem,ProfileItem profileItem){
@@ -99,13 +97,12 @@ public class StorageRepository  {
         return storageReference.delete();
     }
 
-    public FileTask<StreamDownloadTask> downloadFile(FileItem fileItem) {
+    public StreamDownloadTask downloadFile(FileItem fileItem) {
         StorageReference storageReference=storage.getReference().child(fileItem.getStorageReference());
-        StreamDownloadTask task=storageReference.getStream((state, stream) -> {
+        return storageReference.getStream((state, stream) -> {
             if(state.getBytesTransferred()==state.getTotalByteCount())
                 stream.close();
         });
-        return new FileTask<>(fileItem,task);
     }
 
     public FileTask<FileDownloadTask> downloadFile(FileItem fileItem, Uri uri) {

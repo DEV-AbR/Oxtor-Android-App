@@ -38,60 +38,76 @@ import teamarmada.oxtor.ViewModels.MainViewModel;
 
 public class ActivityLifecycleObserver extends FullScreenContentCallback implements DefaultLifecycleObserver {
 
-    public static final String TAG= ActivityLifecycleObserver.class.getSimpleName();
+    public static final String TAG = ActivityLifecycleObserver.class.getSimpleName();
     private static ActivityLifecycleObserver activityLifecycleObserver;
-    private final ExecutorService executor= Executors.newSingleThreadExecutor();
-    private final List<FileItem> fileItems=new ArrayList<>();
+    private final List<FileItem> fileItems = new ArrayList<>();
     private final MainViewModel mainViewModel;
     private final AppCompatActivity activity;
     private RequestCode requestCode;
-    private final AlertDialog alertDialog;
     private AdView adView;
+    private Thread thread;
+    private boolean isThreadRunning = false;
+    private boolean isPaused = false;
+    private final Object threadLock = new Object();
 
     public static ActivityLifecycleObserver getInstance(@NonNull AppCompatActivity activity) {
-        if(activityLifecycleObserver ==null)
-            activityLifecycleObserver =new ActivityLifecycleObserver(activity);
+        if (activityLifecycleObserver == null)
+            activityLifecycleObserver = new ActivityLifecycleObserver(activity);
         return activityLifecycleObserver;
     }
 
     private ActivityLifecycleObserver(@NonNull AppCompatActivity activity) {
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
-        this.activity=activity;
-        alertDialog=new MaterialAlertDialogBuilder(activity, R.style.Theme_Oxtor_AlertDialog)
-                .setTitle("Caution !")
-                .setMessage("Running low memory, App might crash if continued")
-                .setCancelable(false)
-                .setPositiveButton("Continue anyway", (dialogInterface,i)-> executor.execute(thread))
-                .setNegativeButton("Abort task", (dialogInterface, i) -> thread.interrupt())
-                .create();
-        mainViewModel=new ViewModelProvider(activity).get(MainViewModel.class);
-        mainViewModel.getMemoryLiveData(activity).observe(activity, aBoolean -> {
-            try {
-                if (aBoolean)
-                    showAlertDialog();
-                else if (alertDialog.isShowing())
-                    dismissAlertDialog();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        });
+        this.activity = activity;
+        mainViewModel = new ViewModelProvider(activity).get(MainViewModel.class);
+        mainViewModel.getMemoryLiveData(activity).observe(activity, this::onLowMemory);
     }
 
-    private final Thread thread=new Thread(() -> continueAction(fileItems,requestCode));
+    private void onLowMemory(boolean lowMemory) {
+        if (lowMemory) {
+            onPauseExecution();
+        } else {
+            onResumeExecution();
+        }
+    }
 
     public void startUpload(List<FileItem> fileItems) {
         this.fileItems.addAll(fileItems);
-        requestCode= UPLOAD_TASK;
-        executor.execute(thread);
+        requestCode = RequestCode.UPLOAD_TASK;
+        startThread();
     }
 
     public void startDownload(List<FileItem> fileItems) {
         this.fileItems.addAll(fileItems);
-        requestCode= DOWNLOAD_TASK;
-        executor.execute(thread);
+        requestCode = RequestCode.DOWNLOAD_TASK;
+        startThread();
     }
 
-    private void continueAction(@NonNull List<FileItem> fileItems,RequestCode requestCode){
+    private void startThread() {
+        if (!isThreadRunning) {
+            thread = new Thread(() -> {
+                isThreadRunning = true;
+                while (!Thread.currentThread().isInterrupted()) {
+                    if (!isPaused) {
+                        continueAction(fileItems, requestCode);
+                    } else {
+                        // Execution is paused, wait for resume signal
+                        synchronized (threadLock) {
+                            try {
+                                threadLock.wait();
+                            } catch (InterruptedException e) {
+                                // Handle interruption if needed
+                            }
+                        }
+                    }
+                }
+                isThreadRunning = false;
+            });
+            thread.start();
+        }
+    }
+
+    private void continueAction(@NonNull List<FileItem> fileItems, RequestCode requestCode) {
         try {
             switch (requestCode) {
                 case UPLOAD_TASK:
@@ -101,73 +117,74 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
                     continueDownload(fileItems);
                     break;
             }
-        }catch(Exception e){
-            this.requestCode=null;
+        } catch (Exception e) {
+            this.requestCode = null;
             this.fileItems.clear();
         }
     }
 
     private void continueUpload(List<FileItem> fileItems) {
-        for (int i=0;i<fileItems.size();i++) {
+        for (int i = 0; i < fileItems.size(); i++) {
             uploadFile(fileItems.get(i));
         }
+        fileItems.clear();
     }
 
-    private void continueDownload(List<FileItem> fileItems){
-        for (int i=0;i<fileItems.size();i++) {
+    private void continueDownload(List<FileItem> fileItems) {
+        for (int i = 0; i < fileItems.size(); i++) {
             downloadFile(fileItems.get(i));
         }
+        fileItems.clear();
     }
 
     private void uploadFile(FileItem fileItem) {
         Task<Unit> uploadTask;
-        try{
-            uploadTask= mainViewModel.uploadUsingInputStream(activity,fileItem);
-        }catch (Exception e){
+        try {
+            uploadTask = mainViewModel.uploadUsingInputStream(activity, fileItem);
+        } catch (Exception e) {
             e.printStackTrace();
-            try{
-                uploadTask= mainViewModel.uploadUsingByteArray(activity,fileItem);
-            }catch (Exception ex){
+            try {
+                uploadTask = mainViewModel.uploadUsingByteArray(activity, fileItem);
+            } catch (Exception ex) {
                 ex.printStackTrace();
                 mainViewModel.setIsTaskRunning(false);
                 makeToast(ex.toString());
                 return;
             }
         }
-        uploadTask.addOnSuccessListener(activity,unit -> {
-                        if(fileItems.indexOf(fileItem)==fileItems.size()-1){
-                            makeToast("Upload Completed");
-                        }
-                    })
-                    .addOnFailureListener(activity,e -> makeToast(e.toString()));
+        uploadTask.addOnSuccessListener(activity, unit -> {
+            if (fileItems.indexOf(fileItem) == fileItems.size() - 1) {
+                makeToast("Upload Completed");
+            }
+        }).addOnFailureListener(activity, e -> makeToast(e.toString()));
     }
 
     private void downloadFile(FileItem fileItem) {
         Task<Unit> downloadTask;
-        try{
-            downloadTask= mainViewModel.downloadUsingInputStream(activity,fileItem);
-        }catch (Exception e){
+        try {
+            downloadTask = mainViewModel.downloadUsingInputStream(activity, fileItem);
+        } catch (Exception e) {
             e.printStackTrace();
             try {
-                mainViewModel.downloadViaDownloadManager(activity,fileItem);
+                downloadTask = mainViewModel.downloadUsingDownloadManager(activity, fileItem);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 mainViewModel.setIsTaskRunning(false);
-                makeToast(e.toString());
+                makeToast(ex.toString());
+                return;
             }
-            return;
         }
-        downloadTask.addOnSuccessListener(activity,unit -> {
+        downloadTask.addOnSuccessListener(activity, unit -> {
             if (fileItems.indexOf(fileItem) == fileItems.size() - 1) {
                 makeToast("Items saved at Oxtor/download/");
             }
-        }).addOnFailureListener(activity,ex -> makeToast(ex.toString()));
+        }).addOnFailureListener(activity, ex -> makeToast(ex.toString()));
     }
 
-    public void loadBanner(FrameLayout container){
+    public void loadBanner(FrameLayout container) {
         AdSize adSize = getAdSize(container);
         mainViewModel.loadAdView(adSize);
-        adView=mainViewModel.getBannerAd();
+        adView = mainViewModel.getBannerAd();
         container.removeAllViews();
         container.addView(adView);
     }
@@ -185,26 +202,18 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth);
     }
 
-    private void makeToast(String msg){
+    private void makeToast(String msg) {
         new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
-    }
-
-    private void showAlertDialog() {
-        new Handler(Looper.getMainLooper()).post(alertDialog::show);
-    }
-
-    private void dismissAlertDialog() {
-        new Handler(Looper.getMainLooper()).post(alertDialog::dismiss);
     }
 
     @Override
     public void onAdDismissedFullScreenContent() {
-        if(!fileItems.isEmpty())
+        if (!fileItems.isEmpty())
             makeToast("Resuming...");
         mainViewModel.setAppOpenAd(null);
         mainViewModel.setIsTaskRunning(false);
-        if (!thread.isAlive()) {
-            executor.execute(thread);
+        if (!isThreadRunning) {
+            startThread();
         }
         super.onAdDismissedFullScreenContent();
     }
@@ -214,16 +223,16 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         makeToast("Showing Ad failed...");
         mainViewModel.setAppOpenAd(null);
         mainViewModel.setIsTaskRunning(false);
-        if (!thread.isAlive()) {
-            executor.execute(thread);
+        if (!isThreadRunning) {
+            startThread();
         }
         super.onAdFailedToShowFullScreenContent(adError);
     }
 
     @Override
     public void onAdShowedFullScreenContent() {
-        if (!thread.isAlive()) {
-            executor.execute(thread);
+        if (!isThreadRunning) {
+            startThread();
         }
         super.onAdShowedFullScreenContent();
     }
@@ -240,10 +249,9 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         if (mainViewModel != null && mainViewModel.getAppOpenAd() != null) {
             mainViewModel.getAppOpenAd().setFullScreenContentCallback(this);
             mainViewModel.getAppOpenAd().show(activity);
-        }
-        else if(mainViewModel!=null){
-            if(!fileItems.isEmpty()) {
-                executor.execute(thread);
+        } else if (mainViewModel != null) {
+            if (!fileItems.isEmpty()) {
+                startThread();
             }
             mainViewModel.loadAppOpenAd();
         }
@@ -252,26 +260,45 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
 
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
-        if(adView!=null) {
+        if (adView != null) {
             adView.pause();
         }
+        onPauseExecution();
         DefaultLifecycleObserver.super.onPause(owner);
     }
 
     @Override
     public void onResume(@NonNull LifecycleOwner owner) {
-        if(adView!=null) {
+        if (adView != null) {
             adView.resume();
         }
+        onResumeExecution();
         DefaultLifecycleObserver.super.onResume(owner);
     }
 
     @Override
     public void onDestroy(@NonNull LifecycleOwner owner) {
-        if(adView!=null) {
+        if (adView != null) {
             adView.destroy();
         }
+        if (thread != null) {
+            thread.interrupt();
+            thread = null; // Release the reference to the thread
+        }
         DefaultLifecycleObserver.super.onDestroy(owner);
+    }
+
+    private void onPauseExecution() {
+        synchronized (threadLock) {
+            isPaused = true;
+        }
+    }
+
+    private void onResumeExecution() {
+        synchronized (threadLock) {
+            isPaused = false;
+            threadLock.notifyAll();
+        }
     }
 
     public enum RequestCode {
@@ -288,5 +315,5 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             return requestCode;
         }
     }
-
 }
+

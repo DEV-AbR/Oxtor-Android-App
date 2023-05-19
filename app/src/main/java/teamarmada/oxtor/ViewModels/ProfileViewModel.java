@@ -20,6 +20,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.functions.HttpsCallableResult;
+import com.google.firebase.storage.UploadTask;
 
 import org.json.JSONObject;
 
@@ -121,7 +122,6 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     private void uploadDisplayPicture(FileItem fileItem,byte[] bytes) {
         setIsTaskRunning(true);
         storageRepository.UploadFile(fileItem,bytes ,getProfileItem().getValue())
-                .getTask()
                 .onSuccessTask(executor, task -> {
                     String s=task.getMetadata().getReference().toString();
                     fileItem.setStorageReference(s);

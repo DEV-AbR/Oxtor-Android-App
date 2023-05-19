@@ -3,10 +3,17 @@ package teamarmada.oxtor.ViewModels;
 import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Main.MainActivity.USED_SPACE;
 
+import android.annotation.SuppressLint;
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -19,6 +26,8 @@ import com.google.android.gms.ads.appopen.AppOpenAd;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
@@ -102,9 +111,10 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     public Task<Unit> uploadUsingInputStream(Context context,FileItem item) throws Exception {
         setIsTaskRunning(true);
         InputStream inputStream= FileItemUtils.uploadFromInputStream(item,getProfileItem().getValue(), context);
-        FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item, inputStream, getProfileItem().getValue());
-        addUploadItem(uploadTaskFileTask);
-        return uploadTaskFileTask.getTask()
+        UploadTask uploadTask = storageRepository.UploadFile(item, inputStream, getProfileItem().getValue());
+        FileTask<UploadTask> fileTask=new FileTask<>(item,uploadTask);
+        addUploadItem(fileTask);
+        return fileTask.getTask()
                 .continueWithTask(executor,task->{
                     if(task.isComplete())
                         inputStream.close();
@@ -120,11 +130,12 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
 
     public Task<Unit> uploadUsingByteArray(Context context, FileItem item) throws Exception {
         setIsTaskRunning(true);
-        FileTask<UploadTask> uploadTaskFileTask = storageRepository.UploadFile(item,
+        UploadTask uploadTask = storageRepository.UploadFile(item,
                 FileItemUtils.readIntoByteArray(item, getProfileItem().getValue(), context),
                 getProfileItem().getValue());
-        addUploadItem(uploadTaskFileTask);
-        return uploadTaskFileTask.getTask()
+        FileTask<UploadTask> fileTask=new FileTask<>(item,uploadTask);
+        addUploadItem(fileTask);
+        return fileTask.getTask()
                 .continueWithTask(executor,task-> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
                 .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
                 .continueWith(executor, task -> {
@@ -137,7 +148,8 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     public Task<Unit> downloadUsingInputStream(Context context,FileItem fileItem) throws Exception {
         setIsTaskRunning(true);
         File output= FileItemUtils.createDownloadFile(fileItem);
-        FileTask<StreamDownloadTask> fileTask =storageRepository.downloadFile(fileItem);
+        StreamDownloadTask streamDownloadTask =storageRepository.downloadFile(fileItem);
+        FileTask<StreamDownloadTask> fileTask=new FileTask<>(fileItem,streamDownloadTask);
         addDownloadItem(fileTask);
         return fileTask.getTask()
                 .continueWith(executor,task ->{
@@ -158,16 +170,49 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 });
     }
 
-    public void downloadViaDownloadManager(Context context, FileItem item) throws Exception {
-        DownloadManager downloadManager=context.getSystemService(DownloadManager.class);
-        DownloadManager.Request request=new DownloadManager.Request(Uri.parse(item.getDownloadUrl()));
+    public Task<Unit> downloadUsingDownloadManager(Context context, FileItem item) throws Exception {
+        TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
+
+        DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(item.getDownloadUrl()));
         request.setTitle("Downloading...")
                 .setDescription(item.getFileName())
                 .setMimeType(item.getFileExtension())
                 .setDestinationUri(Uri.fromFile(FileItemUtils.createDownloadFile(item)))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        downloadManager.enqueue(request);
 
+        // Enqueue the download request
+        long downloadId = downloadManager.enqueue(request);
+
+        // Periodically check the download status
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                DownloadManager.Query query = new DownloadManager.Query();
+                query.setFilterById(downloadId);
+                Cursor cursor = downloadManager.query(query);
+                if (cursor != null && cursor.moveToFirst()) {
+                    int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                    int status = cursor.getInt(statusIndex);
+                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                        // Download completed successfully
+                        taskCompletionSource.setResult(null);
+                    } else if (status == DownloadManager.STATUS_FAILED) {
+                        // Download failed
+                        taskCompletionSource.setException(new Exception("Download failed"));
+                    }
+                    cursor.close();
+                }
+
+                if (!taskCompletionSource.getTask().isComplete()) {
+                    // Schedule the next check
+                    handler.postDelayed(this, 1000);
+                }
+            }
+        };
+        handler.post(runnable);
+        return taskCompletionSource.getTask();
     }
 
     public InterstitialAd getInterstitialAd(){
