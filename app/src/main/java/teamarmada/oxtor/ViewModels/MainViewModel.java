@@ -118,27 +118,13 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
 
     public Task<Unit> uploadUsingInputStream(FileItem item, Context context) throws Exception {
         setIsTaskRunning(true);
-        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         Uri uri = Uri.parse(item.getFilePath());
-        InputStream inputStream = context.getContentResolver().openInputStream(uri);
-
-        if (sharedPreferences.getBoolean(TO_ENCRYPT, false)) {
-            inputStream = new CipherInputStream(inputStream, AES.getEncryptCipher(item, profileItem.getValue()));
-        }
-
-        int bufferSize = FileItemUtils.calculateBufferSize(context, item.getFileSize());
-        byte[] buffer = new byte[bufferSize];
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream)) {
-            int bytesRead;
-            while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-            UploadTask uploadTask = storageRepository.UploadFile(item, inputStream, getProfileItem().getValue());
+        try (InputStream bufferedInputStream = sharedPreferences.getBoolean(TO_ENCRYPT, false)?
+                new CipherInputStream(context.getContentResolver().openInputStream(uri), AES.getEncryptCipher(item, profileItem.getValue())):
+                new BufferedInputStream(context.getContentResolver().openInputStream(uri))) {
+            UploadTask uploadTask = storageRepository.UploadFile(item, bufferedInputStream, getProfileItem().getValue());
             FileTask<UploadTask> fileTask = new FileTask<>(item, uploadTask);
             addUploadItem(fileTask);
-
             return uploadTask
                     .continueWithTask(executor, task -> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
                     .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(getProfileItem().getValue())
@@ -148,45 +134,35 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                                 return Unit.INSTANCE;
                             }));
         }
-        finally {
-            outputStream.close();
-            inputStream.close();
-        }
     }
 
     public Task<Unit> uploadUsingByteArray(FileItem item,Context context) throws Exception {
         setIsTaskRunning(true);
         Uri uri=Uri.parse(item.getFilePath());
-        byte[] bytes=new byte[item.getFileSize().intValue()];
-        ByteArrayOutputStream outputStream=new ByteArrayOutputStream(bytes.length);
+        byte[] buffer=new byte[FileItemUtils.calculateBufferSize(context,item.getFileSize())];
         File file=new File(uri.toString());
         byte[] bytes1;
-        try {
-            FileReader fileReader = new FileReader(file);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
+        try (FileReader fileReader = new FileReader(file);
+             BufferedReader bufferedReader = new BufferedReader(fileReader);
+             ByteArrayOutputStream outputStream=new ByteArrayOutputStream()){
             int read;
             while ((read = bufferedReader.read()) != -1) {
-                outputStream.write(bytes, 0, read);
+                outputStream.write(buffer, 0, read);
             }
             bytes1=outputStream.toByteArray();
         }
         catch (Exception e) {
-            InputStream inputStream = context.getContentResolver().openInputStream(uri);
-            try {
-                inputStream = new BufferedInputStream(inputStream, item.getFileSize().intValue());
-                outputStream = new ByteArrayOutputStream(bytes.length);
+            try(InputStream inputStream = new BufferedInputStream(context.getContentResolver().openInputStream(uri));
+            ByteArrayOutputStream outputStream=new ByteArrayOutputStream()) {
                 int read;
-                while ((read = inputStream.read(bytes)) != -1) {
-                    outputStream.write(bytes, 0, read);
+                while ((read = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, read);
                 }
                 bytes1=outputStream.toByteArray();
-            } finally {
-                outputStream.close();
-                inputStream.close();
             }
         }
         if(sharedPreferences.getBoolean(TO_ENCRYPT,false))
-            bytes1= AES.encrypt(outputStream.toByteArray(),item,profileItem.getValue());
+            bytes1= AES.encrypt(bytes1,item,profileItem.getValue());
         UploadTask uploadTask = storageRepository.UploadFile(item, bytes1, getProfileItem().getValue());
         FileTask<UploadTask> fileTask=new FileTask<>(item,uploadTask);
         addUploadItem(fileTask);
@@ -208,23 +184,15 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         addDownloadItem(fileTask);
         return streamDownloadTask
                 .continueWith(executor,task ->{
-                    InputStream inputStream=task.getResult().getStream();
-                    if (fileItem.isEncrypted()) {
-                        inputStream = new CipherInputStream(inputStream, AES.getDecryptionCipher(fileItem, profileItem.getValue()));
-                    }
                     int bufferSize = FileItemUtils.calculateBufferSize(context, fileItem.getFileSize());
                     byte[] buffer = new byte[bufferSize];
-                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    try {
+                    try (InputStream inputStream = !fileItem.isEncrypted() ? task.getResult().getStream() :
+                            new CipherInputStream(task.getResult().getStream(), AES.getDecryptionCipher(fileItem, profileItem.getValue()));
+                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                         int bytesRead;
                         while ((bytesRead = inputStream.read(buffer)) != -1) {
                             outputStream.write(buffer, 0, bytesRead);
                         }
-                        inputStream=new ByteArrayInputStream(outputStream.toByteArray());
-                    }
-                    finally {
-                        outputStream.close();
-                        inputStream.close();
                         fileItem.setFilePath(output.getAbsolutePath());
                         setIsTaskRunning(!task.isComplete());
                     }
@@ -259,7 +227,7 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                     int status = cursor.getInt(statusIndex);
                     if (status == DownloadManager.STATUS_SUCCESSFUL) {
                         // Download completed successfully
-                        taskCompletionSource.setResult(null);
+                        taskCompletionSource.setResult(Unit.INSTANCE);
                     } else if (status == DownloadManager.STATUS_FAILED) {
                         // Download failed
                         taskCompletionSource.setException(new Exception("Download failed"));
