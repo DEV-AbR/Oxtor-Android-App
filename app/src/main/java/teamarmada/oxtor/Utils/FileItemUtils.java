@@ -208,7 +208,7 @@ public class FileItemUtils {
             throw new Exception("Couldn't create said file");
     }
 
-    public static int calculateBufferSize(Context context, long fileSize) {
+    public static int calculateBufferSize(Context context, long fileSize) throws Exception {
         int maxBufferSize = 8192; // 8KB (adjust as needed)
         int minBufferSize = 1024; // 1KB (adjust as needed)
 
@@ -218,15 +218,15 @@ public class FileItemUtils {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         int availableMemory = isScreenOn ? activityManager.getMemoryClass() * 1024 * 1024 : activityManager.getLargeMemoryClass() * 1024 * 1024;
 
-        // Check if available memory is below a certain threshold
-        int minimumRequiredMemory = 128 * 1024 * 1024; // 128MB (adjust as needed)
-        if (availableMemory < minimumRequiredMemory) {
-            return minBufferSize;
+        // Check if available memory is below the file size
+        if (availableMemory < fileSize) {
+            throw new Exception("Insufficient memory to calculate buffer size");
         }
 
         // Calculate the buffer size based on available memory and file size
         int bufferSize = (int) Math.min(Math.max(availableMemory / 4, fileSize / 100), maxBufferSize);
         return Math.max(bufferSize, minBufferSize);
     }
+
 
 }
