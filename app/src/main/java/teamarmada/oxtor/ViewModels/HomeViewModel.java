@@ -18,6 +18,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.functions.HttpsCallableResult;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.stream.JsonWriter;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -92,14 +93,13 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                                                @NonNull String senderUsername,
                                                @NonNull String receiverUsername) {
         setIsTaskRunning(true);
-        Gson gson=new Gson();
         Map<String,Object> map=new HashMap<>();
-        List<String> fileItemsJson = new ArrayList<>();
-        for (int i=0;i<fileItems.size();i++) {
-            String fileItemJson = gson.toJson(fileItems.get(i));
-            fileItemsJson.add(fileItemJson);
+        Gson gson=new Gson();
+        String[] strings=new String[fileItems.size()];
+        for(int i=0;i<fileItems.size();i++){
+            strings[i]=gson.toJson(fileItems.get(i), FileItem.class);
         }
-        map.put("fileItems",fileItemsJson);
+        map.put("fileItems",strings);
         map.put("senderUsername",senderUsername);
         map.put("receiverUsername",receiverUsername);
         return functionsRepository.shareFile(map).continueWithTask(task -> {
@@ -112,10 +112,12 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
         setIsTaskRunning(true);
         firestoreRepository.fetchUsername(profileItem.getValue())
                 .continueWith(executor,task -> {
-                    if(task.isSuccessful()){
-                        final ProfileItem profileItem1=profileItem.getValue();
+                    try {
+                        ProfileItem profileItem1 = profileItem.getValue();
                         profileItem1.setUsername(task.getResult());
                         profileItem.setValue(profileItem1);
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
                     return Unit.INSTANCE;
                 })

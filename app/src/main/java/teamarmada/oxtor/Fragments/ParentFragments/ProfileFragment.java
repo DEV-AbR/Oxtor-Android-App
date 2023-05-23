@@ -11,6 +11,7 @@ import static teamarmada.oxtor.Model.ProfileItem.USERNAME;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -28,7 +29,9 @@ import android.view.ViewGroup;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
+import androidx.core.os.BuildCompat;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -36,6 +39,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.ByteArrayOutputStream;
@@ -43,6 +47,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import teamarmada.oxtor.BuildConfig;
 import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
@@ -64,7 +69,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-
+    private AlertDialog dialog;
     public ProfileFragment(){}
 
     @Override
@@ -83,9 +88,22 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         }catch (Exception e){
             e.printStackTrace();
         }
+        dialog=new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
+                .setTitle("Oxtor App")
+                .setMessage("Version "+ BuildConfig.VERSION_NAME)
+                .setCancelable(true)
+                .setPositiveButton("View Privacy policy", (dialogInterface, pos) -> {
+                    try{
+                        Uri url = Uri.parse("https://oxt.web.app");
+                        Intent i= new Intent(Intent.ACTION_VIEW,url);
+                        startActivity(i);
+                    }catch (Exception e){
+                        Snackbar.make(binding.getRoot(),"Some error occurred",Snackbar.LENGTH_SHORT).show();
+                    }
+                }).create();
         binding.editpassword.setOnClickListener(this);
         binding.editname.setOnClickListener(this);
-        binding.editusername.setOnClickListener(this);
+//        binding.editusername.setOnClickListener(this);
         binding.editimage.setOnClickListener(this);
         binding.refreshButton.setOnClickListener(this);
         return binding.getRoot();
@@ -118,10 +136,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                     if(profileItem!=null)
                         try {
                             Glide.with(this).load(profileItem.getPhotoUrl()).into(binding.dpofuser);
-                            if(profileItem.getUsername()!=null)
-                                binding.username.setText(profileItem.getUsername());
-                            else
-                                profileViewModel.checkUsername();
+//                            if(profileItem.getUsername()!=null)
+//                                binding.username.setText(profileItem.getUsername());
+//                            else
+//                                profileViewModel.checkUsername();
                             if (profileItem.getDisplayName() == null)
                                 binding.nameofuser.setHint("Name");
                             else
@@ -145,27 +163,27 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         textInputDialog.show(getChildFragmentManager(),"Input");
     }
 
-    private void updateUsername(){
-        ProfileItem profileItem=profileViewModel.getProfileItem().getValue();
-        String currentUsername=profileItem.getUsername();
-        TextInputDialog textInputDialog =new TextInputDialog(R.string.update_username,getString(R.string.at),
-                "Current Username : " +currentUsername, InputType.TYPE_CLASS_TEXT, requireContext());
-        textInputDialog.addCallback(msg -> {
-            if(textInputDialog.isUsernameValid(msg)){
-                profileViewModel.updateUsername(msg).addOnSuccessListener(task -> {
-                    profileItem.setUsername(msg);
-                    profileViewModel.getProfileItem().postValue(profileItem);
-                    binding.username.setText(msg);
-                    sharedPreferences.edit().putString(USERNAME,msg).apply();
-                    Snackbar.make(binding.getRoot(),R.string.username_updated,Snackbar.LENGTH_SHORT).show();
-                }).addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(),Snackbar.LENGTH_SHORT).show());
-            }
-            else {
-                Snackbar.make(binding.getRoot(), R.string.dont_use_any_special_character, Snackbar.LENGTH_SHORT).show();
-            }
-        });
-        textInputDialog.show(getChildFragmentManager(),"Input");
-    }
+//    private void updateUsername(){
+//        ProfileItem profileItem=profileViewModel.getProfileItem().getValue();
+//        String currentUsername=profileItem.getUsername();
+//        TextInputDialog textInputDialog =new TextInputDialog(R.string.update_username,getString(R.string.at),
+//                "Current Username : " +currentUsername, InputType.TYPE_CLASS_TEXT, requireContext());
+//        textInputDialog.addCallback(msg -> {
+//            if(textInputDialog.isUsernameValid(msg)){
+//                profileViewModel.updateUsername(msg).addOnSuccessListener(task -> {
+//                    profileItem.setUsername(msg);
+//                    profileViewModel.getProfileItem().postValue(profileItem);
+//                    binding.username.setText(msg);
+//                    sharedPreferences.edit().putString(USERNAME,msg).apply();
+//                    Snackbar.make(binding.getRoot(),R.string.username_updated,Snackbar.LENGTH_SHORT).show();
+//                }).addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(),Snackbar.LENGTH_SHORT).show());
+//            }
+//            else {
+//                Snackbar.make(binding.getRoot(), R.string.dont_use_any_special_character, Snackbar.LENGTH_SHORT).show();
+//            }
+//        });
+//        textInputDialog.show(getChildFragmentManager(),"Input");
+//    }
 
     private void updatePicture(){
         if(checkForPermissions()) {
@@ -225,16 +243,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         });
     }
 
-    private void openWebPage() {
-        try{
-        Uri url = Uri.parse("https://oxt.web.app");
-        Intent i= new Intent(Intent.ACTION_VIEW,url);
-        startActivity(i);
-        }catch (Exception e){
-            Snackbar.make(binding.getRoot(),"Some error occurred",Snackbar.LENGTH_SHORT).show();
-        }
-    }
-
     private void observeLoadingState() {
         profileViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(), MainActivity.observer);
     }
@@ -284,9 +292,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
             case R.id.editname:
                 updateName();
                 break;
-            case R.id.editusername:
-                updateUsername();
-                break;
+//            case R.id.editusername:
+//                updateUsername();
+//                break;
             case R.id.editimage:
                 updatePicture();
                 break;
@@ -315,7 +323,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                 deleteAccount();
                 return true;
             case R.id.webpage:
-                openWebPage();
+                dialog.show();
                 return true;
         }
         return false;

@@ -6,6 +6,7 @@ import static teamarmada.oxtor.Main.MainActivity.SORT_PREFERENCE;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -48,6 +49,8 @@ import com.google.firebase.firestore.Query;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import teamarmada.oxtor.Fragments.ChildFragments.FileItemFragment;
@@ -358,31 +361,54 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void onClickShareButton(List<FileItem> fileItems){
-        screenManager.showProgressDialog();
-        homeViewModel.fetchUsername()
-                .addOnCompleteListener(task->screenManager.hideProgressDialog())
-                .addOnSuccessListener(username-> {
-                    if(username!=null) {
-                        List<FileItem> list=new ArrayList<>();
-                        for (int i = 0; i < fileItems.size(); i++) {
-                        if(fileItems.get(i).isEncrypted())
-                            list.add(fileItems.get(i));
-                        }
-                        if (!list.isEmpty()){
-                            for (int i = 0; i < list.size(); i++) {
-                                fileItems.remove(list.get(i));
-                            }
-                            createFileShareDialog(username,list,fileItems).show();
-                        }
-                        else {
-                            shareSelectedFiles(username,fileItems);
-                        }
-                    }
-                    else {
-                        Snackbar.make(binding.getRoot(), R.string.create_username, Snackbar.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show());
+//        screenManager.showProgressDialog();
+//        homeViewModel.fetchUsername()
+//                .addOnCompleteListener(task->screenManager.hideProgressDialog())
+//                .addOnSuccessListener(username-> {
+//                    if(username!=null) {
+//                        List<FileItem> list=new ArrayList<>();
+//                        for (int i = 0; i < fileItems.size(); i++) {
+//                        if(fileItems.get(i).isEncrypted())
+//                            list.add(fileItems.get(i));
+//                        }
+//                        if (!list.isEmpty()){
+//                            for (int i = 0; i < list.size(); i++) {
+//                                fileItems.remove(list.get(i));
+//                            }
+//                            createFileShareDialog(username,list,fileItems).show();
+//                        }
+//                        else {
+//                            shareSelectedFiles(username,fileItems);
+//                        }
+//                    }
+//                    else {
+//                        Snackbar.make(binding.getRoot(), R.string.create_username, Snackbar.LENGTH_SHORT).show();
+//                    }
+//                })
+//                .addOnFailureListener(e -> Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show());
+
+        if(fileItems.get(0).isEncrypted()){
+            showAlertDialog();
+        }
+        else{
+            shareText(fileItems.get(0).getDownloadUrl());
+        }
+
+    }
+
+    public void showAlertDialog(){
+        new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
+                .setCancelable(false)
+                .setTitle("Encrypted files can't be shared, yet")
+                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
+                .create().show();
+    }
+
+    public void shareText(String textToShare) {
+        Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+        sharingIntent.setType("text/plain");
+        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, textToShare);
+        startActivity(Intent.createChooser(sharingIntent, "Share via"));
     }
 
     private void onClickRenameButton(List<FileItem> fileItems){
@@ -413,28 +439,28 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         }
     }
 
-    private void shareSelectedFiles(String senderUsername,List<FileItem> fileItems) {
-        TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
-                InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
-        dialog.addCallback(receiverUsername-> {
-            screenManager.showProgressDialog();
-            homeViewModel.shareFile(fileItems, senderUsername, receiverUsername)
-                    .addOnCompleteListener(task-> screenManager.hideProgressDialog())
-                    .addOnSuccessListener(result -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
-                    .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(), Snackbar.LENGTH_SHORT).show());
-        });
-        dialog.show(getChildFragmentManager(),"Input");
-    }
-
-    private AlertDialog createFileShareDialog(String username,List<FileItem> encryptedFiles,List<FileItem> fileItems){
-        return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
-                .setCancelable(false)
-                .setTitle("Encrypted files can't be shared, yet")
-                .setMessage(encryptedFiles.size() +" of the selected items are encrypted. So should we send the rest of the items")
-                .setPositiveButton("Share rest of the items", (dialogInterface, i) -> shareSelectedFiles(username,fileItems))
-                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
-                .create();
-    }
+//    private void shareSelectedFiles(String senderUsername,List<FileItem> fileItems) {
+//        TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
+//                InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
+//        dialog.addCallback(receiverUsername-> {
+//            screenManager.showProgressDialog();
+//            homeViewModel.shareFile(fileItems, senderUsername, receiverUsername)
+//                    .addOnCompleteListener(task-> screenManager.hideProgressDialog())
+//                    .addOnSuccessListener(result -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
+//                    .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(), Snackbar.LENGTH_SHORT).show());
+//        });
+//        dialog.show(getChildFragmentManager(),"Input");
+//    }
+//
+//    private AlertDialog createFileShareDialog(String username,List<FileItem> encryptedFiles,List<FileItem> fileItems){
+//        return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
+//                .setCancelable(false)
+//                .setTitle("Encrypted files can't be shared, yet")
+//                .setMessage(encryptedFiles.size() +" of the selected items are encrypted. So should we send the rest of the items")
+//                .setPositiveButton("Share rest of the items", (dialogInterface, i) -> shareSelectedFiles(username,fileItems))
+//                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
+//                .create();
+//    }
 
     private AlertDialog createPreferenceChooserDialog(){
         return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)

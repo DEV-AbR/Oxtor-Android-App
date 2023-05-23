@@ -73,7 +73,6 @@
             app:trackColor="@android:color/white"
             android:indeterminateOnly="true"
             android:layout_above="@id/nav_view"
-
             />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView

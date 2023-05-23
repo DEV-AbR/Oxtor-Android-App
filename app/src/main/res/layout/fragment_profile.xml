@@ -145,48 +145,48 @@
     </androidx.cardview.widget.CardView>
 
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin"
-        android:layout_marginBottom="@dimen/margin"
-        android:id="@+id/username_layout"
-        android:layout_below="@id/name_of_user_layout"
-        android:layout_marginHorizontal="@dimen/margin_horizontal"
-        app:cardCornerRadius="@dimen/corner_radius_button"
-        app:cardBackgroundColor="?attr/colorSecondary">
+<!--    <androidx.cardview.widget.CardView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="@dimen/margin"-->
+<!--        android:layout_marginBottom="@dimen/margin"-->
+<!--        android:id="@+id/username_layout"-->
+<!--        android:layout_below="@id/name_of_user_layout"-->
+<!--        android:layout_marginHorizontal="@dimen/margin_horizontal"-->
+<!--        app:cardCornerRadius="@dimen/corner_radius_button"-->
+<!--        app:cardBackgroundColor="?attr/colorSecondary">-->
 
-      <androidx.cardview.widget.CardView
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_margin="1dp"
-          app:cardCornerRadius="@dimen/corner_radius_button">
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/username"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorOnPrimary"
-            android:clickable="true"
-            android:focusable="true"
-            android:inputType="text"
-            android:hint="@string/user_username"
-            android:maxLines="1"
-            android:enabled="false"
-            android:gravity="center"
-            android:foregroundGravity="center"
-            android:paddingVertical="8dp" />
+<!--      <androidx.cardview.widget.CardView-->
+<!--          android:layout_width="match_parent"-->
+<!--          android:layout_height="wrap_content"-->
+<!--          android:layout_margin="1dp"-->
+<!--          app:cardCornerRadius="@dimen/corner_radius_button">-->
+<!--        <com.google.android.material.textfield.TextInputEditText-->
+<!--            android:id="@+id/username"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:background="?attr/colorOnPrimary"-->
+<!--            android:clickable="true"-->
+<!--            android:focusable="true"-->
+<!--            android:inputType="text"-->
+<!--            android:hint="@string/user_username"-->
+<!--            android:maxLines="1"-->
+<!--            android:enabled="false"-->
+<!--            android:gravity="center"-->
+<!--            android:foregroundGravity="center"-->
+<!--            android:paddingVertical="8dp" />-->
 
-        <ImageButton
-            android:id="@+id/editusername"
-            android:layout_width="38dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="end"
-            android:background="?attr/colorSecondary"
-            android:contentDescription="@string/editusername"
-            android:src="@drawable/ic_baseline_edit_24" />
-      </androidx.cardview.widget.CardView>
+<!--        <ImageButton-->
+<!--            android:id="@+id/editusername"-->
+<!--            android:layout_width="38dp"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_gravity="end"-->
+<!--            android:background="?attr/colorSecondary"-->
+<!--            android:contentDescription="@string/editusername"-->
+<!--            android:src="@drawable/ic_baseline_edit_24" />-->
+<!--      </androidx.cardview.widget.CardView>-->
 
-    </androidx.cardview.widget.CardView>
+<!--    </androidx.cardview.widget.CardView>-->
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -194,7 +194,7 @@
         android:id="@+id/encryption_layout"
         android:layout_marginVertical="@dimen/margin_vertical"
         android:layout_marginHorizontal="@dimen/margin_horizontal"
-        android:layout_below="@id/username_layout"
+        android:layout_below="@id/name_of_user_layout"
         app:cardBackgroundColor="?attr/colorSecondary"
         app:cardCornerRadius="@dimen/corner_radius_dialog">
       <androidx.cardview.widget.CardView

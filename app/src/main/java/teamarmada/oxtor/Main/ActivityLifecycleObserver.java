@@ -300,7 +300,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             isPaused = false;
             try {
                 threadLock.notifyAll();
-            } catch (IllegalMonitorStateException e) {
+            } catch (Exception e) {
                 makeToast("_");
             }
         }

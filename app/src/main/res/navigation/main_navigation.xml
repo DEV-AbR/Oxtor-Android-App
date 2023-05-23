@@ -13,12 +13,12 @@
 
     </fragment>
 
-    <fragment
-        android:id="@+id/navigation_shared"
-        android:name="teamarmada.oxtor.Fragments.ParentFragments.SharedFragment"
-        android:label="@string/title_shared"
-        tools:layout="@layout/fragment_shared">
-    </fragment>
+<!--    <fragment-->
+<!--        android:id="@+id/navigation_shared"-->
+<!--        android:name="teamarmada.oxtor.Fragments.ParentFragments.SharedFragment"-->
+<!--        android:label="@string/title_shared"-->
+<!--        tools:layout="@layout/fragment_shared">-->
+<!--    </fragment>-->
 
     <fragment
         android:id="@+id/navigation_profile"

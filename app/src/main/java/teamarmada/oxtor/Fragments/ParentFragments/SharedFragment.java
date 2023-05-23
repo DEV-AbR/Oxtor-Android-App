@@ -141,7 +141,7 @@ public class SharedFragment extends Fragment implements SwipeRefreshLayout.OnRef
                             };
                             final FileItem fileItem=sharedItem.getFileItem();
                             binding.renameButton.setVisibility(View.GONE);
-                            binding.shareButton.setVisibility(View.GONE);
+                            //binding.shareButton.setVisibility(View.GONE);
                             binding.deleteButton.setOnClickListener(listener);
                             binding.downloadButton.setOnClickListener(listener);
                             return new FileItemFragment(fileItem);
