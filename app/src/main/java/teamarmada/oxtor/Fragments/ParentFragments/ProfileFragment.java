@@ -115,12 +115,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         profileViewModel.getUsedSpace().observe(getViewLifecycleOwner(),usedSpace->{
             String a = "Used Space : " + FileItemUtils.byteToString(usedSpace);
             binding.usedSpace.setText(a);
-            long b = (FileItemUtils.ONE_GIGABYTE - usedSpace);
+            long b = ((5*FileItemUtils.ONE_GIGABYTE) - usedSpace);
             String c = "Available Space : " + FileItemUtils.byteToString(b);
             binding.availableSpace.setText(c);
-            String d = "Total Space : " + FileItemUtils.byteToString(FileItemUtils.ONE_GIGABYTE);
+            String d = "Total Space : " + FileItemUtils.byteToString(5*FileItemUtils.ONE_GIGABYTE);
             binding.totalSpace.setText(d);
-            double e = ((usedSpace) * 100) / FileItemUtils.ONE_GIGABYTE;
+            double e = ((usedSpace) * 100) / (5*FileItemUtils.ONE_GIGABYTE);
             binding.spaceIndicator.setProgress((int) e);
         });
 

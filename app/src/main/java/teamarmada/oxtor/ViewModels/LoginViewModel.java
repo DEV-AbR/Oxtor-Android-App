@@ -42,7 +42,7 @@ public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit
     private final FirestoreRepository firestoreRepository;
     private final MutableLiveData<Boolean> isTaskRunning;
     private final MutableLiveData<FirebaseUser> user;
-    private SharedPreferences sharedPreferences;
+    private final SharedPreferences sharedPreferences;
 
     @Inject
     public LoginViewModel(@ApplicationContext Context context){

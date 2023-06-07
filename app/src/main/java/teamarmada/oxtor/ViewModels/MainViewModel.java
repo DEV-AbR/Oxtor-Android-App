@@ -4,12 +4,8 @@ import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Main.MainActivity.USED_SPACE;
 import static teamarmada.oxtor.Model.ProfileItem.TO_ENCRYPT;
 
-import android.annotation.SuppressLint;
 import android.app.DownloadManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -28,18 +24,16 @@ import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
-import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -68,9 +62,11 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
 
     public static final String TAG = MainViewModel.class.getSimpleName();
     public final MutableLiveData<List<FileTask<UploadTask>>> mutableUploadList;
-    public final MutableLiveData<List<FileTask<StreamDownloadTask>>> mutableDownloadList;
+    public final MutableLiveData<List<FileTask<StreamDownloadTask>>> mutableStreamDownloadList;
+    public final MutableLiveData<List<FileTask<FileDownloadTask>>> mutableFileDownloadList;
     private final List<FileTask<UploadTask>> uploadList;
-    private final List<FileTask<StreamDownloadTask>> downloadList;
+    private final List<FileTask<StreamDownloadTask>> streamDownloadList;
+    private final List<FileTask<FileDownloadTask>> fileDownloadList;
     private final FirestoreRepository firestoreRepository;
     private final StorageRepository storageRepository;
     private final AdsRepository adsRepository;
@@ -90,9 +86,11 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         AuthRepository authRepository = new AuthRepository();
         profileItem=new MutableLiveData<>(new AuthRepository().getProfileItem());
         uploadList=new ArrayList<>();
-        downloadList=new ArrayList<>();
+        streamDownloadList=new ArrayList<>();
+        fileDownloadList=new ArrayList<>();
         mutableUploadList = new MutableLiveData<>(uploadList);
-        mutableDownloadList = new MutableLiveData<>(downloadList);
+        mutableStreamDownloadList = new MutableLiveData<>(streamDownloadList);
+        mutableFileDownloadList = new MutableLiveData<>(fileDownloadList);
         isTaskRunning=new MutableLiveData<>(false);
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         usedSpace = new MutableLiveData<>(sharedPreferences.getLong(USED_SPACE, 0L));
@@ -116,12 +114,28 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         return profileItem;
     }
 
+    private Task<Unit> uploadUnencryptedFile(FileItem item) {
+        setIsTaskRunning(true);
+        UploadTask uploadTask = storageRepository.UploadFile(item, getProfileItem().getValue());
+        FileTask<UploadTask> fileTask = new FileTask<>(item, uploadTask);
+        addUploadItem(fileTask);
+        return uploadTask
+                .continueWithTask(executor, task -> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
+                .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(getProfileItem().getValue())
+                        .continueWith(executor, innerTask -> {
+                            setIsTaskRunning(!innerTask.isComplete());
+                            sharedPreferences.edit().putLong(USED_SPACE, innerTask.getResult()).apply();
+                            return Unit.INSTANCE;
+                        }));
+
+    }
+
     public Task<Unit> uploadUsingInputStream(FileItem item, Context context) throws Exception {
         setIsTaskRunning(true);
+        boolean b=!sharedPreferences.getBoolean(TO_ENCRYPT, false);
+        if(b) return uploadUnencryptedFile(item);
         Uri uri = Uri.parse(item.getFilePath());
-        try (InputStream bufferedInputStream = sharedPreferences.getBoolean(TO_ENCRYPT, false)?
-                new CipherInputStream(context.getContentResolver().openInputStream(uri), AES.getEncryptCipher(item, profileItem.getValue())):
-                new BufferedInputStream(context.getContentResolver().openInputStream(uri))) {
+        try (InputStream bufferedInputStream = new CipherInputStream(context.getContentResolver().openInputStream(uri), AES.getEncryptCipher(item, profileItem.getValue()))) {
             UploadTask uploadTask = storageRepository.UploadFile(item, bufferedInputStream, getProfileItem().getValue());
             FileTask<UploadTask> fileTask = new FileTask<>(item, uploadTask);
             addUploadItem(fileTask);
@@ -176,18 +190,34 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 });
     }
 
+    private Task<Unit> downloadUnencryptedFile(FileItem fileItem) throws Exception {
+        setIsTaskRunning(true);
+        File output= FileItemUtils.createDownloadFile(fileItem);
+        Uri uri=Uri.parse(output.getAbsolutePath());
+        FileDownloadTask fileDownloadTask =storageRepository.downloadFile(fileItem,uri);
+        FileTask<FileDownloadTask> fileTask=new FileTask<>(fileItem,fileDownloadTask);
+        addFileDownloadItem(fileTask);
+        return fileDownloadTask
+                .continueWith(executor,task ->{
+                    setIsTaskRunning(!task.isComplete());
+                    return Unit.INSTANCE;
+                });
+    }
+
     public Task<Unit> downloadUsingInputStream(FileItem fileItem,Context context) throws Exception {
         setIsTaskRunning(true);
+        boolean b=!fileItem.isEncrypted() ;
+        if(b)
+            return downloadUnencryptedFile(fileItem);
         File output= FileItemUtils.createDownloadFile(fileItem);
         StreamDownloadTask streamDownloadTask =storageRepository.downloadFile(fileItem);
         FileTask<StreamDownloadTask> fileTask=new FileTask<>(fileItem,streamDownloadTask);
-        addDownloadItem(fileTask);
+        addStreamDownloadItem(fileTask);
         return streamDownloadTask
                 .continueWith(executor,task ->{
                     int bufferSize = FileItemUtils.calculateBufferSize(context, fileItem.getFileSize());
                     byte[] buffer = new byte[bufferSize];
-                    try (InputStream inputStream = !fileItem.isEncrypted() ? task.getResult().getStream() :
-                            new CipherInputStream(task.getResult().getStream(), AES.getDecryptionCipher(fileItem, profileItem.getValue()));
+                    try (InputStream inputStream = new CipherInputStream(task.getResult().getStream(), AES.getDecryptionCipher(fileItem, profileItem.getValue()));
                          ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                         int bytesRead;
                         while ((bytesRead = inputStream.read(buffer)) != -1) {
@@ -307,21 +337,39 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         }
     }
 
-    public void addDownloadItem(FileTask<StreamDownloadTask> fileTask){
-        downloadList.add(fileTask);
+    public void addStreamDownloadItem(FileTask<StreamDownloadTask> fileTask){
+        streamDownloadList.add(fileTask);
         try{
-            mutableDownloadList.setValue(downloadList);
+            mutableStreamDownloadList.setValue(streamDownloadList);
         }catch (Exception e){
-            mutableDownloadList.postValue(downloadList);
+            mutableStreamDownloadList.postValue(streamDownloadList);
         }
     }
 
-    public void removeDownloadItem(FileTask<StreamDownloadTask> fileTask){
-        downloadList.remove(fileTask);
+    public void removeStreamDownloadItem(FileTask<StreamDownloadTask> fileTask){
+        streamDownloadList.remove(fileTask);
         try{
-            mutableDownloadList.setValue(downloadList);
+            mutableStreamDownloadList.setValue(streamDownloadList);
         }catch (Exception e){
-            mutableDownloadList.postValue(downloadList);
+            mutableStreamDownloadList.postValue(streamDownloadList);
+        }
+    }
+
+    public void addFileDownloadItem(FileTask<FileDownloadTask> fileTask){
+        fileDownloadList.add(fileTask);
+        try{
+            mutableFileDownloadList.setValue(fileDownloadList);
+        }catch (Exception e){
+            mutableFileDownloadList.postValue(fileDownloadList);
+        }
+    }
+
+    public void removeFileDownloadItem(FileTask<FileDownloadTask> fileTask){
+        fileDownloadList.remove(fileTask);
+        try{
+            mutableFileDownloadList.setValue(fileDownloadList);
+        }catch (Exception e){
+            mutableFileDownloadList.postValue(fileDownloadList);
         }
     }
 

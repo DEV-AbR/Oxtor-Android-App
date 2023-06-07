@@ -1,4 +1,4 @@
-package teamarmada.oxtor.Main;
+package teamarmada.oxtor.Service;
 
 import androidx.annotation.NonNull;
 import androidx.work.Constraints;
@@ -63,7 +63,7 @@ public class MessageService extends FirebaseMessagingService implements OnComple
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         if (remoteMessage.getNotification() != null) {
-            NotificationWorker.setRemoteMessage(remoteMessage);
+            NotificationWorker.setRemoteMessage(remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
             scheduleJob();
         }
     }

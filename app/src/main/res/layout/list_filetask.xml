@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:cardCornerRadius="@dimen/corner_radius_card"
-            app:cardBackgroundColor="?attr/colorPrimaryVariant"
+            app:cardBackgroundColor="?attr/colorSecondary"
             app:cardElevation="0dp">
 
             <androidx.cardview.widget.CardView
@@ -47,7 +47,8 @@
             android:layout_toEndOf="@id/cardview"
             android:layout_toStartOf="@id/remove_button"
             android:paddingVertical="16dp"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="16dp"
+            >
 
 
             <com.google.android.material.textview.MaterialTextView

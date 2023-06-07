@@ -5,6 +5,7 @@ import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Main.MainActivity.SORT_PREFERENCE;
 
 import android.Manifest;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -41,6 +42,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -167,6 +169,18 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         });
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        try{
+            Intent intent=requireActivity().getIntent();
+            if(intent.getData()!=null)
+                uploadFileByIntent(intent);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     private boolean checkForPermissions(){
         return ContextCompat.checkSelfPermission(requireContext(),
                 permissions[0]) == PackageManager.PERMISSION_GRANTED
@@ -191,17 +205,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private final ActivityResultLauncher<String> selectFileLauncher =
             registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), results -> {
                 if (!results.isEmpty()) {
-                    List<Uri> paths=new ArrayList<>();
-                    for (int i = 0; i < results.size(); i++) {
-                        final File file=new File(String.valueOf(results.get(i)));
-                        try {
-                            paths.add(FileProvider.getUriForFile(getContext(), AUTHORITY, file));
-                        }catch(Exception e){
-                            paths.add(results.get(i));
-                        }
-                    }
-                    uploadSelectedFiles(paths);
-
+                    uploadSelectedFiles(results);
                 }
             });
 
@@ -361,53 +365,12 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void onClickShareButton(List<FileItem> fileItems){
-//        screenManager.showProgressDialog();
-//        homeViewModel.fetchUsername()
-//                .addOnCompleteListener(task->screenManager.hideProgressDialog())
-//                .addOnSuccessListener(username-> {
-//                    if(username!=null) {
-//                        List<FileItem> list=new ArrayList<>();
-//                        for (int i = 0; i < fileItems.size(); i++) {
-//                        if(fileItems.get(i).isEncrypted())
-//                            list.add(fileItems.get(i));
-//                        }
-//                        if (!list.isEmpty()){
-//                            for (int i = 0; i < list.size(); i++) {
-//                                fileItems.remove(list.get(i));
-//                            }
-//                            createFileShareDialog(username,list,fileItems).show();
-//                        }
-//                        else {
-//                            shareSelectedFiles(username,fileItems);
-//                        }
-//                    }
-//                    else {
-//                        Snackbar.make(binding.getRoot(), R.string.create_username, Snackbar.LENGTH_SHORT).show();
-//                    }
-//                })
-//                .addOnFailureListener(e -> Snackbar.make(binding.getRoot(),R.string.some_error_occurred,Snackbar.LENGTH_SHORT).show());
-
-        if(fileItems.get(0).isEncrypted()){
-            showAlertDialog();
+        if(fileItems.get(0).isEncrypted()) {
+            Toast.makeText(getContext(), "The readers might not be able to access an encrypted file", Toast.LENGTH_SHORT).show();
         }
-        else{
-            shareText(fileItems.get(0).getDownloadUrl());
-        }
-
-    }
-
-    public void showAlertDialog(){
-        new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
-                .setCancelable(false)
-                .setTitle("Encrypted files can't be shared, yet")
-                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
-                .create().show();
-    }
-
-    public void shareText(String textToShare) {
         Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
         sharingIntent.setType("text/plain");
-        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, textToShare);
+        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, fileItems.get(0).getDownloadUrl());
         startActivity(Intent.createChooser(sharingIntent, "Share via"));
     }
 
@@ -424,6 +387,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void uploadSelectedFiles(List<Uri> results){
+        Snackbar.make(binding.getRoot(),"All files will be destroyed after 24 hours",Snackbar.LENGTH_SHORT).show();
         List<FileItem> fileItems=new ArrayList<>();
         long size=0;
         for(int i=0;i<results.size();i++){
@@ -431,36 +395,36 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             fileItems.add(FileItemUtils.getFileItemFromPath(requireContext(),uri));
             size+=fileItems.get(i).getFileSize();
         }
-        if (size <= FileItemUtils.ONE_GIGABYTE) {
+        if (size <=5* FileItemUtils.ONE_GIGABYTE) {
             activityLifecycleObserver.startUpload(fileItems);
         }
         else {
-            Snackbar.make(binding.getRoot(), "Can't upload as you are only permitted 1GB of space on this account",Snackbar.LENGTH_SHORT).show();
+            Snackbar.make(binding.getRoot(), "Can't upload as you are only permitted 5GB of space on this account",Snackbar.LENGTH_SHORT).show();
         }
     }
 
-//    private void shareSelectedFiles(String senderUsername,List<FileItem> fileItems) {
-//        TextInputDialog dialog= new TextInputDialog(R.string.enter_Receivers_email_or_phone_number,getString(R.string.at), null,
-//                InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, requireContext());
-//        dialog.addCallback(receiverUsername-> {
-//            screenManager.showProgressDialog();
-//            homeViewModel.shareFile(fileItems, senderUsername, receiverUsername)
-//                    .addOnCompleteListener(task-> screenManager.hideProgressDialog())
-//                    .addOnSuccessListener(result -> Snackbar.make(binding.getRoot(),R.string.itemshared,Snackbar.LENGTH_SHORT).show())
-//                    .addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(), Snackbar.LENGTH_SHORT).show());
-//        });
-//        dialog.show(getChildFragmentManager(),"Input");
-//    }
-//
-//    private AlertDialog createFileShareDialog(String username,List<FileItem> encryptedFiles,List<FileItem> fileItems){
-//        return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
-//                .setCancelable(false)
-//                .setTitle("Encrypted files can't be shared, yet")
-//                .setMessage(encryptedFiles.size() +" of the selected items are encrypted. So should we send the rest of the items")
-//                .setPositiveButton("Share rest of the items", (dialogInterface, i) -> shareSelectedFiles(username,fileItems))
-//                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
-//                .create();
-//    }
+
+    public void uploadFileByIntent(Intent intent) {
+        String action = intent.getAction();
+        String type = intent.getType();
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            List<Uri> paths=new ArrayList<>();
+            try {
+                ClipData clipData = intent.getClipData();
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+                    paths.add(clipData.getItemAt(i).getUri());
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (uri != null) {
+                    paths.add(uri);
+                }
+            }
+            uploadSelectedFiles(paths);
+            paths.clear();
+        }
+    }
 
     private AlertDialog createPreferenceChooserDialog(){
         return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)

@@ -143,11 +143,9 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         try {
             uploadTask = mainViewModel.uploadUsingByteArray(fileItem,activity);
         } catch (Exception e) {
-            makeToast("Some error occurred, trying again");
             try {
                 uploadTask = mainViewModel.uploadUsingInputStream(fileItem,activity);
             } catch (Exception ex) {
-                makeToast("App might crash");
                 mainViewModel.setIsTaskRunning(false);
                 makeToast(ex.toString());
                 return;
@@ -165,11 +163,9 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         try {
             downloadTask = mainViewModel.downloadUsingInputStream(fileItem,activity);
         } catch (Exception e) {
-            makeToast("Some error occurred, trying again");
             try {
                 downloadTask = mainViewModel.downloadUsingDownloadManager(fileItem, activity);
             } catch (Exception ex) {
-                makeToast("App might crash");
                 mainViewModel.setIsTaskRunning(false);
                 makeToast(ex.toString());
                 return;

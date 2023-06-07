@@ -41,7 +41,6 @@ import java.util.List;
 import teamarmada.oxtor.Interfaces.ListItemCallback;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
-import teamarmada.oxtor.Model.SharedItem;
 import teamarmada.oxtor.R;
 
 
@@ -175,9 +174,8 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
     private T getFromModel(DocumentSnapshot snapshot){
         if (FileItem.class.equals(tClass)) {
             return (T) new FileItem(snapshot);
-        } else if (SharedItem.class.equals(tClass)) {
-            return (T) new SharedItem(snapshot);
-        } else if (ProfileItem.class.equals(tClass)) {
+        }
+        else if (ProfileItem.class.equals(tClass)) {
             return (T) new ProfileItem(snapshot);
         }
         return null;

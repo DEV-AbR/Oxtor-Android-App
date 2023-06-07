@@ -1,17 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-<!--    <style name="Theme.Oxtor.SearchView" parent="Widget.AppCompat.SearchView.ActionBar">-->
-<!--        <item name="queryBackground">?attr/colorOnPrimary</item>-->
-<!--        <item name="submitBackground">?attr/colorSecondary</item>-->
-<!--        <item name="android:textColorPrimary">?attr/colorPrimary</item>-->
-<!--        <item name="android:textColorHint">?attr/colorAccent</item>-->
-<!--        <item name="android:closeIcon">@drawable/ic_baseline_close_24</item>-->
-<!--        <item name="android:searchIcon">@drawable/ic_baseline_search_24</item>-->
-<!--    </style>-->
 
     <style name="Theme.Oxtor.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.ActionBar">
-<!--        <item name="android:searchViewStyle">@style/Theme.Oxtor.SearchView</item>-->
-<!--        <item name="actionModeTheme">@style/Theme.Oxtor.ActionMode</item>-->
+
         <item name="itemPadding">4dp</item>
     </style>
 
@@ -23,18 +14,14 @@
         <item name="shapeAppearanceOverlay">@style/dialogAppearance</item>
     </style>
 
-<!--    <style name="Theme.Oxtor.ActionMode" parent="ThemeOverlay.MaterialComponents.ActionBar">-->
-<!--        <item name="iconTint">?attr/colorOnSecondary</item>-->
-<!--        <item name="android:backgroundTint">?attr/colorOnPrimary</item>-->
-<!--    </style>-->
 
     <style name="Theme.Oxtor.AlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <item name="shapeAppearanceOverlay">@style/dialogAppearance</item>
-<!--        <item name="android:textSize">12sp</item>-->
+
     </style>
     <style name="Theme.Oxtor.ProgressDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <item name="shapeAppearanceOverlay">@style/dialogAppearance</item>
-        <!--        <item name="android:textSize">12sp</item>-->
+
     </style>
 
     <style name="Theme.Oxtor.BottomSheetStyle" parent="ThemeOverlay.Material3.BottomSheetDialog">>

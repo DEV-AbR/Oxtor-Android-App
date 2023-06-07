@@ -16,6 +16,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,6 +64,16 @@ public class StorageRepository  {
         return storageReference.putStream(cis,metadata);
     }
 
+    public UploadTask UploadFile(FileItem fileItem, ProfileItem profileItem) {
+        fileItem.setStorageReference(profileItem.getStorageReference()
+                + fileItem.getFileType() +"/" + fileItem.getUid() + "/" + fileItem.getFileName()+"/");
+        StorageReference storageReference= storage.getReference().child(fileItem.getStorageReference());
+        StorageMetadata metadata = new StorageMetadata.Builder().setContentType(fileItem.getFileType())
+                .setCustomMetadata(UID, fileItem.getUid()).setCustomMetadata(FILENAME, fileItem.getFileName())
+                .setCustomMetadata(ENCRYPTED,String.valueOf(fileItem.isEncrypted())).build();
+        return storageReference.putFile(Uri.parse(fileItem.getFilePath()),metadata);
+    }
+
     public Task<Void> RenameFile(String s,FileItem fileItem,ProfileItem profileItem){
         StorageMetadata metadata=new StorageMetadata.Builder().setCustomMetadata(FILENAME,s).build();
        return storage.getReference().child(fileItem.getStorageReference()).updateMetadata(metadata)
@@ -105,10 +116,9 @@ public class StorageRepository  {
         });
     }
 
-    public FileTask<FileDownloadTask> downloadFile(FileItem fileItem, Uri uri) {
+    public FileDownloadTask downloadFile(FileItem fileItem, Uri uri) {
         StorageReference storageReference=storage.getReference().child(fileItem.getStorageReference());
-        FileDownloadTask task = storageReference.getFile(uri);
-        return new FileTask<>(fileItem,task);
+        return storageReference.getFile(uri);
     }
 
     public Task<Void> getTaskOfTasks() {
@@ -116,5 +126,6 @@ public class StorageRepository  {
         Task<Void> uploadTasks=Tasks.whenAll(storage.getReference().getActiveUploadTasks());
         return Tasks.whenAll(uploadTasks,downloadTasks);
     }
+
 
 }

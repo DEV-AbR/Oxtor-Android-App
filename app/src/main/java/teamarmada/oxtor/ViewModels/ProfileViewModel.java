@@ -55,6 +55,7 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     private final MutableLiveData<ProfileItem> profileItem;
     private final SharedPreferences sharedPreferences;
     private final MutableLiveData<Long> usedSpace;
+
     @Inject
     public ProfileViewModel(@ApplicationContext Context context){
         this.authRepository = new AuthRepository();
@@ -80,15 +81,6 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
                     sharedPreferences.edit().putString(USERNAME,task.getResult()).apply();
                     return Unit.INSTANCE;
                 }).addOnCompleteListener(this);
-    }
-
-    public Task<HttpsCallableResult> updateUsername(String un) {
-        setIsTaskRunning(true);
-        return functionsRepository.updateUsername(un)
-                .continueWithTask(task->{
-                    setIsTaskRunning(!task.isComplete());
-                    return task;
-        });
     }
     
     public void updateEncryptionSetting(boolean b1) {

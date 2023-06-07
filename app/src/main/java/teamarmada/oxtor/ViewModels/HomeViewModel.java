@@ -49,18 +49,16 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
     public static final String TAG = HomeViewModel.class.getSimpleName();
     private final FirestoreRepository firestoreRepository;
     private final StorageRepository storageRepository;
-    private final FunctionsRepository functionsRepository;
     private final MutableLiveData<Boolean> isTaskRunning;
     private final Executor executor = Executors.newCachedThreadPool();
     private final MutableLiveData<ProfileItem> profileItem;
     private final SharedPreferences sharedPreferences;
-    private InternetConnectionLiveData internetConnectionLiveData;
+
 
     @Inject
     public HomeViewModel(@ApplicationContext Context context) {
         this.storageRepository = StorageRepository.getInstance();
         this.firestoreRepository = FirestoreRepository.getInstance();
-        this.functionsRepository = FunctionsRepository.getInstance();
         AuthRepository authRepository = new AuthRepository();
         isTaskRunning = new MutableLiveData<>(false);
         profileItem=new MutableLiveData<>(authRepository.getProfileItem());
@@ -87,45 +85,6 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
                     sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
                     return Unit.INSTANCE;
                     });
-    }
-
-    public Task<HttpsCallableResult> shareFile(@NonNull List<FileItem> fileItems,
-                                               @NonNull String senderUsername,
-                                               @NonNull String receiverUsername) {
-        setIsTaskRunning(true);
-        Map<String,Object> map=new HashMap<>();
-        Gson gson=new Gson();
-        String[] strings=new String[fileItems.size()];
-        for(int i=0;i<fileItems.size();i++){
-            strings[i]=gson.toJson(fileItems.get(i), FileItem.class);
-        }
-        map.put("fileItems",strings);
-        map.put("senderUsername",senderUsername);
-        map.put("receiverUsername",receiverUsername);
-        return functionsRepository.shareFile(map).continueWithTask(task -> {
-            setIsTaskRunning(!task.isComplete());
-            return task;
-        });
-    }
-
-    public void checkUsername() {
-        setIsTaskRunning(true);
-        firestoreRepository.fetchUsername(profileItem.getValue())
-                .continueWith(executor,task -> {
-                    try {
-                        ProfileItem profileItem1 = profileItem.getValue();
-                        profileItem1.setUsername(task.getResult());
-                        profileItem.setValue(profileItem1);
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                    return Unit.INSTANCE;
-                })
-                .addOnCompleteListener(executor,this);
-    }
-
-    public Task<String> fetchUsername() {
-        return firestoreRepository.fetchUsername(profileItem.getValue());
     }
     
     public LiveData<Boolean> getIsTaskRunning() {

@@ -25,14 +25,13 @@ import java.util.Map;
 import kotlin.Unit;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
-import teamarmada.oxtor.Model.SharedItem;
+
 
 
 public class FirestoreRepository {
 
     public static final String TAG= FirestoreRepository.class.getSimpleName();
     private static FirestoreRepository firestoreRepository=null;
-    private final FunctionsRepository functionsRepository;
     private final FirebaseFirestore db;
     public static final String USERS="users";
     public static final String POSTS="posts";
@@ -47,7 +46,6 @@ public class FirestoreRepository {
                 .Builder().setPersistenceEnabled(true).build();
         db=FirebaseFirestore.getInstance();
         db.setFirestoreSettings(settings);
-        functionsRepository = FunctionsRepository.getInstance();
     }
 
     public synchronized static FirestoreRepository getInstance(){
@@ -75,12 +73,6 @@ public class FirestoreRepository {
                 posts=docRef.collection(POSTS).document(),
                 sharedPosts=docRef.collection(SHARED_POSTS).document();
         return db.runBatch(batch -> batch.delete(posts).delete(sharedPosts).delete(docRef));
-    }
-
-    public Task<Void> deleteAllFiles(ProfileItem profileItem){
-        DocumentReference docRef=db.collection(USERS).document(profileItem.getUid()),
-                posts=docRef.collection("posts").document();
-        return db.runBatch(batch -> batch.delete(posts));
     }
 
     public Task<Void> createFile(FileItem fileItem, ProfileItem profileItem){
@@ -120,21 +112,6 @@ public class FirestoreRepository {
         return db.collection(USERS).document(profileItem.getUid()).update(MESSAGING_TOKEN,null);
     }
 
-    public Task<Void> deleteSharedPost(SharedItem sharedItem, ProfileItem profileItem) {
-        DocumentReference docRef=db.collection(USERS)
-                .document(profileItem.getUid())
-                .collection(SHARED_POSTS)
-                .document(sharedItem.getFileItem().getUid());
-        return  db.batch().delete(docRef).commit();
-    }
-
-    public Task<Void> updateSharedItem(Map<String,Object> map, ProfileItem profileItem) {
-        String uid =(String) map.get(UID);
-        if(uid==null) throw new NullPointerException("Hashmap does not have any uid");
-        DocumentReference docRef=db.collection(USERS)
-                .document(profileItem.getUid()).collection(POSTS).document(uid);
-        return db.batch().update(docRef,map).commit();
-    }
 
     public Task<ProfileItem> fetchProfileItem(ProfileItem profileItem) {
         return db.collection(USERS).document(profileItem.getUid()).get()
@@ -197,27 +174,6 @@ public class FirestoreRepository {
         if(profileItem.getUid()!=null)
             return db.collection(USERS).document(profileItem.getUid())
                 .collection(POSTS).orderBy(FILENAME, Query.Direction.ASCENDING);
-        else return null;
-    }
-
-    public Query sortSharedPostByTimestamp(ProfileItem profileItem) {
-        if(profileItem.getUid()!=null)
-            return db.collection(USERS).document(profileItem.getUid())
-                .collection(SHARED_POSTS).orderBy(TIMESTAMP, Query.Direction.ASCENDING);
-        else return null;
-    }
-
-    public Query sortSharedPostBySize(ProfileItem profileItem) {
-        if(profileItem.getUid()!=null)
-            return db.collection(USERS).document(profileItem.getUid())
-                .collection(SHARED_POSTS).orderBy(FILE_SIZE, Query.Direction.ASCENDING);
-        else return null;
-    }
-
-    public Query sortSharedPostByName(ProfileItem profileItem) {
-        if(profileItem.getUid()!=null)
-        return db.collection(USERS).document(profileItem.getUid())
-                .collection(SHARED_POSTS).orderBy(FILENAME, Query.Direction.ASCENDING);
         else return null;
     }
     

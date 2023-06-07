@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
@@ -37,6 +38,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
@@ -183,11 +185,17 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     }
 
     private void observeDownloadTasks(){
-        mainViewModel.mutableDownloadList.observe(this, fileTaskItems -> {
+        mainViewModel.mutableStreamDownloadList.observe(this, fileTaskItems -> {
             for (FileTask<StreamDownloadTask> fileTaskItem : fileTaskItems) {
-                fileTaskItem.getTask().addOnCompleteListener(task->mainViewModel.removeDownloadItem(fileTaskItem));
+                fileTaskItem.getTask().addOnCompleteListener(task->mainViewModel.removeStreamDownloadItem(fileTaskItem));
             }
-            whenListIsEmpty(mainViewModel.mutableDownloadList.getValue().isEmpty(),1);
+            whenListIsEmpty(mainViewModel.mutableStreamDownloadList.getValue().isEmpty(),1);
+        });
+        mainViewModel.mutableFileDownloadList.observe(this, fileTaskItems -> {
+            for (FileTask<FileDownloadTask> fileTaskItem : fileTaskItems) {
+                fileTaskItem.getTask().addOnCompleteListener(task->mainViewModel.removeFileDownloadItem(fileTaskItem));
+            }
+            whenListIsEmpty(mainViewModel.mutableFileDownloadList.getValue().isEmpty(),1);
         });
     }
 
@@ -289,7 +297,9 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if(item.getItemId()==R.id.nightmode){
-            if(!mainViewModel.mutableUploadList.getValue().isEmpty() || !mainViewModel.mutableDownloadList.getValue().isEmpty())
+            if(!mainViewModel.mutableUploadList.getValue().isEmpty()
+                    || !mainViewModel.mutableStreamDownloadList.getValue().isEmpty()
+                    || !mainViewModel.mutableFileDownloadList.getValue().isEmpty())
                 createAlertDialog().show();
             else
                 changeTheme(item);
@@ -335,11 +345,11 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     public void showNavigationBar() {
         navView.setVisibility(View.VISIBLE);
         try {
-            navView.inflateMenu(R.menu.bottom_nav_menu);
-            NavigationUI.setupWithNavController(navView, navControllerMain);
-        }catch (Exception e){
+            navView.showContextMenu();
+        }catch(Exception e){
             e.printStackTrace();
         }
+
     }
 
     @SuppressLint("SuspiciousIndentation")
