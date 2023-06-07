@@ -18,9 +18,12 @@ import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.Date;
 
 import teamarmada.oxtor.Model.FileItem;
+import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Repository.AuthRepository;
 import teamarmada.oxtor.Repository.FirestoreRepository;
@@ -37,30 +40,33 @@ public class FileCleanupWorker extends Worker {
         super(context, workerParams);
         workManager=WorkManager.getInstance(context);
         AuthRepository authRepository=new AuthRepository();
-        FirestoreRepository.getInstance().sortByTimestamp(authRepository.getProfileItem())
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> queryDocumentSnapshots.getDocuments().forEach(snapshot -> {
-                    FileItem fileItem;
-                    try{
-                        fileItem=snapshot.toObject(FileItem.class);
+        authRepository.getAuth().addAuthStateListener(firebaseAuth -> {
+            if(firebaseAuth!=null)
+            FirestoreRepository.getInstance().sortByTimestamp(authRepository.getProfileItem())
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> queryDocumentSnapshots.getDocuments().forEach(snapshot -> {
+                        FileItem fileItem;
+                        try{
+                            fileItem=snapshot.toObject(FileItem.class);
 
-                    }catch (Exception e){
-                        fileItem=new FileItem(snapshot);
-                    }
-                    if(shouldDeleteFile(fileItem.getTimeStamp())){
-                        statusCode=StatusCode.TO_DELETE;
-                        FileItem finalFileItem = fileItem;
-                        StorageRepository.getInstance().deleteFile(fileItem, authRepository.getProfileItem())
-                                .addOnSuccessListener(task->{
-                                    statusCode=StatusCode.IS_DELETED;
-                                    initNotificationWork(finalFileItem.getFileName());
-                                })
-                                .addOnFailureListener(e-> statusCode=StatusCode.IT_FAILED);
-                    }
-                    else{
-
-                    }
-                }));
+                        }catch (Exception e){
+                            fileItem=new FileItem(snapshot);
+                        }
+                        if(shouldDeleteFile(fileItem.getTimeStamp())){
+                            statusCode=StatusCode.TO_DELETE;
+                            FileItem finalFileItem = fileItem;
+                            StorageRepository.getInstance().deleteFile(fileItem, authRepository.getProfileItem())
+                                    .addOnSuccessListener(task->{
+                                        statusCode=StatusCode.IS_DELETED;
+                                        initNotificationWork(finalFileItem.getFileName());
+                                    })
+                                    .addOnFailureListener(e-> statusCode=StatusCode.IT_FAILED);
+                        }
+                        else{
+                            statusCode=StatusCode.NOT_TO_DELETE;
+                        }
+                    }));
+        });
     }
 
     public boolean shouldDeleteFile(Date uploadDate) {
@@ -96,9 +102,7 @@ public class FileCleanupWorker extends Worker {
     }
 
     public enum StatusCode {
-        TO_DELETE(0),
-        IS_DELETED(1),
-        IT_FAILED(2);
+        TO_DELETE(0), IS_DELETED(1), IT_FAILED(2), NOT_TO_DELETE(3);
         private final int status;
         StatusCode(int status) {
             this.status=status;
