@@ -4,7 +4,6 @@ import static teamarmada.oxtor.Model.FileItem.ENCRYPTED;
 import static teamarmada.oxtor.Model.FileItem.FILENAME;
 import static teamarmada.oxtor.Model.FileItem.UID;
 
-import android.content.Context;
 import android.net.Uri;
 
 import com.google.android.gms.tasks.Task;
@@ -16,15 +15,16 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
 
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.Model.ProfileItem;
-import teamarmada.oxtor.Utils.FileItemUtils;
 
 public class StorageRepository  {
 

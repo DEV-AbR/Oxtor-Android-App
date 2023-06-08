@@ -1,15 +1,8 @@
 package teamarmada.oxtor.Service;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.graphics.drawable.Icon;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.navigation.NavDeepLinkBuilder;
 import androidx.work.Constraints;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
@@ -18,13 +11,9 @@ import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.google.firebase.auth.FirebaseAuth;
-
 import java.util.Date;
 
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.Model.ProfileItem;
-import teamarmada.oxtor.R;
 import teamarmada.oxtor.Repository.AuthRepository;
 import teamarmada.oxtor.Repository.FirestoreRepository;
 import teamarmada.oxtor.Repository.StorageRepository;

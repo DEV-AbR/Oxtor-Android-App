@@ -6,8 +6,6 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.startup.Initializer;
 
-import com.bumptech.glide.load.engine.Initializable;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -22,7 +20,6 @@ public class StorageCleanerInitializer implements Initializer<Unit> {
         Intent serviceIntent = new Intent(context, CloudStorageCleaner.class);
         context.startService(serviceIntent);
         return Unit.INSTANCE;
-
     }
 
     @NonNull

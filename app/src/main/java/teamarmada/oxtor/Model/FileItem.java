@@ -20,6 +20,7 @@ public class FileItem implements Serializable {
     private String fileExtension;
     private Long fileSize;
     private Boolean encrypted;
+    private Boolean exists;
     private String iv,encryptionPassword;
     private @ServerTimestamp Date timeStamp;
 
@@ -34,6 +35,7 @@ public class FileItem implements Serializable {
     public static final String FILE_SIZE="fileSize";
     public static final String UID="uid";
     public static final String IV="iv";
+    public static final String EXISTS="exists";
     public static final String ENCRYPTION_PASSWORD="encryptionPassword";
 
     public FileItem(){}
@@ -55,12 +57,20 @@ public class FileItem implements Serializable {
         }
         catch (Exception e){
             e.printStackTrace();
+            encrypted=false;
+        }
+        try {
+            exists=(iv!=null)?documentSnapshot.get(EXISTS,Boolean.class):false;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            exists=false;
         }
     }
 
     public FileItem(String storageReference, String downloadUrl, String filePath,
                     String fileName, String uid, String fileType, String fileExtension,
-                    Long fileSize, boolean encrypted,String iv, Date timeStamp) {
+                    Long fileSize, Boolean encrypted,Boolean exists,String iv, Date timeStamp) {
         this.storageReference = storageReference;
         this.fileExtension = fileExtension;
         this.downloadUrl = downloadUrl;
@@ -72,6 +82,15 @@ public class FileItem implements Serializable {
         this.fileSize = fileSize;
         this.uid = uid;
         this.iv=iv;
+        this.exists=exists;
+    }
+
+    public Boolean doesItExists() {
+        return exists;
+    }
+
+    public void setExists(Boolean exists) {
+        this.exists = exists;
     }
 
     public String getStorageReference() {
@@ -190,6 +209,7 @@ public class FileItem implements Serializable {
         hashMap.put(FILE_SIZE,fileSize);
         hashMap.put(ENCRYPTED,encrypted);
         hashMap.put(IV,iv);
+        hashMap.put(EXISTS,exists);
         hashMap.put(ENCRYPTION_PASSWORD,encryptionPassword);
         hashMap.put(TIMESTAMP,timeStamp);
         return hashMap;

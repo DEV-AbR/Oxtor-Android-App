@@ -1,7 +1,5 @@
 package teamarmada.oxtor.Model;
 
-import android.content.SharedPreferences;
-
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.ServerTimestamp;

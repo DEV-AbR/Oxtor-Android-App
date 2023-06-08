@@ -3,7 +3,6 @@ package teamarmada.oxtor.ViewModels;
 import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Main.MainActivity.USED_SPACE;
 import static teamarmada.oxtor.Model.ProfileItem.TO_ENCRYPT;
-import static teamarmada.oxtor.Model.ProfileItem.UID;
 import static teamarmada.oxtor.Model.ProfileItem.USERNAME;
 
 import android.content.Context;
@@ -19,13 +18,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.functions.HttpsCallableResult;
-import com.google.firebase.storage.UploadTask;
 
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -38,7 +31,6 @@ import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
 import teamarmada.oxtor.Repository.FirestoreRepository;
-import teamarmada.oxtor.Repository.FunctionsRepository;
 import teamarmada.oxtor.Repository.StorageRepository;
 
 
@@ -51,7 +43,6 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
     private final FirestoreRepository firestoreRepository;
     private final MutableLiveData<Boolean> isTaskRunning;
     private final Executor executor= Executors.newCachedThreadPool();
-    private final FunctionsRepository functionsRepository;
     private final MutableLiveData<ProfileItem> profileItem;
     private final SharedPreferences sharedPreferences;
     private final MutableLiveData<Long> usedSpace;
@@ -61,7 +52,6 @@ public class ProfileViewModel extends ViewModel implements OnCompleteListener<Un
         this.authRepository = new AuthRepository();
         this.storageRepository = StorageRepository.getInstance();
         this.firestoreRepository = FirestoreRepository.getInstance();
-        this.functionsRepository= FunctionsRepository.getInstance();
         isTaskRunning=new MutableLiveData<>(false);
         profileItem=new MutableLiveData<>(authRepository.getProfileItem());
         sharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);

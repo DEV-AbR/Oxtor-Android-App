@@ -10,9 +10,7 @@
         android:name="teamarmada.oxtor.Fragments.ParentFragments.HomeFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home">
-
     </fragment>
-
 
     <fragment
         android:id="@+id/navigation_profile"

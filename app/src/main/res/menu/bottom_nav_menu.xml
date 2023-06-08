@@ -8,13 +8,6 @@
         android:orderInCategory="0"
         />
 
-<!--    <item-->
-<!--        android:id="@+id/navigation_shared"-->
-<!--        android:icon="@drawable/ic_baseline_link_24"-->
-<!--        android:title="@string/title_shared"-->
-<!--        android:orderInCategory="1"-->
-<!--        />-->
-
     <item
         android:id="@+id/navigation_profile"
         android:icon="@drawable/ic_baseline_account_circle_24"

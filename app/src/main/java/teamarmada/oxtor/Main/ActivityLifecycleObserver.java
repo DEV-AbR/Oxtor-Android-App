@@ -1,8 +1,7 @@
 package teamarmada.oxtor.Main;
 
-import static teamarmada.oxtor.Main.ActivityLifecycleObserver.RequestCode.DOWNLOAD_TASK;
-import static teamarmada.oxtor.Main.ActivityLifecycleObserver.RequestCode.UPLOAD_TASK;
-
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -11,7 +10,6 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
@@ -23,7 +21,6 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,23 +28,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import kotlin.Unit;
-
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.R;
-import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.ViewModels.MainViewModel;
 
 public class ActivityLifecycleObserver extends FullScreenContentCallback implements DefaultLifecycleObserver {
-
-    public static final String TAG = ActivityLifecycleObserver.class.getSimpleName();
+    private static final String TAG = ActivityLifecycleObserver.class.getSimpleName();
     private static ActivityLifecycleObserver activityLifecycleObserver;
     private final List<FileItem> fileItems = new ArrayList<>();
     private final MainViewModel mainViewModel;
     private final AppCompatActivity activity;
     private RequestCode requestCode;
     private AdView adView;
-    private Thread thread;
-    private boolean isThreadRunning = false;
+    private ExecutorService executorService;
     private boolean isPaused = false;
     private final Object threadLock = new Object();
 
@@ -85,27 +77,25 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private void startThread() {
-        if (!isThreadRunning) {
-            thread = new Thread(() -> {
-                isThreadRunning = true;
-                while (!Thread.currentThread().isInterrupted()) {
-                    if (!isPaused) {
-                        continueAction(fileItems, requestCode);
-                    } else {
-                        // Execution is paused, wait for resume signal
-                        synchronized (threadLock) {
-                            try {
-                                threadLock.wait();
-                            } catch (InterruptedException e) {
-                                // Handle interruption if needed
-                            }
+        if (executorService == null || executorService.isShutdown()) {
+            executorService = Executors.newSingleThreadExecutor();
+        }
+
+        executorService.execute(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                if (!isPaused) {
+                    continueAction(fileItems, requestCode);
+                } else {
+                    synchronized (threadLock) {
+                        try {
+                            threadLock.wait();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
-                isThreadRunning = false;
-            });
-            thread.start();
-        }
+            }
+        });
     }
 
     private void continueAction(@NonNull List<FileItem> fileItems, RequestCode requestCode) {
@@ -126,14 +116,16 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
 
     private void continueUpload(List<FileItem> fileItems) {
         for (int i = 0; i < fileItems.size(); i++) {
-            uploadFile(fileItems.get(i));
+            final FileItem fileItem = fileItems.get(i);
+            executorService.execute(() -> uploadFile(fileItem));
         }
         fileItems.clear();
     }
 
     private void continueDownload(List<FileItem> fileItems) {
         for (int i = 0; i < fileItems.size(); i++) {
-            downloadFile(fileItems.get(i));
+            final FileItem fileItem = fileItems.get(i);
+            executorService.execute(() -> downloadFile(fileItem));
         }
         fileItems.clear();
     }
@@ -141,10 +133,10 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private void uploadFile(FileItem fileItem) {
         Task<Unit> uploadTask;
         try {
-            uploadTask = mainViewModel.uploadUsingByteArray(fileItem,activity);
+            uploadTask = mainViewModel.uploadUsingByteArray(fileItem, activity, executorService);
         } catch (Exception e) {
             try {
-                uploadTask = mainViewModel.uploadUsingInputStream(fileItem,activity);
+                uploadTask = mainViewModel.uploadUsingInputStream(fileItem, activity, executorService);
             } catch (Exception ex) {
                 mainViewModel.setIsTaskRunning(false);
                 makeToast(ex.toString());
@@ -154,6 +146,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         uploadTask.addOnSuccessListener(activity, unit -> {
             if (fileItems.indexOf(fileItem) == fileItems.size() - 1) {
                 makeToast("Upload Completed");
+                makeToast("All files will be destroyed after 24 hours");
             }
         }).addOnFailureListener(activity, e -> makeToast(e.toString()));
     }
@@ -161,13 +154,17 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     private void downloadFile(FileItem fileItem) {
         Task<Unit> downloadTask;
         try {
-            downloadTask = mainViewModel.downloadUsingInputStream(fileItem,activity);
+            downloadTask = mainViewModel.downloadUsingInputStream(fileItem, activity, executorService);
         } catch (Exception e) {
             try {
                 downloadTask = mainViewModel.downloadUsingDownloadManager(fileItem, activity);
             } catch (Exception ex) {
                 mainViewModel.setIsTaskRunning(false);
                 makeToast(ex.toString());
+                makeToast("Viewing in web browser");
+                Uri url = Uri.parse(fileItem.getDownloadUrl());
+                Intent i= new Intent(Intent.ACTION_VIEW,url);
+                activity.startActivity(i);
                 return;
             }
         }
@@ -200,7 +197,7 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private void makeToast(String msg) {
-        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
+        activity.runOnUiThread(() -> Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -209,10 +206,9 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             makeToast("Resuming...");
         mainViewModel.setAppOpenAd(null);
         mainViewModel.setIsTaskRunning(false);
-        if (!isThreadRunning) {
+        if (executorService == null || executorService.isShutdown()) {
             startThread();
         }
-        super.onAdDismissedFullScreenContent();
     }
 
     @Override
@@ -220,25 +216,24 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         makeToast("Showing Ad failed...");
         mainViewModel.setAppOpenAd(null);
         mainViewModel.setIsTaskRunning(false);
-        if (!isThreadRunning) {
+        if (executorService == null || executorService.isShutdown()) {
             startThread();
         }
-        super.onAdFailedToShowFullScreenContent(adError);
     }
 
     @Override
     public void onAdShowedFullScreenContent() {
-        if (!isThreadRunning) {
+        if (executorService == null || executorService.isShutdown()) {
             startThread();
         }
-        super.onAdShowedFullScreenContent();
     }
 
     @Override
     public void onAdClicked() {
         mainViewModel.setIsTaskRunning(false);
-        thread.interrupt();
-        super.onAdClicked();
+        if (executorService != null) {
+            executorService.shutdownNow();
+        }
     }
 
     @Override
@@ -252,7 +247,6 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             }
             mainViewModel.loadAppOpenAd();
         }
-        DefaultLifecycleObserver.super.onStart(owner);
     }
 
     @Override
@@ -261,7 +255,6 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             adView.pause();
         }
         onPauseExecution();
-        DefaultLifecycleObserver.super.onPause(owner);
     }
 
     @Override
@@ -270,52 +263,36 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             adView.resume();
         }
         onResumeExecution();
-        DefaultLifecycleObserver.super.onResume(owner);
-    }
-
-    @Override
-    public void onDestroy(@NonNull LifecycleOwner owner) {
-        if (adView != null) {
-            adView.destroy();
-        }
-        if (thread != null) {
-            thread.interrupt();
-            thread = null; // Release the reference to the thread
-        }
-        DefaultLifecycleObserver.super.onDestroy(owner);
     }
 
     private void onPauseExecution() {
-        synchronized (threadLock) {
-            isPaused = true;
+        isPaused = true;
+        if (executorService != null) {
+            executorService.shutdownNow();
         }
     }
 
     private void onResumeExecution() {
+        isPaused = false;
         synchronized (threadLock) {
-            isPaused = false;
-            try {
-                threadLock.notifyAll();
-            } catch (Exception e) {
-                makeToast("_");
-            }
+            threadLock.notifyAll();
         }
     }
 
-
-    public enum RequestCode {
-        UPLOAD_TASK(1001),
-        DOWNLOAD_TASK(1002);
-
-        private final int requestCode;
-
-        RequestCode(int requestCode) {
-            this.requestCode = requestCode;
+    @Override
+    public void onStop(@NonNull LifecycleOwner owner) {
+        if (adView != null) {
+            adView.destroy();
         }
-
-        public int getRequestCode() {
-            return requestCode;
+        if (executorService != null) {
+            executorService.shutdownNow();
         }
+    }
+
+    private enum RequestCode {
+        UPLOAD_TASK,
+        DOWNLOAD_TASK
     }
 }
+
 

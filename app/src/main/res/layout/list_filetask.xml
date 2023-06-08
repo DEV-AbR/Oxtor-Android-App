@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
@@ -8,6 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingVertical="4dp"
+        android:background="@drawable/list_item_background"
         android:id="@+id/list_file_item_layout">
 
         <androidx.cardview.widget.CardView
@@ -26,7 +26,6 @@
                 app:cardElevation="0dp">
 
                 <ImageView
-
                     android:id="@+id/picture"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
@@ -47,12 +46,10 @@
             android:layout_toEndOf="@id/cardview"
             android:layout_toStartOf="@id/remove_button"
             android:paddingVertical="16dp"
-            android:paddingHorizontal="16dp"
-            >
+            android:paddingHorizontal="16dp">
 
 
             <com.google.android.material.textview.MaterialTextView
-
                 android:id="@+id/name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -61,7 +58,6 @@
                 android:text="@string/filename" />
 
                 <com.google.android.material.textview.MaterialTextView
-
                     android:id="@+id/size"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -69,7 +65,6 @@
                     android:text="@string/filesize" />
 
                 <com.google.android.material.textview.MaterialTextView
-
                     android:id="@+id/timestamp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -85,15 +80,17 @@
                 app:trackThickness="2dp" />
 
         </RelativeLayout>
-<ImageButton
-    android:layout_width="32dp"
-    android:layout_height="32dp"
-    android:src="@drawable/ic_baseline_close_24"
-    style="@style/Widget.AppCompat.Button.Borderless"
-    app:tint="?attr/colorPrimaryVariant"
-    android:id="@+id/remove_button"
-    android:layout_alignBottom="@id/cardview"
-    android:layout_alignTop="@id/cardview"
-    android:layout_alignParentEnd="true"/>
+
+        <ImageButton
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_baseline_close_24"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            app:tint="?attr/colorPrimaryVariant"
+            android:id="@+id/remove_button"
+            android:layout_alignBottom="@id/cardview"
+            android:layout_alignTop="@id/cardview"
+            android:layout_alignParentEnd="true"/>
+
     </RelativeLayout>
 </layout>

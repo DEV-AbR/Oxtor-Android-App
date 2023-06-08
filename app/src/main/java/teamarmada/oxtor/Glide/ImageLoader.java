@@ -27,7 +27,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
 import teamarmada.oxtor.Utils.AES;
 

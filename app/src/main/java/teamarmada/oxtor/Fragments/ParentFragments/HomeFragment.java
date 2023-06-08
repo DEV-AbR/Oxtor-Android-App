@@ -31,7 +31,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModel;
@@ -42,17 +41,13 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.Query;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import teamarmada.oxtor.Fragments.ChildFragments.FileItemFragment;
@@ -189,7 +184,9 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 permissions[1]) == PackageManager.PERMISSION_GRANTED;
     }
 
-    private final ActivityResultLauncher<String[]> permissionLauncher=
+
+
+        private final ActivityResultLauncher<String[]> permissionLauncher=
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result ->  {
                 if(!checkForPermissions()) {
                                 Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
@@ -247,16 +244,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             new ListItemCallback<FileItem, ListFileitemBinding>() {
                 @Override
                 public void bind(ListFileitemBinding recBinding,FileItem item,int position) {
-                    if (item.getFileType().contains("image")) {
-                        Glide.with(recBinding.picture).load(item).into(recBinding.picture);
-                    }
-                    else {
-                        FileItemUtils.loadPhoto(item,recBinding.picture);
-                    }
-                    if(item.getTimeStamp()!=null) {
-                        String time = FileItemUtils.getTimestampString(item.getTimeStamp());
-                        recBinding.timestamp.setText(time);
-                    }
+                    recBinding.executePendingBindings();
                     recBinding.name.setText(item.getFileName());
                     recBinding.size.setText(FileItemUtils.byteToString(item.getFileSize()));
                     recBinding.getRoot().setOnClickListener(v->{
@@ -269,7 +257,20 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                             itemBottomSheet.dismiss();
                         }
                     });
-                    recBinding.setLifecycleOwner(HomeFragment.this);
+                    if(!item.doesItExists()){
+                        recBinding.picture.setImageResource(R.drawable.ic_baseline_file_present_24);
+                        recBinding.timestamp.setText("File deleted");
+                        return;
+                    }
+                    if(item.getTimeStamp()!=null) {
+                        recBinding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
+                    }
+                    if (item.getFileType().contains("image")) {
+                        Glide.with(recBinding.picture).load(item).into(recBinding.picture);
+                    }
+                    else {
+                        FileItemUtils.loadPhoto(item,recBinding.picture);
+                    }
                 }
                 @Override
                 public void onChanged(List<FileItem> items) {
@@ -387,7 +388,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void uploadSelectedFiles(List<Uri> results){
-        Snackbar.make(binding.getRoot(),"All files will be destroyed after 24 hours",Snackbar.LENGTH_SHORT).show();
         List<FileItem> fileItems=new ArrayList<>();
         long size=0;
         for(int i=0;i<results.size();i++){
@@ -395,14 +395,13 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             fileItems.add(FileItemUtils.getFileItemFromPath(requireContext(),uri));
             size+=fileItems.get(i).getFileSize();
         }
-        if (size <=5* FileItemUtils.ONE_GIGABYTE) {
+        if (size <= 5*FileItemUtils.ONE_GIGABYTE) {
             activityLifecycleObserver.startUpload(fileItems);
         }
         else {
             Snackbar.make(binding.getRoot(), "Can't upload as you are only permitted 5GB of space on this account",Snackbar.LENGTH_SHORT).show();
         }
     }
-
 
     public void uploadFileByIntent(Intent intent) {
         String action = intent.getAction();

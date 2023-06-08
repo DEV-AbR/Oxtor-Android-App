@@ -1,49 +1,35 @@
 package teamarmada.oxtor.Utils;
 
-import static teamarmada.oxtor.Main.MainActivity.PREFS;
-import static teamarmada.oxtor.Model.ProfileItem.TO_ENCRYPT;
-
-
 import android.app.ActivityManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.PowerManager;
-import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.FileProvider;
+
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.StorageTask;
+import com.google.firebase.storage.StreamDownloadTask;
+import com.google.firebase.storage.UploadTask;
 
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-import javax.crypto.CipherInputStream;
-
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.R;
 
 public class FileItemUtils {
@@ -174,7 +160,8 @@ public class FileItemUtils {
                 .setFileName(name)
                 .setEncrypted(false)
                 .setUid(UUID.randomUUID().toString())
-                .setFileSize(getSizeLong(context,path));
+                .setFileSize(getSizeLong(context,path))
+                .setExists(true);
         return fileItem;
     }
 
@@ -227,6 +214,5 @@ public class FileItemUtils {
         int bufferSize = (int) Math.min(Math.max(availableMemory / 4, fileSize / 100), maxBufferSize);
         return Math.max(bufferSize, minBufferSize);
     }
-
 
 }

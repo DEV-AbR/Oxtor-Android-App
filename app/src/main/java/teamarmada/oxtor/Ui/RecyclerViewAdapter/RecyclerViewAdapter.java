@@ -1,8 +1,5 @@
 package teamarmada.oxtor.Ui.RecyclerViewAdapter;
 
-import static android.view.View.INVISIBLE;
-import static android.view.View.VISIBLE;
-
 import android.annotation.SuppressLint;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -32,7 +29,6 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.gson.Gson;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -41,7 +37,6 @@ import java.util.List;
 import teamarmada.oxtor.Interfaces.ListItemCallback;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
-import teamarmada.oxtor.R;
 
 
 public class RecyclerViewAdapter<T,VB extends ViewDataBinding>

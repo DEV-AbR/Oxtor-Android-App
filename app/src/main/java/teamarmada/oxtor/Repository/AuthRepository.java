@@ -5,7 +5,6 @@ import static teamarmada.oxtor.Model.ProfileItem.PHOTO_URL;
 import static teamarmada.oxtor.Model.ProfileItem.UID;
 
 import android.net.Uri;
-import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;

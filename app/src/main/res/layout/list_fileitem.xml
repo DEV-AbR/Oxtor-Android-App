@@ -7,9 +7,10 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingVertical="8dp"
+        android:layout_margin="8dp"
         android:id="@+id/list_file_item_layout"
-        android:background="@drawable/unselected_item_background">
+        android:padding="1dp"
+        android:background="@drawable/list_item_background">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardview"

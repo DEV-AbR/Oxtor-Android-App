@@ -15,14 +15,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firestore.v1.FirestoreGrpc;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.HashMap;
 import java.util.Map;
 
-import kotlin.Unit;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 
@@ -97,7 +94,11 @@ public class FirestoreRepository {
                 .document(profileItem.getUid())
                 .collection(POSTS)
                 .document(fileItem.getUid());
-        return  db.batch().delete(docRef).commit();
+        FileItem fileItem1=new FileItem(null,null,null,
+                fileItem.getFileName(),fileItem.getUid(),fileItem.getFileType(),
+                fileItem.getFileExtension(),fileItem.getFileSize(),
+                false,false,null,fileItem.getTimeStamp());
+        return  db.batch().update(docRef,fileItem1.toHashmap()).commit();
     }
 
     public Task<Void> addMessageToken(ProfileItem profileItem){

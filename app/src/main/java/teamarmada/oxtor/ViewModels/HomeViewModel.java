@@ -15,33 +15,21 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.functions.HttpsCallableResult;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.stream.JsonWriter;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.function.IntFunction;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import kotlin.Unit;
-import teamarmada.oxtor.Livedata.InternetConnectionLiveData;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
 import teamarmada.oxtor.Repository.FirestoreRepository;
-import teamarmada.oxtor.Repository.FunctionsRepository;
 import teamarmada.oxtor.Repository.StorageRepository;
 
 @HiltViewModel

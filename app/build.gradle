@@ -16,8 +16,8 @@ android {
         applicationId "teamarmada.oxtor"
         minSdk 28
         targetSdk 33
-        versionCode 74
-        versionName "8.3"
+        versionCode 77
+        versionName "8.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -56,7 +56,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 // glide
-    implementation 'com.github.bumptech.glide:glide:4.14.2'
+    implementation 'com.github.bumptech.glide:glide:4.15.1'
     kapt 'com.github.bumptech.glide:compiler:4.14.2'
 // firebase
     implementation platform ("com.google.firebase:firebase-bom:30.3.1")
@@ -74,9 +74,9 @@ dependencies {
 
 // google apis
     implementation 'com.google.code.gson:gson:2.9.1'
-    implementation 'com.google.android.gms:play-services-ads:22.0.0'
+    implementation 'com.google.android.gms:play-services-ads:22.1.0'
     implementation 'com.google.android.gms:play-services-auth:20.5.0'
-    implementation 'com.google.android.play:app-update:2.0.1'
+    implementation 'com.google.android.play:app-update:2.1.0'
 //kotlin
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.7.20'

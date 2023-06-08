@@ -39,7 +39,6 @@ import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
 import teamarmada.oxtor.Utils.AES;
-import teamarmada.oxtor.Utils.FileItemUtils;
 
 public class NewImageLoader implements ModelLoader<FileItem, ByteBuffer> {
     private static final String TAG = GlideImageLoader.class.getSimpleName();

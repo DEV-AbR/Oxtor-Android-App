@@ -3,9 +3,7 @@ package teamarmada.oxtor.Livedata;
 import android.app.ActivityManager;
 import android.content.ComponentCallbacks2;
 import android.content.Context;
-import android.content.res.Configuration;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 
 public class MemoryLiveData extends LiveData<Boolean> {

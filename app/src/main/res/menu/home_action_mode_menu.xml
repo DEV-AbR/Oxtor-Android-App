@@ -22,11 +22,4 @@
         app:showAsAction="always"
         android:title="@string/download"/>
 
-<!--    <item-->
-<!--        android:id="@+id/share_button"-->
-<!--        android:orderInCategory="2"-->
-<!--        android:icon="@drawable/ic_baseline_send_24"-->
-<!--        app:showAsAction="always"-->
-<!--        android:title="@string/share"/>-->
-
 </menu>

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
@@ -45,7 +44,6 @@ import com.google.firebase.storage.UploadTask;
 import java.util.UUID;
 
 import dagger.hilt.android.AndroidEntryPoint;
-
 import teamarmada.oxtor.Interfaces.ScreenManager;
 import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.R;
@@ -185,12 +183,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     }
 
     private void observeDownloadTasks(){
-        mainViewModel.mutableStreamDownloadList.observe(this, fileTaskItems -> {
-            for (FileTask<StreamDownloadTask> fileTaskItem : fileTaskItems) {
-                fileTaskItem.getTask().addOnCompleteListener(task->mainViewModel.removeStreamDownloadItem(fileTaskItem));
-            }
-            whenListIsEmpty(mainViewModel.mutableStreamDownloadList.getValue().isEmpty(),1);
-        });
         mainViewModel.mutableFileDownloadList.observe(this, fileTaskItems -> {
             for (FileTask<FileDownloadTask> fileTaskItem : fileTaskItems) {
                 fileTaskItem.getTask().addOnCompleteListener(task->mainViewModel.removeFileDownloadItem(fileTaskItem));
@@ -298,7 +290,6 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if(item.getItemId()==R.id.nightmode){
             if(!mainViewModel.mutableUploadList.getValue().isEmpty()
-                    || !mainViewModel.mutableStreamDownloadList.getValue().isEmpty()
                     || !mainViewModel.mutableFileDownloadList.getValue().isEmpty())
                 createAlertDialog().show();
             else

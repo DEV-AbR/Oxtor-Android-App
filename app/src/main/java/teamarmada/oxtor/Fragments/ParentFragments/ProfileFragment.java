@@ -1,17 +1,13 @@
 package teamarmada.oxtor.Fragments.ParentFragments;
 
 import static android.view.View.GONE;
-import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 import static teamarmada.oxtor.Main.MainActivity.ENCRYPTION_PASSWORD;
 import static teamarmada.oxtor.Main.MainActivity.PREFS;
-import static teamarmada.oxtor.Main.MainActivity.USED_SPACE;
 import static teamarmada.oxtor.Model.ProfileItem.TO_ENCRYPT;
-import static teamarmada.oxtor.Model.ProfileItem.USERNAME;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -31,7 +27,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
-import androidx.core.os.BuildCompat;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -50,7 +45,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 import teamarmada.oxtor.BuildConfig;
 import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
 import teamarmada.oxtor.Utils.FileItemUtils;
@@ -109,7 +103,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         return binding.getRoot();
     }
 
-
     private void initUI() {
         profileViewModel.checkUsedSpace();
         profileViewModel.getUsedSpace().observe(getViewLifecycleOwner(),usedSpace->{
@@ -136,10 +129,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                     if(profileItem!=null)
                         try {
                             Glide.with(this).load(profileItem.getPhotoUrl()).into(binding.dpofuser);
-//                            if(profileItem.getUsername()!=null)
-//                                binding.username.setText(profileItem.getUsername());
-//                            else
-//                                profileViewModel.checkUsername();
+
                             if (profileItem.getDisplayName() == null)
                                 binding.nameofuser.setHint("Name");
                             else

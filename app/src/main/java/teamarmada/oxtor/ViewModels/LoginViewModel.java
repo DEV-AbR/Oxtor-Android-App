@@ -1,7 +1,6 @@
 package teamarmada.oxtor.ViewModels;
 
 import static teamarmada.oxtor.Main.MainActivity.PREFS;
-import static teamarmada.oxtor.Main.MainActivity.USED_SPACE;
 import static teamarmada.oxtor.Model.ProfileItem.USERNAME;
 
 import android.content.Context;
@@ -12,7 +11,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -20,19 +18,15 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.storage.FileDownloadTask;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import dagger.hilt.android.qualifiers.ApplicationContext;
-import kotlin.Function;
 import kotlin.Unit;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
 import teamarmada.oxtor.Repository.FirestoreRepository;
-import teamarmada.oxtor.Repository.FunctionsRepository;
 
 @HiltViewModel
 public class LoginViewModel extends ViewModel implements OnCompleteListener<Unit> {

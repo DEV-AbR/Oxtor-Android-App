@@ -1,12 +1,9 @@
 package teamarmada.oxtor.Ui.DialogFragment;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.inputmethod.InputMethodManager;
 

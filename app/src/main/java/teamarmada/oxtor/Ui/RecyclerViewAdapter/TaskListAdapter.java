@@ -5,8 +5,6 @@ import static android.content.Context.ACTIVITY_SERVICE;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

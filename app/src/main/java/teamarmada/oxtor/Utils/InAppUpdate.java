@@ -22,7 +22,6 @@ import com.google.android.play.core.install.InstallStateUpdatedListener;
 import com.google.android.play.core.install.model.InstallStatus;
 import com.google.android.play.core.install.model.UpdateAvailability;
 
-import teamarmada.oxtor.Main.App;
 import teamarmada.oxtor.R;
 
 
