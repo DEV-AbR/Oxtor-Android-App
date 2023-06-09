@@ -64,13 +64,14 @@ public class FileItem implements Serializable {
         }
         catch (Exception e){
             e.printStackTrace();
-            exists=false;
+            exists=true;
         }
     }
 
     public FileItem(String storageReference, String downloadUrl, String filePath,
                     String fileName, String uid, String fileType, String fileExtension,
-                    Long fileSize, Boolean encrypted,Boolean exists,String iv, Date timeStamp) {
+                    Long fileSize, Boolean encrypted,Boolean exists,String iv, Date timeStamp,
+                    String encryptionPassword) {
         this.storageReference = storageReference;
         this.fileExtension = fileExtension;
         this.downloadUrl = downloadUrl;
@@ -83,6 +84,7 @@ public class FileItem implements Serializable {
         this.uid = uid;
         this.iv=iv;
         this.exists=exists;
+        this.encryptionPassword=encryptionPassword;
     }
 
     public Boolean doesItExists() {

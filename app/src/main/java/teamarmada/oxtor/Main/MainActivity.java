@@ -33,6 +33,8 @@ import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -41,9 +43,12 @@ import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import kotlin.Unit;
 import teamarmada.oxtor.Interfaces.ScreenManager;
 import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.R;

@@ -34,6 +34,7 @@ import teamarmada.oxtor.Repository.StorageRepository;
 
 @HiltViewModel
 public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit> {
+
     public static final String TAG = HomeViewModel.class.getSimpleName();
     private final FirestoreRepository firestoreRepository;
     private final StorageRepository storageRepository;
@@ -41,7 +42,6 @@ public class HomeViewModel extends ViewModel implements OnCompleteListener<Unit>
     private final Executor executor = Executors.newCachedThreadPool();
     private final MutableLiveData<ProfileItem> profileItem;
     private final SharedPreferences sharedPreferences;
-
 
     @Inject
     public HomeViewModel(@ApplicationContext Context context) {

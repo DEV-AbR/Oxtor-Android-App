@@ -35,15 +35,14 @@ public class FileItemFragment extends Fragment {
             if(item!=null) {
                 binding.filename.setText(item.getFileName());
                 binding.fileSize.setText(FileItemUtils.byteToString(item.getFileSize()));
-                if(item.doesItExists()){
-                    binding.isencrypted.setText("File deleted");
+                if(!item.doesItExists()){
+                    binding.isencrypted.setText("[File deleted]");
                     binding.pictureOfFile.setImageResource(R.drawable.ic_baseline_file_present_24);
+                    return binding.getRoot();
                 }
-                else{
-                    binding.isencrypted.setText("Encrypted: " + item.isEncrypted());
-                    binding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
-                    Glide.with(this).load(item).fitCenter().into(binding.pictureOfFile);
-                }
+                binding.isencrypted.setText("Encrypted: " + item.isEncrypted());
+                binding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
+                Glide.with(this).load(item).fitCenter().into(binding.pictureOfFile);
             }
         }catch (NullPointerException e){
             e.printStackTrace();

@@ -70,12 +70,9 @@ import teamarmada.oxtor.databinding.ListFileitemBinding;
 public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, MenuProvider {
 
     public static final String TAG=HomeFragment.class.getSimpleName();
-    public static final String AUTHORITY="teamarmada.oxtor.fileprovider";
-    private final String[] permissions=new String[]{
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
-    private static final String[] array={"Sort by Name", "Sort by Time", "Sort by Size"};
+    private final String[] permissions=new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private static final String[] sort_prefs={"Sort by Name", "Sort by Time", "Sort by Size"};
+    private static final String[] mimeTypes={"*/*"};
     private RecyclerView recyclerView;
     private FragmentHomeBinding binding;
     private HomeViewModel homeViewModel;
@@ -119,7 +116,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 askPermission();
             }
             else {
-                selectFileLauncher.launch("*/*");
+                selectFileLauncher.launch(mimeTypes);
             }
         });
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -184,27 +181,21 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 permissions[1]) == PackageManager.PERMISSION_GRANTED;
     }
 
-
-
-        private final ActivityResultLauncher<String[]> permissionLauncher=
+    private final ActivityResultLauncher<String[]> permissionLauncher=
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result ->  {
-                if(!checkForPermissions()) {
-                                Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
-                                .setAction(R.string.grant, v -> askPermission())
-                                .show();
-                            }
-                    });
+        if(!checkForPermissions()) {
+            Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
+                    .setAction(R.string.grant, v -> askPermission())
+                    .show();
+        }
+    });
 
     private void askPermission() {
         permissionLauncher.launch(permissions);
     }
 
-    private final ActivityResultLauncher<String> selectFileLauncher =
-            registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), results -> {
-                if (!results.isEmpty()) {
-                    uploadSelectedFiles(results);
-                }
-            });
+    private final ActivityResultLauncher<String[]> selectFileLauncher =
+            registerForActivityResult(new ActivityResultContracts.OpenMultipleDocuments(),this::uploadSelectedFiles);
 
     private final ItemBottomSheet.BottomSheetCallback bottomSheetCallback=
             new ItemBottomSheet.BottomSheetCallback() {
@@ -247,6 +238,14 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                     recBinding.executePendingBindings();
                     recBinding.name.setText(item.getFileName());
                     recBinding.size.setText(FileItemUtils.byteToString(item.getFileSize()));
+                    if(!item.doesItExists()){
+                        recBinding.name.setTextColor(R.color.grey);
+                        recBinding.timestamp.setTextColor(R.color.grey);
+                        recBinding.size.setTextColor(R.color.grey);
+                        recBinding.picture.setImageResource(R.drawable.ic_baseline_file_present_24);
+                        recBinding.timestamp.setText("[File deleted]");
+                        return;
+                    }
                     recBinding.getRoot().setOnClickListener(v->{
                         if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()){
                             itemBottomSheet.addCallback(bottomSheetCallback);
@@ -257,11 +256,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                             itemBottomSheet.dismiss();
                         }
                     });
-                    if(!item.doesItExists()){
-                        recBinding.picture.setImageResource(R.drawable.ic_baseline_file_present_24);
-                        recBinding.timestamp.setText("File deleted");
-                        return;
-                    }
                     if(item.getTimeStamp()!=null) {
                         recBinding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
                     }
@@ -428,7 +422,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private AlertDialog createPreferenceChooserDialog(){
         return new MaterialAlertDialogBuilder(requireContext(),R.style.Theme_Oxtor_AlertDialog)
                 .setCancelable(true).setTitle(R.string.sort)
-                .setSingleChoiceItems(array,sharedPreferences.getInt(SORT_PREFERENCE,1),
+                .setSingleChoiceItems(sort_prefs,sharedPreferences.getInt(SORT_PREFERENCE,1),
                 (dialog, which) -> {
                     switch (which){
                         case 2:

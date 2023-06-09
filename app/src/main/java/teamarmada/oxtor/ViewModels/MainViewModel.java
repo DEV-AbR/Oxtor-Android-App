@@ -24,11 +24,14 @@ import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.android.gms.tasks.TaskExecutors;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -116,113 +119,151 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         return uploadTask
                 .continueWithTask(executor, task -> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
                 .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(getProfileItem().getValue())
-                .continueWith(executor, innerTask -> {
-                    setIsTaskRunning(!innerTask.isComplete());
-                    sharedPreferences.edit().putLong(USED_SPACE, innerTask.getResult()).apply();
-                    return Unit.INSTANCE;
-                }));
+                        .continueWith(executor, innerTask -> {
+                            setIsTaskRunning(!innerTask.isComplete());
+                            sharedPreferences.edit().putLong(USED_SPACE, innerTask.getResult()).apply();
+                            return Unit.INSTANCE;
+                        }));
 
     }
 
-    public Task<Unit> uploadUsingInputStream(FileItem item, Context context,Executor executor) throws Exception {
+    public Task<Unit> uploadUsingInputStream(FileItem item, Context context) {
         setIsTaskRunning(true);
-        boolean b=!sharedPreferences.getBoolean(TO_ENCRYPT, false);
-        if(b) return uploadUnencryptedFile(item,executor);
-        Uri uri = Uri.parse(item.getFilePath());
-        try (InputStream bufferedInputStream = new CipherInputStream(context.getContentResolver().openInputStream(uri), AES.getEncryptCipher(item, profileItem.getValue()))) {
-            UploadTask uploadTask = storageRepository.UploadFile(item, bufferedInputStream, getProfileItem().getValue());
-            FileTask<UploadTask> fileTask = new FileTask<>(item, uploadTask);
-            addUploadItem(fileTask);
-            return uploadTask
-                    .continueWithTask(executor, task -> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
-                    .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(getProfileItem().getValue())
-                    .continueWith(executor, innerTask -> {
-                        setIsTaskRunning(!innerTask.isComplete());
-                        sharedPreferences.edit().putLong(USED_SPACE, innerTask.getResult()).apply();
-                        return Unit.INSTANCE;
-                    }));
+        Executor executor = Executors.newSingleThreadExecutor();
+        boolean isEncryptEnabled = !sharedPreferences.getBoolean(TO_ENCRYPT, false);
+        if (isEncryptEnabled) {
+            return uploadUnencryptedFile(item, executor);
         }
+        Uri uri = Uri.parse(item.getFilePath());
+        TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
+        executor.execute(() -> {
+            try (InputStream bufferedInputStream = new CipherInputStream(context.getContentResolver().openInputStream(uri), AES.getEncryptCipher(item, profileItem.getValue()))) {
+                UploadTask uploadTask = storageRepository.UploadFile(item, bufferedInputStream, getProfileItem().getValue());
+                FileTask<UploadTask> fileTask = new FileTask<>(item, uploadTask);
+                addUploadItem(fileTask);
+                uploadTask
+                        .continueWithTask(executor, task -> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
+                        .onSuccessTask(executor, task -> firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
+                        .continueWith(executor, innerTask -> {
+                            setIsTaskRunning(!innerTask.isComplete());
+                            sharedPreferences.edit().putLong(USED_SPACE, innerTask.getResult()).apply();
+                            taskCompletionSource.setResult(Unit.INSTANCE);
+                            return Unit.INSTANCE;
+                        });
+            } catch (Exception e) {
+                taskCompletionSource.setException(e);
+            }
+        });
+
+        return taskCompletionSource.getTask();
     }
 
-    public Task<Unit> uploadUsingByteArray(FileItem item,Context context,Executor executor) throws Exception {
+    public Task<Unit> uploadUsingByteArray(FileItem item, Context context) throws Exception {
         setIsTaskRunning(true);
-        Uri uri=Uri.parse(item.getFilePath());
-        byte[] buffer=new byte[FileItemUtils.calculateBufferSize(context,item.getFileSize())];
-        File file=new File(uri.toString());
+        Executor executor = Executors.newSingleThreadExecutor();
+        Uri uri = Uri.parse(item.getFilePath());
         byte[] bytes1;
+        byte[] buffer = new byte[FileItemUtils.calculateBufferSize(context, item.getFileSize())];
+        File file = new File(uri.toString());
         try (FileReader fileReader = new FileReader(file);
              BufferedReader bufferedReader = new BufferedReader(fileReader);
-             ByteArrayOutputStream outputStream=new ByteArrayOutputStream()){
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             int read;
             while ((read = bufferedReader.read()) != -1) {
                 outputStream.write(buffer, 0, read);
             }
-            bytes1=outputStream.toByteArray();
-        }
-        catch (Exception e) {
-            try(InputStream inputStream = new BufferedInputStream(context.getContentResolver().openInputStream(uri));
-                ByteArrayOutputStream outputStream=new ByteArrayOutputStream()) {
+            bytes1 = outputStream.toByteArray();
+        } catch (Exception e) {
+            try (InputStream inputStream = new BufferedInputStream(context.getContentResolver().openInputStream(uri));
+                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 int read;
                 while ((read = inputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, read);
                 }
-                bytes1=outputStream.toByteArray();
+                bytes1 = outputStream.toByteArray();
             }
         }
-        if(sharedPreferences.getBoolean(TO_ENCRYPT,false))
-            bytes1= AES.encrypt(bytes1,item,profileItem.getValue());
+        if (sharedPreferences.getBoolean(TO_ENCRYPT, false)) {
+            bytes1 = AES.encrypt(bytes1, item, profileItem.getValue());
+        }
+
         UploadTask uploadTask = storageRepository.UploadFile(item, bytes1, getProfileItem().getValue());
-        FileTask<UploadTask> fileTask=new FileTask<>(item,uploadTask);
+        FileTask<UploadTask> fileTask = new FileTask<>(item, uploadTask);
         addUploadItem(fileTask);
-        return uploadTask
-                .continueWithTask(executor,task-> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
-                .onSuccessTask(executor, task ->firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
-                .continueWith(executor, task -> {
-                    setIsTaskRunning(!task.isComplete());
-                    sharedPreferences.edit().putLong(USED_SPACE, task.getResult()).apply();
-                    return Unit.INSTANCE;
-                });
+
+        TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
+        executor.execute(() -> {
+            try {
+                Task<Unit> task = uploadTask
+                        .continueWithTask(executor, t -> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
+                        .onSuccessTask(executor, t -> firestoreRepository.fetchUsedSpace(getProfileItem().getValue()))
+                        .continueWith(executor, t -> {
+                            setIsTaskRunning(!t.isComplete());
+                            sharedPreferences.edit().putLong(USED_SPACE, t.getResult()).apply();
+                            return Unit.INSTANCE;
+                        });
+                taskCompletionSource.setResult(task.getResult());
+            } catch (Exception e) {
+                taskCompletionSource.setException(e);
+            }
+        });
+
+        return taskCompletionSource.getTask();
     }
 
     private Task<Unit> downloadUnencryptedFile(FileItem fileItem,Executor executor) throws Exception {
-        setIsTaskRunning(true);
-        File output= FileItemUtils.createDownloadFile(fileItem);
-        Uri uri=Uri.parse(output.getAbsolutePath());
-        FileDownloadTask fileDownloadTask =storageRepository.downloadFile(fileItem,uri);
-        FileTask<FileDownloadTask> fileTask=new FileTask<>(fileItem,fileDownloadTask);
-        addFileDownloadItem(fileTask);
-        return fileDownloadTask
-                .continueWith(executor,task ->{
-                    setIsTaskRunning(!task.isComplete());
-                    return Unit.INSTANCE;
-                });
-    }
-
-    public Task<Unit> downloadUsingInputStream(FileItem fileItem,Context context,Executor executor) throws Exception {
-        setIsTaskRunning(true);
-        boolean b=!fileItem.isEncrypted() ;
-        if(b) return downloadUnencryptedFile(fileItem,executor);
-        File tempOutput= File.createTempFile(FileItemUtils.getNameString(context,Uri.parse(fileItem.getFilePath())),fileItem.getFileExtension());
-        File finalOutput=FileItemUtils.createDownloadFile(fileItem);
-        FileDownloadTask fileDownloadTask =storageRepository.downloadFile(fileItem,Uri.parse(tempOutput.getAbsolutePath()));
-        fileItem.setFilePath(tempOutput.getAbsolutePath());
-        FileTask<FileDownloadTask> fileTask=new FileTask<>(fileItem,fileDownloadTask);
-        addFileDownloadItem(fileTask);
-        return fileDownloadTask.continueWith(executor,task ->{
-                    int bufferSize = FileItemUtils.calculateBufferSize(context, fileItem.getFileSize());
-                    byte[] buffer = new byte[bufferSize];
-                    try (InputStream inputStream = new CipherInputStream(context.getContentResolver().openInputStream(Uri.parse(tempOutput.getAbsolutePath())),
-                            AES.getDecryptionCipher(fileItem, profileItem.getValue()));
-                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                        int bytesRead;
-                        while ((bytesRead = inputStream.read(buffer)) != -1) {
-                            outputStream.write(buffer, 0, bytesRead);
-                        }
-                        fileItem.setFilePath(finalOutput.getAbsolutePath());
+            setIsTaskRunning(true);
+            File output= FileItemUtils.createDownloadFile(fileItem);
+            Uri uri=Uri.parse(output.getAbsolutePath());
+            FileDownloadTask fileDownloadTask =storageRepository.downloadFile(fileItem,uri);
+            FileTask<FileDownloadTask> fileTask=new FileTask<>(fileItem,fileDownloadTask);
+            addFileDownloadItem(fileTask);
+            return fileDownloadTask
+                    .continueWith(executor,task ->{
                         setIsTaskRunning(!task.isComplete());
+                        return Unit.INSTANCE;
+                    });
+        }
+
+    public Task<Unit> downloadUsingInputStream(FileItem fileItem, Context context) throws Exception {
+        setIsTaskRunning(true);
+        Executor executor = Executors.newSingleThreadExecutor();
+        boolean isEncrypted = !fileItem.isEncrypted();
+        if (isEncrypted) {
+            return downloadUnencryptedFile(fileItem, executor);
+        }
+
+        File tempOutput = File.createTempFile(FileItemUtils.getNameString(context, Uri.parse(fileItem.getFilePath())), fileItem.getFileExtension());
+        File finalOutput = FileItemUtils.createDownloadFile(fileItem);
+        FileDownloadTask fileDownloadTask = storageRepository.downloadFile(fileItem, Uri.parse(tempOutput.getAbsolutePath()));
+        fileItem.setFilePath(tempOutput.getAbsolutePath());
+        FileTask<FileDownloadTask> fileTask = new FileTask<>(fileItem, fileDownloadTask);
+        addFileDownloadItem(fileTask);
+
+        TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
+        executor.execute(() -> {
+            try {
+                int bufferSize = FileItemUtils.calculateBufferSize(context, fileItem.getFileSize());
+                byte[] buffer = new byte[bufferSize];
+                try (InputStream inputStream = new CipherInputStream(context.getContentResolver()
+                        .openInputStream(Uri.parse(tempOutput.getAbsolutePath())),
+                        AES.getDecryptionCipher(fileItem, profileItem.getValue()));
+                     BufferedOutputStream outputStream = new BufferedOutputStream(context.getContentResolver()
+                             .openOutputStream(Uri.parse(finalOutput.getAbsolutePath())))){
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, bytesRead);
                     }
-                    return Unit.INSTANCE;
-                });
+                    fileItem.setFilePath(finalOutput.getAbsolutePath());
+                    setIsTaskRunning(!fileDownloadTask.isComplete());
+                }
+                taskCompletionSource.setResult(Unit.INSTANCE);
+            } catch (Exception e) {
+                taskCompletionSource.setException(e);
+            }
+        });
+
+        return taskCompletionSource.getTask();
     }
 
     public Task<Unit> downloadUsingDownloadManager(FileItem item, Context context) throws Exception {

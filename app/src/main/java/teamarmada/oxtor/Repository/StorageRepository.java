@@ -12,16 +12,11 @@ import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.StreamDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
 
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
@@ -108,14 +103,6 @@ public class StorageRepository  {
         return storageReference.delete();
     }
 
-    public StreamDownloadTask downloadFile(FileItem fileItem) {
-        StorageReference storageReference=storage.getReference().child(fileItem.getStorageReference());
-        return storageReference.getStream((state, stream) -> {
-            if(state.getBytesTransferred()==state.getTotalByteCount())
-                stream.close();
-        });
-    }
-
     public FileDownloadTask downloadFile(FileItem fileItem, Uri uri) {
         StorageReference storageReference=storage.getReference().child(fileItem.getStorageReference());
         return storageReference.getFile(uri);
@@ -126,6 +113,5 @@ public class StorageRepository  {
         Task<Void> uploadTasks=Tasks.whenAll(storage.getReference().getActiveUploadTasks());
         return Tasks.whenAll(uploadTasks,downloadTasks);
     }
-
 
 }

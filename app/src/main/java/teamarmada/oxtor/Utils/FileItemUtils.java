@@ -144,8 +144,7 @@ public class FileItemUtils {
         }
     }
 
-    public static FileItem getFileItemFromPath(Context context,Uri path){
-        FileItem fileItem=new FileItem();
+    public static FileItem getFileItemFromPath(Context context,Uri path) {
         String type=context.getContentResolver().getType(path);
         String name;
         try {
@@ -154,15 +153,9 @@ public class FileItemUtils {
         catch (Exception e){
             name=FilenameUtils.getName(path.toString());
         }
-        fileItem.setFileExtension(FilenameUtils.getExtension(name))
-                .setFileType(type)
-                .setFilePath(path.toString())
-                .setFileName(name)
-                .setEncrypted(false)
-                .setUid(UUID.randomUUID().toString())
-                .setFileSize(getSizeLong(context,path))
-                .setExists(true);
-        return fileItem;
+        return new FileItem(null,null,path.toString(),name,UUID.randomUUID().toString(),
+                type,FilenameUtils.getExtension(name),getSizeLong(context,path),
+                false,true,null,null,null);
     }
 
 

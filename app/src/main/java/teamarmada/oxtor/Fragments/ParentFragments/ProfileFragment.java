@@ -97,7 +97,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                 }).create();
         binding.editpassword.setOnClickListener(this);
         binding.editname.setOnClickListener(this);
-//        binding.editusername.setOnClickListener(this);
         binding.editimage.setOnClickListener(this);
         binding.refreshButton.setOnClickListener(this);
         return binding.getRoot();

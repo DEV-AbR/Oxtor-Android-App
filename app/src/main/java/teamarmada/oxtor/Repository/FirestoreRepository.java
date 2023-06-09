@@ -1,5 +1,6 @@
 package teamarmada.oxtor.Repository;
 
+import static teamarmada.oxtor.Model.FileItem.EXISTS;
 import static teamarmada.oxtor.Model.FileItem.FILENAME;
 import static teamarmada.oxtor.Model.FileItem.FILE_SIZE;
 import static teamarmada.oxtor.Model.FileItem.TIMESTAMP;
@@ -94,10 +95,10 @@ public class FirestoreRepository {
                 .document(profileItem.getUid())
                 .collection(POSTS)
                 .document(fileItem.getUid());
-        FileItem fileItem1=new FileItem(null,null,null,
+        FileItem fileItem1=new FileItem(fileItem.getStorageReference(),null,null,
                 fileItem.getFileName(),fileItem.getUid(),fileItem.getFileType(),
                 fileItem.getFileExtension(),fileItem.getFileSize(),
-                false,false,null,fileItem.getTimeStamp());
+                false,false,null,fileItem.getTimeStamp(),null);
         return  db.batch().update(docRef,fileItem1.toHashmap()).commit();
     }
 
@@ -113,7 +114,6 @@ public class FirestoreRepository {
         return db.collection(USERS).document(profileItem.getUid()).update(MESSAGING_TOKEN,null);
     }
 
-
     public Task<ProfileItem> fetchProfileItem(ProfileItem profileItem) {
         return db.collection(USERS).document(profileItem.getUid()).get()
                 .continueWith(task -> task.getResult().toObject(ProfileItem.class));
@@ -125,8 +125,16 @@ public class FirestoreRepository {
         if(query!=null)
             return query.get().continueWith(task -> {
                     for(DocumentSnapshot snapshot:task.getResult()){
-                        Long g = snapshot.getLong("fileSize");
-                        usedSpace+=g;
+                        Long g;
+                        try{
+                            if(snapshot.getBoolean(EXISTS))
+                                g = snapshot.getLong("fileSize");
+                            else
+                                g=0L;
+                        }catch(Exception e){
+                            g=0L;
+                        }
+                        usedSpace += g;
                     }
                     return usedSpace;
                 });

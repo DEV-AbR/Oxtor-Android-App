@@ -1,5 +1,6 @@
 package teamarmada.oxtor.Service;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ public class FileCleanupWorker extends Worker {
     private final WorkManager workManager;
     private StatusCode statusCode=null;
 
+    @SuppressLint("SuspiciousIndentation")
     public FileCleanupWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
         workManager=WorkManager.getInstance(context);
@@ -91,14 +93,7 @@ public class FileCleanupWorker extends Worker {
     }
 
     public enum StatusCode {
-        TO_DELETE(0), IS_DELETED(1), IT_FAILED(2), NOT_TO_DELETE(3);
-        private final int status;
-        StatusCode(int status) {
-            this.status=status;
-        }
-        public int getRequestCode() {
-            return status;
-        }
+        TO_DELETE, IS_DELETED, IT_FAILED, NOT_TO_DELETE;
     }
 
 }
