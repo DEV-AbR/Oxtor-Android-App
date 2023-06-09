@@ -2,6 +2,7 @@ package teamarmada.oxtor.Ui.RecyclerViewAdapter;
 
 import static android.content.Context.ACTIVITY_SERVICE;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.net.Uri;
@@ -162,9 +163,10 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
 
         public void  cancelTask(){
             try {
-                getItem().getTask().cancel();
-                list.remove(getAbsoluteAdapterPosition());
-                listObserver.onChanged(list);
+                if(getItem().getTask().cancel()){
+                    list.remove(getAbsoluteAdapterPosition());
+                    listObserver.onChanged(list);
+                }
             }catch (Exception e){
                 e.printStackTrace();
                 return;

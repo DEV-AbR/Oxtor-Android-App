@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -19,7 +20,9 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,13 +51,23 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
         this.activity = activity;
         mainViewModel = new ViewModelProvider(activity).get(MainViewModel.class);
-        mainViewModel.getMemoryLiveData(activity).observe(activity, this::memoryState);
+        mainViewModel.getMemoryLiveData(activity).observe(activity, lowMemory -> {
+            if(lowMemory){
+                makeToast("App is running low on memory");
+                try {
+                    makeToast("Clearing all pending tasks");
+                    mainViewModel.mutableUploadList.getValue().clear();
+                    mainViewModel.mutableFileDownloadList.getValue().clear();
+                    mainViewModel.abortAllTasks();
+                }catch (Exception e){
+                    activity.finish();
+                    activity.startActivity(activity.getIntent());
+                    activity.overridePendingTransition(0, 0);
+                }
+            }
+        });
     }
 
-    private void memoryState(boolean lowMemory) {
-        if(lowMemory)
-            makeToast("App is running low on memory");
-    }
 
     public void startUpload(List<FileItem> fileItems) {
         this.fileItems.addAll(fileItems);
@@ -93,8 +106,9 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             tasks.add(uploadFile(fileItem));
         }
         Tasks.whenAll(tasks)
+                .addOnCompleteListener(task-> mainViewModel.setIsTaskRunning(!task.isComplete()))
                 .addOnSuccessListener(result-> makeToast("All uploads will be deleted after 24 hours"))
-                .addOnFailureListener(Throwable::printStackTrace);
+                .addOnFailureListener(e-> makeToast(e.toString()));
     }
 
     private void continueDownload(List<FileItem> fileItems) {
@@ -104,46 +118,21 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             tasks.add(downloadFile(fileItem));
         }
         Tasks.whenAll(tasks)
+                .addOnCompleteListener(task-> mainViewModel.setIsTaskRunning(!task.isComplete()))
                 .addOnSuccessListener(result-> makeToast("Items saved at Oxtor/download/"))
-                .addOnFailureListener(Throwable::printStackTrace);
+                .addOnFailureListener(e-> makeToast(e.toString()));
     }
 
     private Task<Unit> uploadFile(FileItem fileItem) {
-        Task<Unit> uploadTask;
-        try {
-            uploadTask = mainViewModel.uploadUsingInputStream(fileItem, activity);
-//            uploadTask = mainViewModel.uploadUsingByteArray(fileItem, activity);
-        } catch (Exception e) {
-            try {
-                uploadTask = mainViewModel.uploadUsingByteArray(fileItem, activity);
-//                uploadTask = mainViewModel.uploadUsingInputStream(fileItem, activity);
-            } catch (Exception ex) {
-                mainViewModel.setIsTaskRunning(false);
-                makeToast(ex.toString());
-                uploadTask= Tasks.forResult(Unit.INSTANCE);
-            }
-        }
-        return uploadTask;
+        return mainViewModel.uploadUsingInputStream(fileItem,activity)
+                .continueWithTask(task-> task.isSuccessful()?Tasks.forResult(task.getResult()):mainViewModel.uploadUsingByteArray(fileItem,activity))
+                .continueWithTask(task -> task.isSuccessful()? Tasks.forResult(task.getResult()):Tasks.forException(task.getException()));
     }
 
     private Task<Unit> downloadFile(FileItem fileItem) {
-        Task<Unit> downloadTask;
-        try {
-            downloadTask = mainViewModel.downloadUsingInputStream(fileItem, activity);
-        } catch (Exception e) {
-            try {
-                downloadTask = mainViewModel.downloadUsingDownloadManager(fileItem, activity);
-            } catch (Exception ex) {
-                mainViewModel.setIsTaskRunning(false);
-                makeToast(ex.toString());
-                makeToast("Viewing in web browser");
-                Uri url = Uri.parse(fileItem.getDownloadUrl());
-                Intent i = new Intent(Intent.ACTION_VIEW, url);
-                activity.startActivity(i);
-                downloadTask=Tasks.forResult(Unit.INSTANCE);
-            }
-        }
-        return downloadTask;
+        return mainViewModel.downloadUsingInputStream(fileItem,activity)
+                .continueWithTask(task -> task.isSuccessful()?Tasks.forResult(task.getResult()):mainViewModel.downloadUsingDownloadManager(fileItem,activity))
+                .continueWithTask(task -> task.isSuccessful()?Tasks.forResult(task.getResult()):Tasks.forException(task.getException()));
     }
 
     public void loadBanner(FrameLayout container) {
@@ -224,7 +213,6 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
             adView.destroy();
         }
     }
-
 
 }
 

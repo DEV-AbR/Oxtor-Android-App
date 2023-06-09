@@ -61,7 +61,7 @@ import teamarmada.oxtor.Utils.AES;
 import teamarmada.oxtor.Utils.FileItemUtils;
 
 @HiltViewModel
-public class MainViewModel extends ViewModel implements OnCompleteListener<Unit> {
+public class MainViewModel extends ViewModel {
 
     public static final String TAG = MainViewModel.class.getSimpleName();
     public final MutableLiveData<List<FileTask<UploadTask>>> mutableUploadList;
@@ -212,10 +212,9 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                 taskCompletionSource.setException(e);
             }
             }catch (Exception e){
-                e.printStackTrace();
+                taskCompletionSource.setException(e);
             }
         });
-
         return taskCompletionSource.getTask();
     }
 
@@ -233,43 +232,46 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
                     });
         }
 
-    public Task<Unit> downloadUsingInputStream(FileItem fileItem, Context context) throws Exception {
+    public Task<Unit> downloadUsingInputStream(FileItem fileItem, Context context)  {
         setIsTaskRunning(true);
         Executor executor = Executors.newSingleThreadExecutor();
         TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
-        File tempOutput = File.createTempFile(FileItemUtils.getNameString(context, Uri.parse(fileItem.getFilePath())), fileItem.getFileExtension());
-        File finalOutput = FileItemUtils.createNewDownloadFile(fileItem);
         executor.execute(() -> {
-        boolean isEncrypted = !fileItem.isEncrypted();
-        if (isEncrypted) {
-            downloadUnencryptedFile(fileItem, executor).addOnSuccessListener(taskCompletionSource::setResult)
-                    .addOnFailureListener(taskCompletionSource::setException);
-        }
-        else{
-            FileDownloadTask fileDownloadTask = storageRepository.downloadFile(fileItem, Uri.parse(tempOutput.getAbsolutePath()));
-            fileItem.setFilePath(tempOutput.getAbsolutePath());
-            FileTask<FileDownloadTask> fileTask = new FileTask<>(fileItem, fileDownloadTask);
-            addFileDownloadItem(fileTask);
             try {
-                int bufferSize = FileItemUtils.calculateBufferSize(context, fileItem.getFileSize());
-                byte[] buffer = new byte[bufferSize];
-                try (InputStream inputStream = new CipherInputStream(context.getContentResolver()
-                        .openInputStream(Uri.parse(tempOutput.getAbsolutePath())),
-                        AES.getDecryptionCipher(fileItem, profileItem.getValue()));
-                     BufferedOutputStream outputStream = new BufferedOutputStream(context.getContentResolver()
-                             .openOutputStream(Uri.parse(finalOutput.getAbsolutePath())))){
-                    int bytesRead;
-                    while ((bytesRead = inputStream.read(buffer)) != -1) {
-                        outputStream.write(buffer, 0, bytesRead);
+                File tempOutput = File.createTempFile(FileItemUtils.getNameString(context, Uri.parse(fileItem.getFilePath())), fileItem.getFileExtension());
+                File finalOutput = FileItemUtils.createNewDownloadFile(fileItem);
+                boolean isEncrypted = !fileItem.isEncrypted();
+                if (isEncrypted) {
+                    downloadUnencryptedFile(fileItem, executor).addOnSuccessListener(taskCompletionSource::setResult)
+                            .addOnFailureListener(taskCompletionSource::setException);
+                } else {
+                    FileDownloadTask fileDownloadTask = storageRepository.downloadFile(fileItem, Uri.parse(tempOutput.getAbsolutePath()));
+                    fileItem.setFilePath(tempOutput.getAbsolutePath());
+                    FileTask<FileDownloadTask> fileTask = new FileTask<>(fileItem, fileDownloadTask);
+                    addFileDownloadItem(fileTask);
+                    try {
+                        int bufferSize = FileItemUtils.calculateBufferSize(context, fileItem.getFileSize());
+                        byte[] buffer = new byte[bufferSize];
+                        try (InputStream inputStream = new CipherInputStream(context.getContentResolver()
+                                .openInputStream(Uri.parse(tempOutput.getAbsolutePath())),
+                                AES.getDecryptionCipher(fileItem, profileItem.getValue()));
+                             BufferedOutputStream outputStream = new BufferedOutputStream(context.getContentResolver()
+                                     .openOutputStream(Uri.parse(finalOutput.getAbsolutePath())))) {
+                            int bytesRead;
+                            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                                outputStream.write(buffer, 0, bytesRead);
+                            }
+                            fileItem.setFilePath(finalOutput.getAbsolutePath());
+                            setIsTaskRunning(!fileDownloadTask.isComplete());
+                        }
+                        taskCompletionSource.setResult(Unit.INSTANCE);
+                    } catch (Exception e) {
+                        taskCompletionSource.setException(e);
                     }
-                    fileItem.setFilePath(finalOutput.getAbsolutePath());
-                    setIsTaskRunning(!fileDownloadTask.isComplete());
                 }
-                taskCompletionSource.setResult(Unit.INSTANCE);
-            } catch (Exception e) {
+            }catch (Exception e){
                 taskCompletionSource.setException(e);
             }
-        }
         });
 
         return taskCompletionSource.getTask();
@@ -391,9 +393,13 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
         }
     }
 
-    @Override
-    public void onComplete(@NonNull Task<Unit> task) {
-        setIsTaskRunning(!task.isComplete());
+    public void abortAllTasks() {
+        try {
+            Tasks.await(storageRepository.getTaskOfTasks());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
+
 
 }

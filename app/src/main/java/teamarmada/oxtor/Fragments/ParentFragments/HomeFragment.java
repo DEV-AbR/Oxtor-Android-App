@@ -272,11 +272,11 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                         }
                     });
                     try{
-                        itemBottomSheet.getViewBinding().linearlayoutTop.setVisibility(adapter.getItem(
-                                itemBottomSheet.getViewBinding().viewpagerHome.getCurrentItem()).getDownloadUrl()==null
-                                ?View.GONE:View.VISIBLE);
+                        itemBottomSheet.requireView().findViewById(R.id.linearlayout_top).setVisibility(
+                                adapter.getItem(position).getDownloadUrl()==null?View.GONE:View.VISIBLE
+                        );
                     }catch(Exception e){
-                        itemBottomSheet.getViewBinding().linearlayoutTop.setVisibility(View.VISIBLE);
+                        e.printStackTrace();
                     }
                 }
                 @Override
