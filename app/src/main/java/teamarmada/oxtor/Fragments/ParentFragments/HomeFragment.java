@@ -5,11 +5,14 @@ import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Main.MainActivity.SORT_PREFERENCE;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -208,9 +211,13 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                             final FileItem fileItem = adapter.getItem(pos);
                             View.OnClickListener listener= v1 -> {
                                 itemBottomSheet.dismiss();
-                                List<FileItem> fileItems = new ArrayList<>();
+                                List<FileItem> fileItems=new ArrayList<>();
                                 fileItems.add(fileItem);
-                                onOptionSelected(v1.getId(), fileItems);
+                                try {
+                                    onOptionSelected(v1.getId(), fileItems);
+                                }catch(Exception e){
+                                    e.printStackTrace();
+                                }
                             };
                             binding.deleteButton.setOnClickListener(listener);
                             binding.downloadButton.setOnClickListener(listener);
@@ -224,6 +231,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                             return adapter.getItemCount();
                         }
                     });
+
                     binding.viewpagerHome.setSaveEnabled(false);
                 }
 
@@ -233,18 +241,25 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private final ListItemCallback<FileItem, ListFileitemBinding> itemCallback=
             new ListItemCallback<FileItem, ListFileitemBinding>() {
+
                 @Override
                 public void bind(ListFileitemBinding recBinding,FileItem item,int position) {
                     recBinding.executePendingBindings();
                     recBinding.name.setText(item.getFileName());
                     recBinding.size.setText(FileItemUtils.byteToString(item.getFileSize()));
-                    if(!item.doesItExists()){
-                        recBinding.name.setTextColor(R.color.grey);
-                        recBinding.timestamp.setTextColor(R.color.grey);
-                        recBinding.size.setTextColor(R.color.grey);
-                        recBinding.picture.setImageResource(R.drawable.ic_baseline_file_present_24);
-                        recBinding.timestamp.setText("[File deleted]");
-                        return;
+                    if(item.getDownloadUrl()==null){
+                            recBinding.picture.setImageResource(R.drawable.ic_baseline_file_present_24);
+                            recBinding.timestamp.setText("[File deleted]");
+                            return;
+                    }
+                    if(item.getTimeStamp()!=null) {
+                        recBinding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
+                    }
+                    if (item.getFileType().contains("image")) {
+                        Glide.with(recBinding.picture).load(item).into(recBinding.picture);
+                    }
+                    else {
+                        FileItemUtils.loadPhoto(item,recBinding.picture);
                     }
                     recBinding.getRoot().setOnClickListener(v->{
                         if(adapter.getSelectionTracker().getSelection().isEmpty()&&!itemBottomSheet.isInLayout()){
@@ -256,14 +271,12 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                             itemBottomSheet.dismiss();
                         }
                     });
-                    if(item.getTimeStamp()!=null) {
-                        recBinding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
-                    }
-                    if (item.getFileType().contains("image")) {
-                        Glide.with(recBinding.picture).load(item).into(recBinding.picture);
-                    }
-                    else {
-                        FileItemUtils.loadPhoto(item,recBinding.picture);
+                    try{
+                        itemBottomSheet.getViewBinding().linearlayoutTop.setVisibility(adapter.getItem(
+                                itemBottomSheet.getViewBinding().viewpagerHome.getCurrentItem()).getDownloadUrl()==null
+                                ?View.GONE:View.VISIBLE);
+                    }catch(Exception e){
+                        itemBottomSheet.getViewBinding().linearlayoutTop.setVisibility(View.VISIBLE);
                     }
                 }
                 @Override

@@ -130,13 +130,17 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     public Task<Unit> uploadUsingInputStream(FileItem item, Context context) {
         setIsTaskRunning(true);
         Executor executor = Executors.newSingleThreadExecutor();
-        boolean isEncryptEnabled = !sharedPreferences.getBoolean(TO_ENCRYPT, false);
-        if (isEncryptEnabled) {
-            return uploadUnencryptedFile(item, executor);
-        }
-        Uri uri = Uri.parse(item.getFilePath());
         TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
         executor.execute(() -> {
+        boolean isEncryptEnabled = !sharedPreferences.getBoolean(TO_ENCRYPT, false);
+        if (isEncryptEnabled) {
+            uploadUnencryptedFile(item, executor)
+                    .addOnSuccessListener(result-> taskCompletionSource.setResult(Unit.INSTANCE))
+                    .addOnFailureListener(taskCompletionSource::setException);
+
+        }
+        else{
+            Uri uri = Uri.parse(item.getFilePath());
             try (InputStream bufferedInputStream = new CipherInputStream(context.getContentResolver().openInputStream(uri), AES.getEncryptCipher(item, profileItem.getValue()))) {
                 UploadTask uploadTask = storageRepository.UploadFile(item, bufferedInputStream, getProfileItem().getValue());
                 FileTask<UploadTask> fileTask = new FileTask<>(item, uploadTask);
@@ -153,46 +157,47 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
             } catch (Exception e) {
                 taskCompletionSource.setException(e);
             }
+        }
         });
 
         return taskCompletionSource.getTask();
     }
 
-    public Task<Unit> uploadUsingByteArray(FileItem item, Context context) throws Exception {
+    public Task<Unit> uploadUsingByteArray(FileItem item, Context context) {
         setIsTaskRunning(true);
+        TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
         Executor executor = Executors.newSingleThreadExecutor();
-        Uri uri = Uri.parse(item.getFilePath());
-        byte[] bytes1;
-        byte[] buffer = new byte[FileItemUtils.calculateBufferSize(context, item.getFileSize())];
-        File file = new File(uri.toString());
-        try (FileReader fileReader = new FileReader(file);
-             BufferedReader bufferedReader = new BufferedReader(fileReader);
-             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            int read;
-            while ((read = bufferedReader.read()) != -1) {
-                outputStream.write(buffer, 0, read);
-            }
-            bytes1 = outputStream.toByteArray();
-        } catch (Exception e) {
-            try (InputStream inputStream = new BufferedInputStream(context.getContentResolver().openInputStream(uri));
-                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                int read;
-                while ((read = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, read);
+        executor.execute(() -> {
+            byte[] bytes1;
+            try {
+                Uri uri = Uri.parse(item.getFilePath());
+                File file = new File(uri.toString());
+                byte[] buffer = new byte[FileItemUtils.calculateBufferSize(context, item.getFileSize())];
+                try (FileReader fileReader = new FileReader(file);
+                     BufferedReader bufferedReader = new BufferedReader(fileReader);
+                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                    int read;
+                    while ((read = bufferedReader.read()) != -1) {
+                        outputStream.write(buffer, 0, read);
+                    }
+                    bytes1 = outputStream.toByteArray();
+                } catch (Exception e) {
+                    try (InputStream inputStream = new BufferedInputStream(context.getContentResolver().openInputStream(uri));
+                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                        int read;
+                        while ((read = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, read);
+                        }
+                        bytes1 = outputStream.toByteArray();
+                    }
                 }
-                bytes1 = outputStream.toByteArray();
-            }
-        }
-        if (sharedPreferences.getBoolean(TO_ENCRYPT, false)) {
-            bytes1 = AES.encrypt(bytes1, item, profileItem.getValue());
-        }
-
+                if (sharedPreferences.getBoolean(TO_ENCRYPT, false)) {
+                    bytes1 = AES.encrypt(bytes1, item, profileItem.getValue());
+                }
         UploadTask uploadTask = storageRepository.UploadFile(item, bytes1, getProfileItem().getValue());
         FileTask<UploadTask> fileTask = new FileTask<>(item, uploadTask);
         addUploadItem(fileTask);
 
-        TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
-        executor.execute(() -> {
             try {
                 Task<Unit> task = uploadTask
                         .continueWithTask(executor, t -> storageRepository.getDownloadUrl(item, getProfileItem().getValue()))
@@ -206,14 +211,17 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
             } catch (Exception e) {
                 taskCompletionSource.setException(e);
             }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         });
 
         return taskCompletionSource.getTask();
     }
 
-    private Task<Unit> downloadUnencryptedFile(FileItem fileItem,Executor executor) throws Exception {
+    private Task<Unit> downloadUnencryptedFile(FileItem fileItem,Executor executor) {
             setIsTaskRunning(true);
-            File output= FileItemUtils.createDownloadFile(fileItem);
+            File output= FileItemUtils.createNewDownloadFile(fileItem);
             Uri uri=Uri.parse(output.getAbsolutePath());
             FileDownloadTask fileDownloadTask =storageRepository.downloadFile(fileItem,uri);
             FileTask<FileDownloadTask> fileTask=new FileTask<>(fileItem,fileDownloadTask);
@@ -228,20 +236,20 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
     public Task<Unit> downloadUsingInputStream(FileItem fileItem, Context context) throws Exception {
         setIsTaskRunning(true);
         Executor executor = Executors.newSingleThreadExecutor();
+        TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
+        File tempOutput = File.createTempFile(FileItemUtils.getNameString(context, Uri.parse(fileItem.getFilePath())), fileItem.getFileExtension());
+        File finalOutput = FileItemUtils.createNewDownloadFile(fileItem);
+        executor.execute(() -> {
         boolean isEncrypted = !fileItem.isEncrypted();
         if (isEncrypted) {
-            return downloadUnencryptedFile(fileItem, executor);
+            downloadUnencryptedFile(fileItem, executor).addOnSuccessListener(taskCompletionSource::setResult)
+                    .addOnFailureListener(taskCompletionSource::setException);
         }
-
-        File tempOutput = File.createTempFile(FileItemUtils.getNameString(context, Uri.parse(fileItem.getFilePath())), fileItem.getFileExtension());
-        File finalOutput = FileItemUtils.createDownloadFile(fileItem);
-        FileDownloadTask fileDownloadTask = storageRepository.downloadFile(fileItem, Uri.parse(tempOutput.getAbsolutePath()));
-        fileItem.setFilePath(tempOutput.getAbsolutePath());
-        FileTask<FileDownloadTask> fileTask = new FileTask<>(fileItem, fileDownloadTask);
-        addFileDownloadItem(fileTask);
-
-        TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
-        executor.execute(() -> {
+        else{
+            FileDownloadTask fileDownloadTask = storageRepository.downloadFile(fileItem, Uri.parse(tempOutput.getAbsolutePath()));
+            fileItem.setFilePath(tempOutput.getAbsolutePath());
+            FileTask<FileDownloadTask> fileTask = new FileTask<>(fileItem, fileDownloadTask);
+            addFileDownloadItem(fileTask);
             try {
                 int bufferSize = FileItemUtils.calculateBufferSize(context, fileItem.getFileSize());
                 byte[] buffer = new byte[bufferSize];
@@ -261,19 +269,20 @@ public class MainViewModel extends ViewModel implements OnCompleteListener<Unit>
             } catch (Exception e) {
                 taskCompletionSource.setException(e);
             }
+        }
         });
 
         return taskCompletionSource.getTask();
     }
 
-    public Task<Unit> downloadUsingDownloadManager(FileItem item, Context context) throws Exception {
+    public Task<Unit> downloadUsingDownloadManager(FileItem item, Context context) {
         TaskCompletionSource<Unit> taskCompletionSource = new TaskCompletionSource<>();
         DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(item.getDownloadUrl()));
         request.setTitle("Downloading...")
                 .setDescription(item.getFileName())
                 .setMimeType(item.getFileExtension())
-                .setDestinationUri(Uri.fromFile(FileItemUtils.createDownloadFile(item)))
+                .setDestinationUri(Uri.fromFile(FileItemUtils.createNewDownloadFile(item)))
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         long downloadId = downloadManager.enqueue(request);
         final Handler handler = new Handler(Looper.getMainLooper());

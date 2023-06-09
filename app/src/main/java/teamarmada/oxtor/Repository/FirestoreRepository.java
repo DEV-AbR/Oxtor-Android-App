@@ -1,6 +1,7 @@
 package teamarmada.oxtor.Repository;
 
-import static teamarmada.oxtor.Model.FileItem.EXISTS;
+
+import static teamarmada.oxtor.Model.FileItem.DOWNLOAD_URL;
 import static teamarmada.oxtor.Model.FileItem.FILENAME;
 import static teamarmada.oxtor.Model.FileItem.FILE_SIZE;
 import static teamarmada.oxtor.Model.FileItem.TIMESTAMP;
@@ -98,7 +99,7 @@ public class FirestoreRepository {
         FileItem fileItem1=new FileItem(fileItem.getStorageReference(),null,null,
                 fileItem.getFileName(),fileItem.getUid(),fileItem.getFileType(),
                 fileItem.getFileExtension(),fileItem.getFileSize(),
-                false,false,null,fileItem.getTimeStamp(),null);
+                false,null,fileItem.getTimeStamp(),null);
         return  db.batch().update(docRef,fileItem1.toHashmap()).commit();
     }
 
@@ -127,7 +128,7 @@ public class FirestoreRepository {
                     for(DocumentSnapshot snapshot:task.getResult()){
                         Long g;
                         try{
-                            if(snapshot.getBoolean(EXISTS))
+                            if(snapshot.getString(DOWNLOAD_URL)!=null)
                                 g = snapshot.getLong("fileSize");
                             else
                                 g=0L;

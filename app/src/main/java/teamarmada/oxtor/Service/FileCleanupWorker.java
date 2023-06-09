@@ -2,6 +2,9 @@ package teamarmada.oxtor.Service;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.work.Constraints;
@@ -25,14 +28,17 @@ public class FileCleanupWorker extends Worker {
     public final String NOTIFICATION_WORK="Share Notification Work";
     private final WorkManager workManager;
     private StatusCode statusCode=null;
+    private Context context;
 
-    @SuppressLint("SuspiciousIndentation")
     public FileCleanupWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
+        this.context=context;
         workManager=WorkManager.getInstance(context);
         AuthRepository authRepository=new AuthRepository();
         authRepository.getAuth().addAuthStateListener(firebaseAuth -> {
-            if(firebaseAuth!=null)
+            if(firebaseAuth==null){
+                return;
+            }
             FirestoreRepository.getInstance().sortByTimestamp(authRepository.getProfileItem())
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> queryDocumentSnapshots.getDocuments().forEach(snapshot -> {
@@ -46,9 +52,10 @@ public class FileCleanupWorker extends Worker {
                         if(shouldDeleteFile(fileItem.getTimeStamp())){
                             statusCode=StatusCode.TO_DELETE;
                             FileItem finalFileItem = fileItem;
+                            makeToast();
                             StorageRepository.getInstance().deleteFile(fileItem, authRepository.getProfileItem())
                                     .addOnSuccessListener(task->{
-                                        statusCode=StatusCode.IS_DELETED;
+                                        statusCode=StatusCode.DELETED;
                                         initNotificationWork(finalFileItem.getFileName());
                                     })
                                     .addOnFailureListener(e-> statusCode=StatusCode.IT_FAILED);
@@ -58,6 +65,12 @@ public class FileCleanupWorker extends Worker {
                         }
                     }));
         });
+    }
+
+    public void makeToast(){
+        Handler handler=new Handler(Looper.getMainLooper());
+        handler.post(()->Toast.makeText(context,"Some deleted",Toast.LENGTH_SHORT).show());
+
     }
 
     public boolean shouldDeleteFile(Date uploadDate) {
@@ -88,12 +101,12 @@ public class FileCleanupWorker extends Worker {
             default:
             case IT_FAILED:return Result.retry();
             case TO_DELETE:
-            case IS_DELETED:return Result.success();
+            case DELETED:return Result.success();
         }
     }
 
     public enum StatusCode {
-        TO_DELETE, IS_DELETED, IT_FAILED, NOT_TO_DELETE;
+        TO_DELETE, DELETED, IT_FAILED, NOT_TO_DELETE;
     }
 
 }

@@ -147,12 +147,12 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
     @Override
     public T getItem(int position) {
         DocumentSnapshot snapshot=snapshotList.get(position);
-//        try{
-//            return snapshot.toObject(tClass);
-//        }catch (Exception e){
-//            e.printStackTrace();
+        try{
+            return snapshot.toObject(tClass);
+        }catch (Exception e){
+            e.printStackTrace();
             return getFromConstructor(snapshot);
-        //}
+        }
     }
 
     private T getFromConstructor(DocumentSnapshot snapshot){

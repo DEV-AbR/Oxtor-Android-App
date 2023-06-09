@@ -23,6 +23,7 @@ import com.google.firebase.storage.UploadTask;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -155,37 +156,27 @@ public class FileItemUtils {
         }
         return new FileItem(null,null,path.toString(),name,UUID.randomUUID().toString(),
                 type,FilenameUtils.getExtension(name),getSizeLong(context,path),
-                false,true,null,null,null);
+                false,null,null,null);
     }
 
 
-    public static File createDownloadFile(FileItem fileItem) throws Exception {
+    public static File createNewDownloadFile(FileItem fileItem) {
         File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/Download");
         File innerFolder=new File(folder,getFileTypeString(fileItem.getFileType()));
         if(!innerFolder.exists())
             innerFolder.mkdirs();
         String nameWithExtension=fileItem.getFileName();
         File output=new File(innerFolder,nameWithExtension);
-        boolean created= output.createNewFile();
+        boolean created= false;
+        try {
+            created = output.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if(created)
             return output;
         else
-            throw new Exception("Couldn't create said file");
-    }
-
-    public static File createUploadFile(String type,String extension) throws Exception {
-        Log.d(TAG, "createUploadFile: ");
-        File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/Upload");
-        File innerFolder=new File(folder,type);
-        if(!innerFolder.exists())
-            innerFolder.mkdirs();
-        String nameWithExtension=generateFileNameWithoutExtension()+extension;
-        File output=new File(innerFolder,nameWithExtension);
-        boolean created= output.createNewFile() && output.setWritable(true);
-        if(created)
-            return output;
-        else
-            throw new Exception("Couldn't create said file");
+            return null;
     }
 
     public static int calculateBufferSize(Context context, long fileSize) throws Exception {

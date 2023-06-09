@@ -20,21 +20,17 @@ public class CloudStorageCleaner extends Service  {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         Constraints constraints=new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
-
         PeriodicWorkRequest fileCleanupWorkRequest = new PeriodicWorkRequest.Builder(FileCleanupWorker.class, CLEANUP_INTERVAL, TimeUnit.MILLISECONDS)
                         .addTag(FILE_CLEANUP_WORK_TAG)
                         .setConstraints(constraints)
                         .build();
-
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 FILE_CLEANUP_WORK_TAG,
                 ExistingPeriodicWorkPolicy.KEEP,
                 fileCleanupWorkRequest);
-
         return super.onStartCommand(intent, flags, startId);
     }
 

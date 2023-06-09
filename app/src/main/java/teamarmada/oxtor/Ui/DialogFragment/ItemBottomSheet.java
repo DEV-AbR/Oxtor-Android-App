@@ -19,12 +19,12 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
 
     private static final String TAG = ItemBottomSheet.class.getSimpleName();
     private BottomSheetCallback callback;
-    private final int layoutID;
     private BottomsheetFileitemBinding binding;
 
     public ItemBottomSheet(@LayoutRes int layoutID){
-        this.layoutID=layoutID;
     }
+
+    public BottomsheetFileitemBinding getViewBinding(){return binding;}
 
     public void addCallback(BottomSheetCallback callback){
         this.callback=callback;

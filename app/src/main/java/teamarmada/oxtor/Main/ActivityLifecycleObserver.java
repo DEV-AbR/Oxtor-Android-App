@@ -3,7 +3,6 @@ package teamarmada.oxtor.Main;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -113,9 +112,11 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
         Task<Unit> uploadTask;
         try {
             uploadTask = mainViewModel.uploadUsingInputStream(fileItem, activity);
+//            uploadTask = mainViewModel.uploadUsingByteArray(fileItem, activity);
         } catch (Exception e) {
             try {
                 uploadTask = mainViewModel.uploadUsingByteArray(fileItem, activity);
+//                uploadTask = mainViewModel.uploadUsingInputStream(fileItem, activity);
             } catch (Exception ex) {
                 mainViewModel.setIsTaskRunning(false);
                 makeToast(ex.toString());

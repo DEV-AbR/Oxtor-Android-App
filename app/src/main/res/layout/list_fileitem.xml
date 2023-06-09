@@ -47,11 +47,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:singleLine="true"
+                android:layout_centerHorizontal="true"
                 style="@style/TextAppearance.Material3.TitleMedium"
                 android:text="@string/filename" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/size"
+                android:layout_centerHorizontal="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/name"
@@ -65,6 +67,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/size"
+                android:layout_centerHorizontal="true"
                 style="@style/TextAppearance.Material3.TitleSmall"
                 android:text="Timestamp" />
 

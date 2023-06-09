@@ -18,9 +18,8 @@ public class FileItem implements Serializable {
     private String uid;
     private String fileType;
     private String fileExtension;
-    private Long fileSize;
-    private Boolean encrypted;
-    private Boolean exists;
+    private long fileSize;
+    private boolean encrypted;
     private String iv,encryptionPassword;
     private @ServerTimestamp Date timeStamp;
 
@@ -35,7 +34,6 @@ public class FileItem implements Serializable {
     public static final String FILE_SIZE="fileSize";
     public static final String UID="uid";
     public static final String IV="iv";
-    public static final String EXISTS="exists";
     public static final String ENCRYPTION_PASSWORD="encryptionPassword";
 
     public FileItem(){}
@@ -43,7 +41,6 @@ public class FileItem implements Serializable {
     public FileItem(DocumentSnapshot documentSnapshot) {
         this.iv=documentSnapshot.getString(IV);
         this.uid = documentSnapshot.getString(UID);
-        this.fileSize = documentSnapshot.getLong(FILE_SIZE);
         this.filePath = documentSnapshot.getString(FILEPATH);
         this.fileName = documentSnapshot.getString(FILENAME);
         this.fileType = documentSnapshot.getString(FILETYPE);
@@ -52,25 +49,23 @@ public class FileItem implements Serializable {
         this.fileExtension = documentSnapshot.getString(FILE_EXTENSION);
         this.storageReference = documentSnapshot.getString(STORAGE_REFERENCE);
         this.encryptionPassword=documentSnapshot.getString(ENCRYPTION_PASSWORD);
+        try{
+            this.fileSize = documentSnapshot.getLong(FILE_SIZE);
+        }catch(Exception e){
+            this.fileSize=0;
+        }
         try {
-            encrypted=(iv!=null)?documentSnapshot.get(ENCRYPTED,Boolean.class):false;
+            encrypted=documentSnapshot.getBoolean(ENCRYPTED);
         }
         catch (Exception e){
             e.printStackTrace();
-            encrypted=false;
-        }
-        try {
-            exists=(iv!=null)?documentSnapshot.get(EXISTS,Boolean.class):false;
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            exists=true;
+            encrypted=(iv!=null);
         }
     }
 
     public FileItem(String storageReference, String downloadUrl, String filePath,
                     String fileName, String uid, String fileType, String fileExtension,
-                    Long fileSize, Boolean encrypted,Boolean exists,String iv, Date timeStamp,
+                    Long fileSize, Boolean encrypted,String iv, Date timeStamp,
                     String encryptionPassword) {
         this.storageReference = storageReference;
         this.fileExtension = fileExtension;
@@ -83,16 +78,8 @@ public class FileItem implements Serializable {
         this.fileSize = fileSize;
         this.uid = uid;
         this.iv=iv;
-        this.exists=exists;
+
         this.encryptionPassword=encryptionPassword;
-    }
-
-    public Boolean doesItExists() {
-        return exists;
-    }
-
-    public void setExists(Boolean exists) {
-        this.exists = exists;
     }
 
     public String getStorageReference() {
@@ -211,7 +198,6 @@ public class FileItem implements Serializable {
         hashMap.put(FILE_SIZE,fileSize);
         hashMap.put(ENCRYPTED,encrypted);
         hashMap.put(IV,iv);
-        hashMap.put(EXISTS,exists);
         hashMap.put(ENCRYPTION_PASSWORD,encryptionPassword);
         hashMap.put(TIMESTAMP,timeStamp);
         return hashMap;
