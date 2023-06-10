@@ -95,7 +95,13 @@ public class StorageRepository  {
 
     public Task<Void> deleteFile(FileItem fileItem,ProfileItem profileItem){
         StorageReference storageReference= storage.getReference().child(fileItem.getStorageReference());
-        return storageReference.delete().onSuccessTask(task -> firestoreRepository.deleteFile(fileItem, profileItem));
+        return storageReference.delete().onSuccessTask(task -> {
+            FileItem fileItem1=new FileItem(fileItem.getStorageReference(),null,null,
+                    fileItem.getFileName(),fileItem.getUid(),fileItem.getFileType(),
+                    fileItem.getFileExtension(),fileItem.getFileSize(),
+                    false,null,fileItem.getTimeStamp(),null);
+            return firestoreRepository.updateFile(fileItem1.toHashmap(), profileItem);
+        });
     }
 
     public Task<Void> deleteAllFiles(ProfileItem profileItem){

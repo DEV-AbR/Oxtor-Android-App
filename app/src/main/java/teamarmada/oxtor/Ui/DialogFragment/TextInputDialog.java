@@ -49,7 +49,6 @@ public class TextInputDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         binding=DialogEditBinding.inflate(getLayoutInflater());
-        binding.setLifecycleOwner(this);
         editText=binding.editText;
         binding.editText.setInputType(inputType);
         if(text!=null)
@@ -119,6 +118,11 @@ public class TextInputDialog extends DialogFragment {
         Pattern pattern=Pattern.compile(expression);
         Matcher matcher=pattern.matcher(charSequence);
         return matcher.matches();
+    }
+
+    @Override
+    public void onDestroyView() {
+        binding=null;
     }
 
     public interface SimpleCallback{

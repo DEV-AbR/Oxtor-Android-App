@@ -12,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ProcessLifecycleOwner;
+
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.gms.ads.AdError;
@@ -48,8 +48,8 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private ActivityLifecycleObserver(@NonNull AppCompatActivity activity) {
-        ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
         this.activity = activity;
+        this.activity.getLifecycle().addObserver(this);
         mainViewModel = new ViewModelProvider(activity).get(MainViewModel.class);
         mainViewModel.getMemoryLiveData(activity).observe(activity, lowMemory -> {
             if(lowMemory){

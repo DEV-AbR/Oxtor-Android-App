@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
->
-
-    <RelativeLayout
+<RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/fileitem_layout"
-        >
+        xmlns:android="http://schemas.android.com/apk/res/android">
 
         <com.ortiz.touchview.TouchImageView
             android:id="@+id/picture_of_file"
@@ -18,7 +15,7 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentStart="true"
-            android:src="@drawable/ic_baseline_photo_24"
+            android:src="@drawable/ic_baseline_file_present_24"
             />
 
     <LinearLayout
@@ -76,5 +73,5 @@
                 />
         </LinearLayout>
     </LinearLayout>
-    </RelativeLayout>
-</layout>
+
+</RelativeLayout>

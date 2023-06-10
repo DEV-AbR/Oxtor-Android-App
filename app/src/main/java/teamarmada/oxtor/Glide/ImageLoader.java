@@ -124,30 +124,31 @@ public class ImageLoader implements ModelLoader<FileItem, Bitmap> {
 
         @Override
         public void loadData(@NonNull Priority priority, @NonNull final DataCallback<? super Bitmap> callback) {
-            FirebaseStorage.getInstance().getReference().child(fileItem.getStorageReference())
-                    .getStream().addOnSuccessListener(executor,taskSnapshot -> {
-                        if(fileItem.getFileType().contains("image")){
-                            Log.d(TAG, "loadData: image found: "+fileItem.getFileName());
-                            if(fileItem.isEncrypted()){
-                                try {
-                                    byte[] bytes=new byte[fileItem.getFileSize().intValue()];
-                                    InputStream is=taskSnapshot.getStream();
-                                    is.read(bytes);
-                                    bytes=AES.decrypt(bytes,fileItem,new AuthRepository().getProfileItem());
-                                    bitmap=BitmapFactory.decodeByteArray(bytes,0,bytes.length,options);
-                                    callback.onDataReady(bitmap);
-                                    is.close();
-                                } catch (Exception e) {
-                                    callback.onLoadFailed(e);
+            if(fileItem.getDownloadUrl()!=null) {
+                FirebaseStorage.getInstance().getReference().child(fileItem.getStorageReference())
+                        .getStream().addOnSuccessListener(executor, taskSnapshot -> {
+                            if (fileItem.getFileType().contains("image")) {
+                                Log.d(TAG, "loadData: image found: " + fileItem.getFileName());
+                                if (fileItem.isEncrypted()) {
+                                    try {
+                                        byte[] bytes = new byte[fileItem.getFileSize().intValue()];
+                                        InputStream is = taskSnapshot.getStream();
+                                        is.read(bytes);
+                                        bytes = AES.decrypt(bytes, fileItem, new AuthRepository().getProfileItem());
+                                        bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+                                        callback.onDataReady(bitmap);
+                                        is.close();
+                                    } catch (Exception e) {
+                                        callback.onLoadFailed(e);
+                                    }
+                                } else {
+                                    callback.onDataReady(BitmapFactory.decodeStream(taskSnapshot.getStream()));
                                 }
-                            }
-                            else {
-                                callback.onDataReady(BitmapFactory.decodeStream(taskSnapshot.getStream()));
-                            }
-                        }
-                        else callback.onLoadFailed(new Exception("Found item is not image"));
-                    }).addOnFailureListener(executor,callback::onLoadFailed);
-
+                            } else callback.onLoadFailed(new Exception("Found item is not image"));
+                        }).addOnFailureListener(executor, callback::onLoadFailed);
+            }else{
+                callback.onLoadFailed(new Exception("File does not exist anymore"));
+            }
         }
 
         @Override

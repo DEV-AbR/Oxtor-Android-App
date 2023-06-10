@@ -5,14 +5,11 @@ import static teamarmada.oxtor.Main.MainActivity.PREFS;
 import static teamarmada.oxtor.Main.MainActivity.SORT_PREFERENCE;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -54,8 +51,8 @@ import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import teamarmada.oxtor.Fragments.ChildFragments.FileItemFragment;
-import teamarmada.oxtor.Interfaces.ListItemCallback;
-import teamarmada.oxtor.Interfaces.ScreenManager;
+import teamarmada.oxtor.Ui.RecyclerViewAdapter.RecyclerViewAdapter.ListItemCallback;
+import teamarmada.oxtor.Main.ScreenManager;
 import teamarmada.oxtor.Main.ActivityLifecycleObserver;
 import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.Model.FileItem;
@@ -83,7 +80,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private Query query=null;
     private ActionMode actionmode=null;
     private SwipeRefreshLayout swipeRefreshLayout=null;
-    private RecyclerViewAdapter<FileItem, ListFileitemBinding> adapter;
+    private RecyclerViewAdapter adapter;
     private ItemBottomSheet itemBottomSheet;
     private SharedPreferences sharedPreferences;
     private ActivityLifecycleObserver activityLifecycleObserver;
@@ -100,7 +97,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         requireActivity().addMenuProvider(this,getViewLifecycleOwner());
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        binding.setLifecycleOwner(this);
         sharedPreferences=requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         addButton=binding.add;
         swipeRefreshLayout=binding.swipeHome;
@@ -140,13 +136,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 query= homeViewModel.queryToSortByName();
                 break;
         }
-        adapter=new RecyclerViewAdapter<>(
-                getLifecycle(),
-                R.layout.list_fileitem,
-                query,
-                true,
-                FileItem.class,
-                itemCallback);
+        adapter=new RecyclerViewAdapter(getLifecycle(), query, true, itemCallback);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(),
                 RecyclerView.VERTICAL, false));
         itemBottomSheet =new ItemBottomSheet(R.layout.bottomsheet_fileitem);
@@ -211,12 +201,16 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                             final FileItem fileItem = adapter.getItem(pos);
                             View.OnClickListener listener= v1 -> {
                                 itemBottomSheet.dismiss();
+                                if(fileItem.getDownloadUrl()!=null){
                                 List<FileItem> fileItems=new ArrayList<>();
                                 fileItems.add(fileItem);
                                 try {
                                     onOptionSelected(v1.getId(), fileItems);
                                 }catch(Exception e){
                                     e.printStackTrace();
+                                }
+                                }else{
+                                    Toast.makeText(getContext(),"File does not exist anymore",Toast.LENGTH_SHORT).show();
                                 }
                             };
                             binding.deleteButton.setOnClickListener(listener);
@@ -239,12 +233,11 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                 public void onClick(View v) {}
             };
 
-    private final ListItemCallback<FileItem, ListFileitemBinding> itemCallback=
-            new ListItemCallback<FileItem, ListFileitemBinding>() {
-
+    private final ListItemCallback itemCallback=
+            new ListItemCallback() {
                 @Override
                 public void bind(ListFileitemBinding recBinding,FileItem item,int position) {
-                    recBinding.executePendingBindings();
+
                     recBinding.name.setText(item.getFileName());
                     recBinding.size.setText(FileItemUtils.byteToString(item.getFileSize()));
                     if(item.getDownloadUrl()==null){
@@ -271,13 +264,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                             itemBottomSheet.dismiss();
                         }
                     });
-                    try{
-                        itemBottomSheet.requireView().findViewById(R.id.linearlayout_top).setVisibility(
-                                adapter.getItem(position).getDownloadUrl()==null?View.GONE:View.VISIBLE
-                        );
-                    }catch(Exception e){
-                        e.printStackTrace();
-                    }
                 }
                 @Override
                 public void onChanged(List<FileItem> items) {
@@ -467,10 +453,16 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onDestroyView() {
         if(actionmode!=null)
             actionmode.finish();
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        binding=null;
     }
 
     @Override

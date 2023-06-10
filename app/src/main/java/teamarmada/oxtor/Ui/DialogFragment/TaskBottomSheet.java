@@ -26,6 +26,7 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
 
     public static final String TAG= TaskBottomSheet.class.getSimpleName();
     private final int[] tabList= new int[]{R.string.uploadtask, R.string.downloadtask};
+    private BottomsheetFiletaskBinding binding;
     private ViewPager2 viewpager2;
     private TabLayout tablayout;
     private int pos=0;
@@ -35,8 +36,7 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        BottomsheetFiletaskBinding binding = BottomsheetFiletaskBinding.inflate(inflater, container, false);
-        binding.setLifecycleOwner(this);
+        binding = BottomsheetFiletaskBinding.inflate(inflater, container, false);
         tablayout= binding.tabLayout;
         viewpager2= binding.viewpagerFiletasks;
         viewpager2.setAdapter(new FragmentStateAdapter(this) {
@@ -105,5 +105,11 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding=null;
     }
 }

@@ -29,19 +29,26 @@ import teamarmada.oxtor.databinding.FragmentTaskBinding;
 public class DownloadTaskFragment extends Fragment {
 
     public static final String TAG=DownloadTaskFragment.class.getSimpleName();
+    private FragmentTaskBinding binding;
     public DownloadTaskFragment(){}
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        FragmentTaskBinding bindings = FragmentTaskBinding.inflate(inflater, container, false);
-        bindings.setLifecycleOwner(this);
+        binding = FragmentTaskBinding.inflate(inflater, container, false);
         MainViewModel mainViewModel=new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        RecyclerView recyclerView = bindings.recyclerviewTasks;
+        RecyclerView recyclerView = binding.recyclerviewTasks;
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL,false));
         recyclerView.addItemDecoration(new MaterialDividerItemDecoration(requireContext(),MaterialDividerItemDecoration.VERTICAL));
-        recyclerView.setAdapter(new TaskListAdapter<>(mainViewModel.mutableFileDownloadList.getValue(), mainViewModel.mutableFileDownloadList::postValue));
-        return bindings.getRoot();
+        TaskListAdapter<FileDownloadTask> adapter=new TaskListAdapter<>(mainViewModel.mutableFileDownloadList);
+        recyclerView.setAdapter(adapter);
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        binding=null;
     }
 
 }

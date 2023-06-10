@@ -18,6 +18,7 @@ import com.google.firebase.storage.UploadTask;
 
 import java.util.List;
 
+import kotlin.jvm.internal.markers.KMutableList;
 import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.Ui.RecyclerViewAdapter.TaskListAdapter;
 import teamarmada.oxtor.ViewModels.MainViewModel;
@@ -26,19 +27,26 @@ import teamarmada.oxtor.databinding.FragmentTaskBinding;
 public class UploadTaskFragment extends Fragment {
 
     public static final String TAG=UploadTaskFragment.class.getSimpleName();
+    private FragmentTaskBinding binding;
+
     public UploadTaskFragment(){}
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        FragmentTaskBinding bindings = FragmentTaskBinding.inflate(inflater, container, false);
-        bindings.setLifecycleOwner(this);
+        binding = FragmentTaskBinding.inflate(inflater, container, false);
         MainViewModel mainViewModel=new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        RecyclerView recyclerView = bindings.recyclerviewTasks;
+        RecyclerView recyclerView = binding.recyclerviewTasks;
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL,false));
         recyclerView.addItemDecoration(new MaterialDividerItemDecoration(requireContext(),MaterialDividerItemDecoration.VERTICAL));
-        recyclerView.setAdapter(new TaskListAdapter<>(mainViewModel.mutableUploadList.getValue(), mainViewModel.mutableUploadList::postValue));
-        return bindings.getRoot();
+        TaskListAdapter<UploadTask> adapter=new TaskListAdapter<>(mainViewModel.mutableUploadList);
+        recyclerView.setAdapter(adapter);
+        return binding.getRoot();
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        binding=null;
+    }
 }

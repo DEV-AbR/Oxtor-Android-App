@@ -106,22 +106,27 @@ public class GlideImageLoader implements ModelLoader<FileItem, InputStream> {
 
         @Override
         public void loadData(@NonNull Priority priority, @NonNull final DataCallback<? super InputStream> callback) {
-            task= FirebaseStorage.getInstance().getReference().child(fileItem.getStorageReference()).getStream(this);
-            task.addOnSuccessListener(executor,taskSnapshot -> {
-                if(fileItem.getFileType().contains("image")){
-                    try {
-                        if(fileItem.isEncrypted()){
-                            inputStream=new CipherInputStream(taskSnapshot.getStream(), AES.getDecryptionCipher(fileItem,new AuthRepository().getProfileItem()));
-                        }else{
-                            inputStream=new BufferedInputStream(taskSnapshot.getStream(),(int)taskSnapshot.getTotalByteCount());
+            if(fileItem.getDownloadUrl()!=null){
+                FirebaseStorage.getInstance().getReference().child(fileItem.getStorageReference()).getStream(this)
+                .addOnSuccessListener(executor,taskSnapshot -> {
+                    if(fileItem.getFileType().contains("image")){
+                        try {
+                            if(fileItem.isEncrypted()){
+                                inputStream=new CipherInputStream(taskSnapshot.getStream(), AES.getDecryptionCipher(fileItem,new AuthRepository().getProfileItem()));
+                            }else{
+                                inputStream=new BufferedInputStream(taskSnapshot.getStream(),(int)taskSnapshot.getTotalByteCount());
+                            }
+                            callback.onDataReady(inputStream);
+                        } catch (Exception e) {
+                            callback.onLoadFailed(e);
                         }
-                        callback.onDataReady(inputStream);
-                    } catch (Exception e) {
-                        callback.onLoadFailed(e);
                     }
-                }
-                else callback.onLoadFailed(new Exception("Found item is not image"));
-            }).addOnFailureListener(executor, callback::onLoadFailed);
+                    else callback.onLoadFailed(new Exception("Found item is not image"));
+                }).addOnFailureListener(executor, callback::onLoadFailed);
+            }
+            else{
+                callback.onLoadFailed(new Exception("File does not exist anymore"));
+            }
         }
 
         @Override

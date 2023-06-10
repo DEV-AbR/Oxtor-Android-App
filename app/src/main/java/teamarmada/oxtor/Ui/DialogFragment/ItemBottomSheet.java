@@ -39,7 +39,7 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         binding = BottomsheetFileitemBinding.inflate(inflater,container,false);
-        binding.setLifecycleOwner(this);
+
         callback.bind(binding);
         return binding.getRoot();
     }
@@ -56,6 +56,12 @@ public class ItemBottomSheet extends BottomSheetDialogFragment {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding=null;
     }
 
     public interface BottomSheetCallback extends View.OnClickListener{

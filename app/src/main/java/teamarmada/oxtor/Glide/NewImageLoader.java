@@ -120,19 +120,21 @@ public class NewImageLoader implements ModelLoader<FileItem, ByteBuffer> {
 
         @Override
         public void loadData(@NonNull Priority priority, @NonNull final DataCallback<? super ByteBuffer> callback) {
-            task=FirebaseStorage.getInstance().getReference().child(fileItem.getStorageReference()).getStream(this);
-            task.addOnSuccessListener(executor,taskSnapshot -> {
-                if(fileItem.getFileType().contains("image")){
-                    try {
-                        byteBuffer=ByteBuffer.wrap(readIntoByteArray(fileItem,new AuthRepository().getProfileItem(),context));
-                        callback.onDataReady(byteBuffer);
-                    }catch (Exception e){
-                        callback.onLoadFailed(e);
-                    }
-                }
-                else callback.onLoadFailed(new Exception("Found item is not image"));
-            }).addOnFailureListener(executor, callback::onLoadFailed);
-
+            if(fileItem.getDownloadUrl()!=null) {
+                FirebaseStorage.getInstance().getReference().child(fileItem.getStorageReference()).getStream(this).addOnSuccessListener(executor, taskSnapshot -> {
+                    if (fileItem.getFileType().contains("image") && fileItem.getDownloadUrl() != null) {
+                        try {
+                            byteBuffer = ByteBuffer.wrap(readIntoByteArray(fileItem, new AuthRepository().getProfileItem(), context));
+                            callback.onDataReady(byteBuffer);
+                        } catch (Exception e) {
+                            callback.onLoadFailed(e);
+                        }
+                    } else callback.onLoadFailed(new Exception("Found item is not image"));
+                }).addOnFailureListener(executor, callback::onLoadFailed);
+            }
+            else{
+                callback.onLoadFailed(new Exception("File does not exist anymore"));
+            }
         }
 
         public byte[] readIntoByteArray(FileItem item, ProfileItem profileItem, Context context) throws Exception {

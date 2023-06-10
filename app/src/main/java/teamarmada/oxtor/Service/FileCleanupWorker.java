@@ -35,11 +35,12 @@ public class FileCleanupWorker extends Worker {
         this.context=context;
         workManager=WorkManager.getInstance(context);
         AuthRepository authRepository=new AuthRepository();
+        FirestoreRepository firestoreRepository=FirestoreRepository.getInstance();
         authRepository.getAuth().addAuthStateListener(firebaseAuth -> {
             if(firebaseAuth==null){
                 return;
             }
-            FirestoreRepository.getInstance().sortByTimestamp(authRepository.getProfileItem())
+            firestoreRepository.sortByTimestamp(authRepository.getProfileItem())
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> queryDocumentSnapshots.getDocuments().forEach(snapshot -> {
                         FileItem fileItem;
@@ -49,9 +50,9 @@ public class FileCleanupWorker extends Worker {
                         }catch (Exception e){
                             fileItem=new FileItem(snapshot);
                         }
-                        if(shouldDeleteFile(fileItem.getTimeStamp())){
+                        FileItem finalFileItem = fileItem;
+                        if(shouldDeleteFileFromBucket(fileItem.getTimeStamp())){
                             statusCode=StatusCode.TO_DELETE;
-                            FileItem finalFileItem = fileItem;
                             makeToast();
                             StorageRepository.getInstance().deleteFile(fileItem, authRepository.getProfileItem())
                                     .addOnSuccessListener(task->{
@@ -59,6 +60,14 @@ public class FileCleanupWorker extends Worker {
                                         initNotificationWork(finalFileItem.getFileName());
                                     })
                                     .addOnFailureListener(e-> statusCode=StatusCode.IT_FAILED);
+                        }
+                        else if(shouldDeleteFileFromDatabase(fileItem.getTimeStamp())){
+                            firestoreRepository.deleteFile(fileItem,authRepository.getProfileItem())
+                                    .addOnSuccessListener(task->{
+                                        statusCode=StatusCode.DELETED;
+                                        initNotificationWork(finalFileItem.getFileName());
+                                    })
+                                    .addOnFailureListener(e->statusCode=StatusCode.IT_FAILED);
                         }
                         else{
                             statusCode=StatusCode.NOT_TO_DELETE;
@@ -73,9 +82,16 @@ public class FileCleanupWorker extends Worker {
 
     }
 
-    public boolean shouldDeleteFile(Date uploadDate) {
+    public boolean shouldDeleteFileFromBucket(Date uploadDate) {
         long currentTimeMillis = System.currentTimeMillis();
         long twentyFourHoursInMillis = 24 * 60 * 60 * 1000;
+        long elapsedTimeMillis = currentTimeMillis - uploadDate.getTime();
+        return elapsedTimeMillis >= twentyFourHoursInMillis;
+    }
+
+    public boolean shouldDeleteFileFromDatabase(Date uploadDate) {
+        long currentTimeMillis = System.currentTimeMillis();
+        long twentyFourHoursInMillis = 7*24 * 60 * 60 * 1000;
         long elapsedTimeMillis = currentTimeMillis - uploadDate.getTime();
         return elapsedTimeMillis >= twentyFourHoursInMillis;
     }

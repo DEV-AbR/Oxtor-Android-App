@@ -21,7 +21,7 @@ public class FileItemFragment extends Fragment {
 
     public static final String TAG=FileItemFragment.class.getSimpleName();
     private final FileItem item;
-
+    private FragmentFileitemBinding binding;
     public FileItemFragment(FileItem fileItem){
         item=fileItem;
     }
@@ -29,8 +29,7 @@ public class FileItemFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        FragmentFileitemBinding binding = FragmentFileitemBinding.inflate(inflater, container, false);
-        binding.setLifecycleOwner(this);
+        binding = FragmentFileitemBinding.inflate(inflater, container, false);
         try {
             if(item!=null) {
                 binding.filename.setText(item.getFileName());
@@ -47,8 +46,13 @@ public class FileItemFragment extends Fragment {
         }catch (NullPointerException e){
             e.printStackTrace();
         }
-        binding.executePendingBindings();
         return binding.getRoot();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        binding=null;
     }
 
 }

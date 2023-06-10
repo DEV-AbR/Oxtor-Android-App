@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import kotlin.Unit;
-import teamarmada.oxtor.Interfaces.ScreenManager;
+import teamarmada.oxtor.Main.ScreenManager;
 import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
@@ -73,7 +73,7 @@ public class LoginFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView: ");
         binding = FragmentLoginBinding.inflate(inflater, container, false);
-        binding.setLifecycleOwner(this);
+
 
         try {
             fullscreenManager=(ScreenManager) requireActivity();
@@ -102,7 +102,6 @@ public class LoginFragment extends Fragment {
     }
 
     public void initUI(){
-        binding.executePendingBindings();
         binding.googlesigin.setOnClickListener(v -> {
             loginViewModel.setIsTaskRunning(false);
             initGoogleSignIn();
@@ -332,6 +331,12 @@ public class LoginFragment extends Fragment {
         super.onDestroyView();
         if(fullscreenManager!=null)
             fullscreenManager.disableFullscreen();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        binding=null;
     }
 
 }

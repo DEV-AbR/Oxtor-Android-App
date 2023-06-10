@@ -12,7 +12,10 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -28,16 +31,29 @@ import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.databinding.ListFiletaskBinding;
 
-public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapter<TaskListAdapter.ViewHolder> {
+public class TaskListAdapter <T extends StorageTask> extends ListAdapter<FileTask<T>,TaskListAdapter<T>.ViewHolder> implements Observer<List<FileTask<T>>> {
 
+    private final MutableLiveData<List<FileTask<T>>> mutableList;
     private List<FileTask<T>> list;
     public static final String TAG= TaskListAdapter.class.getSimpleName();
-    public Observer<List<FileTask<T>>> listObserver;
     private Context context;
 
-    public TaskListAdapter(List<FileTask<T>> list, Observer<List<FileTask<T>>> listObserver){
-        this.list=list;
-        this.listObserver=listObserver;
+    public TaskListAdapter(MutableLiveData<List<FileTask<T>>> list){
+        super(new DiffUtil.ItemCallback<FileTask<T>>() {
+
+            @Override
+            public boolean areItemsTheSame(@NonNull FileTask<T> oldItem, @NonNull FileTask<T> newItem) {
+                return oldItem.equals(newItem);
+            }
+
+            @SuppressLint("DiffUtilEquals")
+            @Override
+            public boolean areContentsTheSame(@NonNull FileTask<T> oldItem, @NonNull FileTask<T> newItem) {
+                return oldItem.toString().equals(newItem.toString());
+            }
+        });
+        mutableList=list;
+        mutableList.observeForever( this);
     }
 
     public List<FileTask<T>> getList() {
@@ -60,67 +76,20 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
     @Override
     public void onBindViewHolder(@NonNull TaskListAdapter.ViewHolder holder, int position) {
         holder.bind();
-        FileTask<T> item=list.get(position);
-        item.getTask()
-                .addOnCompleteListener(task -> holder.removeTask())
-                .addOnCanceledListener(holder::cancelTask)
-                .addOnProgressListener(snapshot -> {
-                    if(getAvailableMemory(context).lowMemory){
-                        if(item.getTask().isInProgress()) {
-                            item.getTask().pause();
-                        }
-                    }
-                    else{
-                        if(item.getTask().isPaused()) {
-                            item.getTask().resume();
-                        }
-                        int progress= getTaskProgress(item,snapshot);
-                        if(progress>0){
-                            holder.binding.progressbarTaskItem.setIndeterminate(false);
-                            holder.binding.progressbarTaskItem.setProgress(progress);
-                            String s="Progress : "+progress+"%";
-                            holder.binding.timestamp.setText(s);
-                        }
-                        else{
-                            holder.binding.progressbarTaskItem.setIndeterminate(true);
-                            String s="Connecting...";
-                            holder.binding.timestamp.setText(s);
-                        }
-                    }
-                });
-
     }
 
-    private int getTaskProgress(FileTask<T> item,Object snapshot){
-        if(item.getTask() instanceof UploadTask){
-            UploadTask.TaskSnapshot taskSnapshot= (UploadTask.TaskSnapshot) snapshot;
-            double progress=(100.0*taskSnapshot.getBytesTransferred())/item.getFileItem().getFileSize();
-            return (int) progress;
-        }
-        else if(item.getTask() instanceof FileDownloadTask){
-            FileDownloadTask.TaskSnapshot taskSnapshot= (FileDownloadTask.TaskSnapshot) snapshot;
-            double progress=(100.0*taskSnapshot.getBytesTransferred())/item.getFileItem().getFileSize();
-            return (int) progress;
-        }
-        else if(item.getTask() instanceof StreamDownloadTask){
-            StreamDownloadTask.TaskSnapshot taskSnapshot= (StreamDownloadTask.TaskSnapshot) snapshot;
-            double progress=(100.0*taskSnapshot.getBytesTransferred())/item.getFileItem().getFileSize();
-            return (int) progress;
-        }
-        else
-            return 0;
-    }
 
-    private ActivityManager.MemoryInfo getAvailableMemory(Context context) {
-        ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
-        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-        am.getMemoryInfo(memoryInfo);
-        return memoryInfo;
-    }
 
     @Override
     public int getItemCount() {
         return list.size();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    @Override
+    public void onChanged(List<FileTask<T>> fileTasks) {
+        this.list=fileTasks;
+        notifyDataSetChanged();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -137,61 +106,121 @@ public class TaskListAdapter <T extends StorageTask> extends RecyclerView.Adapte
             return list.get(getBindingAdapterPosition());
         }
 
-        public void bind(){
-            FileItem fileItem=getItem().getFileItem();
+        public void bind() {
+            FileItem fileItem = getItem().getFileItem();
             binding.name.setText(fileItem.getFileName());
             binding.size.setText(FileItemUtils.byteToString(fileItem.getFileSize()));
-            final String t="Connecting...";
+            final String t = "Connecting...";
             binding.timestamp.setText(t);
             binding.progressbarTaskItem.setVisibility(View.VISIBLE);
             binding.progressbarTaskItem.setIndeterminate(true);
-            if(getItem().getTask() instanceof UploadTask)
+            if (getItem().getTask() instanceof UploadTask)
                 Glide.with(binding.picture).load(Uri.parse(fileItem.getFilePath())).into(binding.picture);
-            if(getItem().getTask() instanceof FileDownloadTask)
-                FileItemUtils.loadPhoto(fileItem,binding.picture);
-            binding.removeButton.setOnClickListener(v->{
+            if (getItem().getTask() instanceof FileDownloadTask)
+                FileItemUtils.loadPhoto(fileItem, binding.picture);
+            binding.removeButton.setOnClickListener(v -> {
                 try {
                     Toast.makeText(context, fileItem.getFileName() + " Removed", Toast.LENGTH_SHORT).show();
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
-                }
-                finally {
+                } finally {
                     removeTask();
                 }
             });
+            try {
+                FileTask<T> item = getItem();
+                item.getTask()
+                        .addOnCompleteListener(task -> removeTask())
+                        .addOnCanceledListener(() -> cancelTask())
+                        .addOnProgressListener(snapshot -> {
+                            if (getAvailableMemory(context).lowMemory) {
+                                if (item.getTask().isInProgress()) {
+                                    item.getTask().pause();
+                                }
+                            } else {
+                                if (item.getTask().isPaused()) {
+                                    item.getTask().resume();
+                                }
+                                int progress = getTaskProgress(item, snapshot);
+                                if (progress > 0) {
+                                    binding.progressbarTaskItem.setIndeterminate(false);
+                                    binding.progressbarTaskItem.setProgress(progress);
+                                    String s = "Progress : " + progress + "%";
+                                    binding.timestamp.setText(s);
+                                } else {
+                                    binding.progressbarTaskItem.setIndeterminate(true);
+                                    String s = "Connecting...";
+                                    binding.timestamp.setText(s);
+                                }
+                            }
+                        });
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
-
+        @SuppressLint({"SuspiciousIndentation", "NotifyDataSetChanged"})
         public void  cancelTask(){
+            try{
             try {
                 if(getItem().getTask().cancel()){
-                    list.remove(getAbsoluteAdapterPosition());
-                    listObserver.onChanged(list);
+                    list.remove(getItem());
+                    mutableList.setValue(list);
                 }
             }catch (Exception e){
-                e.printStackTrace();
-                return;
+                if(getItem().getTask().cancel()){
+                    if(list.remove(getItem()))
+                    mutableList.postValue(list);
+                }
             }
-            try{
-                notifyItemRemoved(getAbsoluteAdapterPosition());
+            notifyDataSetChanged();
             }catch (Exception e){
-                notifyDataSetChanged();
+                e.printStackTrace();
             }
         }
 
+        @SuppressLint({"SuspiciousIndentation", "NotifyDataSetChanged"})
         public void  removeTask(){
-            try {
-                list.remove(getAbsoluteAdapterPosition());
-                listObserver.onChanged(list);
-            }catch (Exception e){
-                e.printStackTrace();
-                return;
-            }
             try{
-                notifyItemRemoved(getAbsoluteAdapterPosition());
+            try {
+                if(list.remove(getItem()))
+                mutableList.setValue(list);
             }catch (Exception e){
-                notifyDataSetChanged();
+                if(list.remove(getItem()))
+                mutableList.postValue(list);
+            }
+            notifyDataSetChanged();
+            }catch(Exception e){
+                e.printStackTrace();
             }
         }
+
+        private int getTaskProgress(FileTask<T> item,Object snapshot){
+            if(item.getTask() instanceof UploadTask){
+                UploadTask.TaskSnapshot taskSnapshot= (UploadTask.TaskSnapshot) snapshot;
+                double progress=(100.0*taskSnapshot.getBytesTransferred())/item.getFileItem().getFileSize();
+                return (int) progress;
+            }
+            else if(item.getTask() instanceof FileDownloadTask){
+                FileDownloadTask.TaskSnapshot taskSnapshot= (FileDownloadTask.TaskSnapshot) snapshot;
+                double progress=(100.0*taskSnapshot.getBytesTransferred())/item.getFileItem().getFileSize();
+                return (int) progress;
+            }
+            else if(item.getTask() instanceof StreamDownloadTask){
+                StreamDownloadTask.TaskSnapshot taskSnapshot= (StreamDownloadTask.TaskSnapshot) snapshot;
+                double progress=(100.0*taskSnapshot.getBytesTransferred())/item.getFileItem().getFileSize();
+                return (int) progress;
+            }
+            else
+                return 0;
+        }
+
+        private ActivityManager.MemoryInfo getAvailableMemory(Context context) {
+            ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
+            ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+            am.getMemoryInfo(memoryInfo);
+            return memoryInfo;
+        }
+
     }
 
 }

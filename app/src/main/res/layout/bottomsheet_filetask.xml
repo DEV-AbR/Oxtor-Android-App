@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <RelativeLayout
+<RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".Ui.DialogFragment.TaskBottomSheet">
+        tools:context=".Ui.DialogFragment.TaskBottomSheet"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
 
-        <com.google.android.material.tabs.TabLayout
+
+    <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -30,5 +30,4 @@
             android:layout_height="match_parent"
             android:layout_width="match_parent"
             android:id="@+id/viewpager_filetasks" />
-    </RelativeLayout>
-</layout>
+</RelativeLayout>

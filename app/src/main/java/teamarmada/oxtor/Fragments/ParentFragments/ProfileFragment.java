@@ -70,7 +70,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         requireActivity().addMenuProvider(this,getViewLifecycleOwner());
         binding = FragmentProfileBinding.inflate(inflater, container, false);
-        binding.setLifecycleOwner(this);
         sharedPreferences=requireContext().getSharedPreferences(PREFS,Context.MODE_PRIVATE);
         profileViewModel=new ViewModelProvider(this).get(ProfileViewModel.class);
         observeLoadingState();
@@ -316,6 +315,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                 return true;
         }
         return false;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        binding=null;
     }
 
 }

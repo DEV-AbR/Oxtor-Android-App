@@ -10,11 +10,10 @@ import android.view.ViewGroup;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.databinding.DataBindingUtil;
-import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.selection.ItemDetailsLookup;
 import androidx.recyclerview.selection.SelectionTracker;
 import androidx.recyclerview.selection.StorageStrategy;
@@ -32,62 +31,56 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import teamarmada.oxtor.Interfaces.ListItemCallback;
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.Model.ProfileItem;
+import teamarmada.oxtor.databinding.ListFileitemBinding;
 
 
-public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
-        extends ListAdapter<T,RecyclerViewAdapter.ViewHolder>
+public class RecyclerViewAdapter extends ListAdapter<FileItem,RecyclerViewAdapter.ViewHolder>
         implements EventListener<QuerySnapshot>, DefaultLifecycleObserver {
 
     public static final String TAG= RecyclerViewAdapter.class.getSimpleName();
 
     private final List<DocumentSnapshot> snapshotList=new ArrayList<>();
     private final List<Long> keyList=new ArrayList<>();
-    private final List<T> selectedItems=new ArrayList<>();
+    private final List<FileItem> selectedItems=new ArrayList<>();
     private final SparseBooleanArray sparseBooleanArray=new SparseBooleanArray();
     private RecyclerView.OnChildAttachStateChangeListener childAttachStateChangeListener;
     private ListenerRegistration listenerRegistration;
-    private ListItemCallback<T, VB> listener;
-    private final Class<T> tClass;
+    private ListItemCallback listener;
     private Query query;
-    private final int itemLayoutID;
     private SelectionObserver selectionObserver;
     private SelectionTracker<Long> selectionTracker=null;
     private final boolean enableSelection;
 
 
     public RecyclerViewAdapter(Lifecycle lifecycle,
-                               @LayoutRes int itemLayoutID,
-                               Query mQuery,
+                               Query query,
                                boolean enableSelection,
-                               Class<T> tClass,
-                               ListItemCallback<T,VB> listener){
-        super(new DiffUtil.ItemCallback<T>() {
+                               ListItemCallback listener){
+        super(new DiffUtil.ItemCallback<FileItem>() {
             @Override
-            public boolean areItemsTheSame(@NonNull T oldItem, @NonNull T newItem) {
+            public boolean areItemsTheSame(@NonNull FileItem oldItem, @NonNull FileItem newItem) {
                 return oldItem.equals(newItem);
             }
 
             @SuppressLint("DiffUtilEquals")
             @Override
-            public boolean areContentsTheSame(@NonNull T oldItem, @NonNull T newItem) {
+            public boolean areContentsTheSame(@NonNull FileItem oldItem, @NonNull FileItem newItem) {
                 return oldItem.toString().equals(newItem.toString());
             }
         });
         lifecycle.addObserver(this);
-        this.query=mQuery;
+        this.query=query;
         this.listener=listener;
-        this.tClass=tClass;
-        this.itemLayoutID=itemLayoutID;
         this.enableSelection=enableSelection;
         setHasStableIds(true);
     }
 
-    public List<T> getSelectedItems() {
+    public List<FileItem> getSelectedItems() {
         return selectedItems;
     }
 
@@ -127,53 +120,20 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater=LayoutInflater.from(parent.getContext());
-        VB binding= DataBindingUtil.inflate(inflater,itemLayoutID,parent,false);
+        ListFileitemBinding binding=ListFileitemBinding.inflate(inflater,parent,false);
         return new ViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerViewAdapter.ViewHolder holder, int position) {
-        try{
-            final int i=holder.getBindingAdapterPosition();
-            listener.bind((VB) holder.binding, getItem(i), i);
-        }
-        catch (ClassCastException e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public T getItem(int position) {
-        DocumentSnapshot snapshot=snapshotList.get(position);
-        try{
-            return snapshot.toObject(tClass);
-        }catch (Exception e){
-            e.printStackTrace();
-            return getFromConstructor(snapshot);
-        }
-    }
-
-    private T getFromConstructor(DocumentSnapshot snapshot){
         try {
-            Constructor<T> tConstructor;
-            tConstructor = tClass.getConstructor(DocumentSnapshot.class);
-            return tConstructor.newInstance(snapshot);
-        } catch (Exception e) {
+            final int i = holder.getBindingAdapterPosition();
+            listener.bind(holder.binding, getItem(i), i);
+        } catch (ClassCastException e) {
             e.printStackTrace();
-            return getFromModel(snapshot);
         }
-    }
-
-    private T getFromModel(DocumentSnapshot snapshot){
-        if (FileItem.class.equals(tClass)) {
-            return (T) new FileItem(snapshot);
-        }
-        else if (ProfileItem.class.equals(tClass)) {
-            return (T) new ProfileItem(snapshot);
-        }
-        return null;
     }
 
     @Override
@@ -200,8 +160,26 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
         startListening();
     }
 
-    public void setItemCallback(ListItemCallback<T,VB> listener){
+    public void setItemCallback(ListItemCallback listener){
         this.listener=listener;
+    }
+
+    @Override
+    public FileItem getItem(int position) {
+        DocumentSnapshot snapshot=snapshotList.get(position);
+        try{
+            return snapshot.toObject(FileItem.class);
+        }catch (Exception e){
+            e.printStackTrace();
+            try {
+                Constructor<FileItem> tConstructor;
+                tConstructor = FileItem.class.getConstructor(DocumentSnapshot.class);
+                return tConstructor.newInstance(snapshot);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return new FileItem(snapshot);
+            }
+        }
     }
 
     @Override
@@ -210,7 +188,6 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
             Log.w(TAG, "onEvent:error", e);
             return;
         }
-
         for (DocumentChange change : documentSnapshots.getDocumentChanges()) {
             switch (change.getType()) {
                 case ADDED:
@@ -224,15 +201,37 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
                     break;
             }
         }
-
+        sortList();
     }
 
-    public void onDocumentAdded(DocumentChange change){
+
+    @SuppressLint("NotifyDataSetChanged")
+    private void sortList() {
+        Comparator<DocumentSnapshot> comparator = (snapshot1, snapshot2) -> {
+            String downloadUrl1 = snapshot1.getString(FileItem.DOWNLOAD_URL);
+            String downloadUrl2 = snapshot2.getString(FileItem.DOWNLOAD_URL);
+            if (downloadUrl1 != null && downloadUrl2 != null) {
+                return 0; // Both have downloadUrl, consider them equal
+            } else if (downloadUrl1 != null) {
+                return -1; // Only snapshot1 has downloadUrl, so it should come before snapshot2
+            } else if (downloadUrl2 != null) {
+                return 1; // Only snapshot2 has downloadUrl, so it should come before snapshot1
+            } else {
+                return 0; // Both don't have downloadUrl, consider them equal
+            }
+        };
+        snapshotList.sort(comparator);
+        notifyDataSetChanged();
+    }
+
+
+
+    private void onDocumentAdded(DocumentChange change){
         snapshotList.add(change.getNewIndex(), change.getDocument());
         notifyItemInserted(change.getNewIndex());
     }
 
-    public void onDocumentModified(DocumentChange change){
+    private void onDocumentModified(DocumentChange change){
 
         if (change.getOldIndex() == change.getNewIndex()) {
             snapshotList.set(change.getOldIndex(), change.getDocument());
@@ -244,7 +243,7 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
         }
     }
 
-    public void onDocumentRemoved(DocumentChange change){
+    private void onDocumentRemoved(DocumentChange change){
         snapshotList.remove(change.getOldIndex());
         notifyDataSetChanged();
     }
@@ -340,9 +339,9 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public VB binding;
+        public ListFileitemBinding binding;
 
-        public ViewHolder(VB binding){
+        public ViewHolder(ListFileitemBinding binding){
             super(binding.getRoot());
             this.binding=binding;
         }
@@ -374,7 +373,7 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
         public void onItemStateChanged(@NonNull Long key, boolean selected) {
             super.onItemStateChanged(key, selected);
             Log.d(TAG, "onItemStateChanged: item at: "+key+" selected: "+selected);
-            T t =getItem(key.intValue());
+            FileItem t =getItem(key.intValue());
 
             if(selected){
                 selectedItems.add(t);
@@ -391,6 +390,10 @@ public class RecyclerViewAdapter<T,VB extends ViewDataBinding>
             listener.onChanged(selectedItems);
         }
 
+    }
+
+    public interface ListItemCallback extends Observer<List<FileItem>> {
+        void bind(ListFileitemBinding binding, FileItem item, int position);
     }
 
 }

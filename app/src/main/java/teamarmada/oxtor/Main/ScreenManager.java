@@ -1,4 +1,4 @@
-package teamarmada.oxtor.Interfaces;
+package teamarmada.oxtor.Main;
 
 public interface ScreenManager{
     void enableFullscreen();

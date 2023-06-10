@@ -25,7 +25,7 @@ import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.R;
 
 @GlideModule
-public class ImageLoaderModule extends AppGlideModule {
+public class GlideImageModule extends AppGlideModule {
 
     @Override
     public void applyOptions(@NonNull Context context, @NonNull GlideBuilder builder) {

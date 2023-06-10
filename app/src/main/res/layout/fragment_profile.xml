@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
-
-  <ScrollView
+<ScrollView
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:id="@+id/navigation_profile"
       tools:context=".Fragments.ParentFragments.ProfileFragment"
-      android:clickable="true">
+      android:clickable="true"
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools">
 
-    <RelativeLayout
+
+  <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -261,4 +261,3 @@
 
     </RelativeLayout>
   </ScrollView>
-</layout>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <RelativeLayout
+<RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="@dimen/margin">
-        <ProgressBar
+        android:padding="@dimen/margin"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ProgressBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/progress_bar"
@@ -24,4 +24,3 @@
             android:paddingHorizontal="8dp"
             android:layout_toEndOf="@id/progress_bar"/>
     </RelativeLayout>
-</layout>

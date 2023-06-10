@@ -96,11 +96,7 @@ public class FirestoreRepository {
                 .document(profileItem.getUid())
                 .collection(POSTS)
                 .document(fileItem.getUid());
-        FileItem fileItem1=new FileItem(fileItem.getStorageReference(),null,null,
-                fileItem.getFileName(),fileItem.getUid(),fileItem.getFileType(),
-                fileItem.getFileExtension(),fileItem.getFileSize(),
-                false,null,fileItem.getTimeStamp(),null);
-        return  db.batch().update(docRef,fileItem1.toHashmap()).commit();
+        return  db.batch().delete(docRef).commit();
     }
 
     public Task<Void> addMessageToken(ProfileItem profileItem){
