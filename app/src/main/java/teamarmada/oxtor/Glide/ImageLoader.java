@@ -124,7 +124,7 @@ public class ImageLoader implements ModelLoader<FileItem, Bitmap> {
 
         @Override
         public void loadData(@NonNull Priority priority, @NonNull final DataCallback<? super Bitmap> callback) {
-            if(fileItem.getDownloadUrl()!=null) {
+            try {
                 FirebaseStorage.getInstance().getReference().child(fileItem.getStorageReference())
                         .getStream().addOnSuccessListener(executor, taskSnapshot -> {
                             if (fileItem.getFileType().contains("image")) {
@@ -146,8 +146,8 @@ public class ImageLoader implements ModelLoader<FileItem, Bitmap> {
                                 }
                             } else callback.onLoadFailed(new Exception("Found item is not image"));
                         }).addOnFailureListener(executor, callback::onLoadFailed);
-            }else{
-                callback.onLoadFailed(new Exception("File does not exist anymore"));
+            }catch (Exception e){
+                callback.onLoadFailed(e);
             }
         }
 

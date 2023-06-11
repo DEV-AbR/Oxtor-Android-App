@@ -19,16 +19,20 @@ import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import kotlin.Unit;
 import teamarmada.oxtor.Model.FileItem;
+import teamarmada.oxtor.R;
 import teamarmada.oxtor.ViewModels.MainViewModel;
 
 public class ActivityLifecycleObserver extends FullScreenContentCallback implements DefaultLifecycleObserver {
@@ -100,39 +104,85 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private void continueUpload(List<FileItem> fileItems) {
-        List<Task<Unit>> tasks=new ArrayList<>();
+        List<Task<Unit>> tasks = new ArrayList<>();
+        List<Exception> exceptions=new ArrayList<>();
         for (int i = 0; i < fileItems.size(); i++) {
             final FileItem fileItem = fileItems.get(i);
             tasks.add(uploadFile(fileItem));
         }
-        Tasks.whenAll(tasks)
-                .addOnCompleteListener(task-> mainViewModel.setIsTaskRunning(!task.isComplete()))
-                .addOnSuccessListener(result-> makeToast("All uploads will be deleted after 24 hours"))
-                .addOnFailureListener(e-> makeToast(e.toString()));
+
+        Tasks.whenAllComplete(tasks)
+                .addOnCompleteListener(task -> {
+                    mainViewModel.setIsTaskRunning(false);
+                    boolean allTasksSuccessful = true;
+                    for (Task<Unit> individualTask : tasks) {
+                        if (!individualTask.isSuccessful()) {
+                            allTasksSuccessful = false;
+                            break;
+                        }else{
+                            exceptions.add(task.getException());
+                        }
+                    }
+                    if (allTasksSuccessful) {
+                        makeToast("All uploads will be deleted after 24 hours");
+                    } else {
+                        showExceptionsAlertDialog(exceptions);
+                    }
+                }).addOnFailureListener(e->makeToast(e.toString()));
     }
 
     private void continueDownload(List<FileItem> fileItems) {
-        List<Task<Unit>> tasks=new ArrayList<>();
+        List<Task<Unit>> tasks = new ArrayList<>();
+        List<Exception> exceptions = new ArrayList<>();
         for (int i = 0; i < fileItems.size(); i++) {
             final FileItem fileItem = fileItems.get(i);
             tasks.add(downloadFile(fileItem));
         }
-        Tasks.whenAll(tasks)
-                .addOnCompleteListener(task-> mainViewModel.setIsTaskRunning(!task.isComplete()))
-                .addOnSuccessListener(result-> makeToast("Items saved at Oxtor/download/"))
-                .addOnFailureListener(e-> makeToast(e.toString()));
+        Tasks.whenAllComplete(tasks)
+                .addOnCompleteListener(task -> {
+                    mainViewModel.setIsTaskRunning(false);
+                    boolean allTasksSuccessful = true;
+                    for (Task<Unit> individualTask : tasks) {
+                        if (!individualTask.isSuccessful()) {
+                            allTasksSuccessful = false;
+                            exceptions.add(individualTask.getException());
+                        }
+                    }
+                    if (allTasksSuccessful) {
+                        makeToast("Items saved at Oxtor/download/");
+                    } else {
+                        showExceptionsAlertDialog(exceptions);
+                    }
+                }).addOnFailureListener(e->makeToast(e.toString()));
+    }
+
+    private void showExceptionsAlertDialog(List<Exception> exceptions) {
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity, R.style.Theme_Oxtor_AlertDialog);
+        builder.setTitle("Encountered some errors");
+        builder.setMessage("Details:");
+        StringBuilder errorMessageBuilder = new StringBuilder();
+        for (Exception exception : exceptions) {
+            errorMessageBuilder.append(exception.toString()).append("\n");
+        }
+        String errorMessage = errorMessageBuilder.toString();
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            if(Boolean.TRUE.equals(mainViewModel.getIsTaskRunning().getValue()))
+                mainViewModel.setIsTaskRunning(false);
+        });
+        builder.setMessage(errorMessage);
+        builder.create().show();
     }
 
     private Task<Unit> uploadFile(FileItem fileItem) {
         return mainViewModel.uploadUsingInputStream(fileItem,activity)
-                .continueWithTask(task-> task.isSuccessful()?Tasks.forResult(task.getResult()):mainViewModel.uploadUsingByteArray(fileItem,activity))
-                .continueWithTask(task -> task.isSuccessful()? Tasks.forResult(task.getResult()):Tasks.forException(task.getException()));
+                .continueWithTask(task-> task.isSuccessful()?task:mainViewModel.uploadUsingByteArray(fileItem,activity))
+                .continueWithTask(task -> task.isSuccessful()?task:Tasks.forException(Objects.requireNonNull(task.getException())));
     }
 
     private Task<Unit> downloadFile(FileItem fileItem) {
         return mainViewModel.downloadUsingInputStream(fileItem,activity)
-                .continueWithTask(task -> task.isSuccessful()?Tasks.forResult(task.getResult()):mainViewModel.downloadUsingDownloadManager(fileItem,activity))
-                .continueWithTask(task -> task.isSuccessful()?Tasks.forResult(task.getResult()):Tasks.forException(task.getException()));
+                .continueWithTask(task -> task.isSuccessful()?task:mainViewModel.downloadUsingDownloadManager(fileItem,activity))
+                .continueWithTask(task -> task.isSuccessful()?task:Tasks.forException(Objects.requireNonNull(task.getException())));
     }
 
     public void loadBanner(FrameLayout container) {

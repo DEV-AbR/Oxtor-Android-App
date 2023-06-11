@@ -106,7 +106,7 @@ public class GlideImageLoader implements ModelLoader<FileItem, InputStream> {
 
         @Override
         public void loadData(@NonNull Priority priority, @NonNull final DataCallback<? super InputStream> callback) {
-            if(fileItem.getDownloadUrl()!=null){
+            try{
                 FirebaseStorage.getInstance().getReference().child(fileItem.getStorageReference()).getStream(this)
                 .addOnSuccessListener(executor,taskSnapshot -> {
                     if(fileItem.getFileType().contains("image")){
@@ -124,7 +124,7 @@ public class GlideImageLoader implements ModelLoader<FileItem, InputStream> {
                     else callback.onLoadFailed(new Exception("Found item is not image"));
                 }).addOnFailureListener(executor, callback::onLoadFailed);
             }
-            else{
+            catch (Exception e){
                 callback.onLoadFailed(new Exception("File does not exist anymore"));
             }
         }

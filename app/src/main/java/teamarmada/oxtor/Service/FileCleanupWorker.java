@@ -53,13 +53,16 @@ public class FileCleanupWorker extends Worker {
                         FileItem finalFileItem = fileItem;
                         if(shouldDeleteFileFromBucket(fileItem.getTimeStamp())){
                             statusCode=StatusCode.TO_DELETE;
-                            makeToast();
-                            StorageRepository.getInstance().deleteFile(fileItem, authRepository.getProfileItem())
-                                    .addOnSuccessListener(task->{
-                                        statusCode=StatusCode.DELETED;
-                                        initNotificationWork(finalFileItem.getFileName());
-                                    })
-                                    .addOnFailureListener(e-> statusCode=StatusCode.IT_FAILED);
+                            try {
+                                StorageRepository.getInstance().deleteFile(fileItem, authRepository.getProfileItem())
+                                        .addOnSuccessListener(task -> {
+                                            statusCode = StatusCode.DELETED;
+                                            initNotificationWork(finalFileItem.getFileName());
+                                        })
+                                        .addOnFailureListener(e -> statusCode = StatusCode.IT_FAILED);
+                            }catch (Exception e){
+                                statusCode=StatusCode.IT_FAILED;
+                            }
                         }
                         else if(shouldDeleteFileFromDatabase(fileItem.getTimeStamp())){
                             firestoreRepository.deleteFile(fileItem,authRepository.getProfileItem())
@@ -74,12 +77,6 @@ public class FileCleanupWorker extends Worker {
                         }
                     }));
         });
-    }
-
-    public void makeToast(){
-        Handler handler=new Handler(Looper.getMainLooper());
-        handler.post(()->Toast.makeText(context,"Some deleted",Toast.LENGTH_SHORT).show());
-
     }
 
     public boolean shouldDeleteFileFromBucket(Date uploadDate) {
