@@ -1,11 +1,15 @@
 package teamarmada.oxtor.Utils;
 
 import android.app.ActivityManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.PowerManager;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -28,115 +32,113 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.R;
-
 public class FileItemUtils {
 
-    public static final String TAG= FileItemUtils.class.getSimpleName();
+    public static final String TAG = FileItemUtils.class.getSimpleName();
 
-    public static long ONE_KILOBYTE=1024;
-    public static long ONE_MEGABYTE=ONE_KILOBYTE*1024;
-    public static long ONE_GIGABYTE=ONE_MEGABYTE*1024;
-    public static long TWELVE_HOURS=43200000;
-    public static long TWENTY_FOUR_HOURS=TWELVE_HOURS*2;
-    public static final String IMAGES="images/";
-    public static final String VIDEOS="videos/";
-    public static final String AUDIOS="audios/";
-    public static final String FILES="files/";
+    public static final long ONE_KILOBYTE = 1024;
+    public static final long ONE_MEGABYTE = ONE_KILOBYTE * 1024;
+    public static final long ONE_GIGABYTE = ONE_MEGABYTE * 1024;
+    public static final long TWELVE_HOURS = 43200000;
+    public static final long TWENTY_FOUR_HOURS = TWELVE_HOURS * 2;
+    public static final String IMAGES_FOLDER = "images/";
+    public static final String VIDEOS_FOLDER = "videos/";
+    public static final String AUDIOS_FOLDER = "audios/";
+    public static final String FILES_FOLDER = "files/";
 
-    public static String byteToString(long enterByte){
+    public static String formatByteSize(long bytes) {
         String size;
-        if(enterByte<ONE_KILOBYTE){
-            size=enterByte+" bytes";
+        if (bytes < ONE_KILOBYTE) {
+            size = bytes + " bytes";
+        } else if (bytes < ONE_MEGABYTE) {
+            long kilobytes = bytes / ONE_KILOBYTE;
+            size = kilobytes + " KB";
+        } else if (bytes < ONE_GIGABYTE) {
+            long megabytes = bytes / ONE_MEGABYTE;
+            size = megabytes + " MB";
+        } else {
+            long gigabytes = bytes / ONE_GIGABYTE;
+            size = gigabytes + " GB";
         }
-        else if(enterByte<ONE_MEGABYTE){
-            enterByte/=ONE_KILOBYTE;
-            size=enterByte+" KB";
-        }
-        else if(enterByte<ONE_GIGABYTE){
-            enterByte/=ONE_MEGABYTE;
-            size=enterByte+" MB";
-        }
-        else {
-            enterByte/=ONE_GIGABYTE;
-            size=enterByte+" GB";
-        }
-            return size;
+        return size;
     }
 
-    private static String getTimeString(Date timestamp){
+    private static String getTimeString(Date timestamp) {
         Calendar calendar = Calendar.getInstance();
-        if(timestamp==null)return null;
-        calendar.setTimeInMillis(timestamp.getTime());
+        if (timestamp == null) {
+            return null;
+        }
+        calendar.setTime(timestamp);
         return DateFormat.format("hh:mm aa", calendar).toString();
     }
 
-    private static String getDateString(Date timestamp){
+    private static String getDateString(Date timestamp) {
         Calendar calendar = Calendar.getInstance();
-        if(timestamp==null) return null;
-        calendar.setTimeInMillis(timestamp.getTime());
-        return DateFormat.format("dd-mm-yyyy", calendar).toString();
+        if (timestamp == null) {
+            return null;
+        }
+        calendar.setTime(timestamp);
+        return DateFormat.format("dd-MM-yyyy", calendar).toString();
     }
 
-    public static String getTimestampString(Date postDate){
-        Calendar calendar=Calendar.getInstance();
-        int currentDay=calendar.get(Calendar.DAY_OF_YEAR);
+    public static String getFormattedTimestamp(Date postDate) {
+        Calendar calendar = Calendar.getInstance();
+        int currentDay = calendar.get(Calendar.DAY_OF_YEAR);
         calendar.setTime(postDate);
-        int postDay=calendar.get(Calendar.DAY_OF_YEAR);
-        if(currentDay==postDay)
-            return "Today "+getTimeString(postDate);
-        else if(postDay-currentDay==1)
-            return "Yesterday "+getTimeString(postDate);
-        else
-            return getTimeString(postDate)+"  "+getDateString(postDate);
+        int postDay = calendar.get(Calendar.DAY_OF_YEAR);
+        if (currentDay == postDay) {
+            return "Today"+" "+getTimeString(postDate);
+        } else if (postDay - currentDay == 1) {
+            return "Yesterday"+" "+getTimeString(postDate);
+        } else {
+            return getDateString(postDate)+" "+getTimeString(postDate);
+        }
     }
 
-    public static String getTimestampString(long timeStamp){
-        return getTimestampString(new Date(timeStamp));
+    public static String getFileTypeFolder(String extension) {
+        if (extension.contains("image")) {
+            return IMAGES_FOLDER;
+        } else if (extension.contains("audio")) {
+            return AUDIOS_FOLDER;
+        } else if (extension.contains("video")) {
+            return VIDEOS_FOLDER;
+        } else if (extension.contains("file")) {
+            return FILES_FOLDER;
+        } else {
+            return extension;
+        }
     }
 
-    public static String getFileTypeString(String extension){
-        if(extension.contains("image")) return IMAGES;
-        else if(extension.contains("audio")) return AUDIOS;
-        else if(extension.contains("video")) return VIDEOS;
-        else if(extension.contains("file")) return FILES;
-        else return extension;
-    }
-
-    public static long getSizeLong(Context context, Uri path){
-        Cursor returnCursor =
-            context.getContentResolver().query(path, null, null, null, null);
+    public static long getFileSize(Context context, Uri fileUri) {
+        Cursor returnCursor = context.getContentResolver().query(fileUri, null, null, null, null);
         int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
         returnCursor.moveToFirst();
-        long l= returnCursor.getLong(sizeIndex);
+        long fileSize = returnCursor.getLong(sizeIndex);
         returnCursor.close();
-        return l;
+        return fileSize;
     }
 
-    public static String getNameString(Context context,Uri path){
-        Cursor returnCursor =  context.getContentResolver().query(path, null, null, null, null);
-        int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+    public static String getFileName(Context context, Uri fileUri) {
+        Cursor returnCursor = context.getContentResolver().query(fileUri, null, null, null, null);
+        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
         returnCursor.moveToFirst();
-        String l= returnCursor.getString(sizeIndex);
+        String fileName = returnCursor.getString(nameIndex);
         returnCursor.close();
-        return l;
+        return fileName;
     }
 
-    public static String generateFileNameWithoutExtension() {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-            return "OXT_" + timeStamp;
-    }
-
-    public static void loadPhoto(FileItem fileItem,@NonNull ImageView imageView) {
-        String s= FileItemUtils.getFileTypeString(fileItem.getFileType());
-        switch (s) {
-            case "audio/":
+    public static void setFileItemIcon(FileItem fileItem, @NonNull ImageView imageView) {
+        String fileTypeFolder = FileItemUtils.getFileTypeFolder(fileItem.getFileType());
+        switch (fileTypeFolder) {
+            case AUDIOS_FOLDER:
                 imageView.setImageResource(R.drawable.ic_baseline_audio_file_24);
                 break;
-            case "video/":
+            case VIDEOS_FOLDER:
                 imageView.setImageResource(R.drawable.ic_baseline_ondemand_video_24);
                 break;
             default:
@@ -145,38 +147,51 @@ public class FileItemUtils {
         }
     }
 
-    public static FileItem getFileItemFromPath(Context context,Uri path) {
-        String type=context.getContentResolver().getType(path);
-        String name;
+    public static FileItem getFileItemFromPath(Context context, Uri fileUri) {
+        String fileType = context.getContentResolver().getType(fileUri);
+        String fileName;
         try {
-            name = getNameString(context, path);
+            fileName = getFileName(context, fileUri);
+        } catch (Exception e) {
+            fileName = FilenameUtils.getName(fileUri.toString());
         }
-        catch (Exception e){
-            name=FilenameUtils.getName(path.toString());
-        }
-        return new FileItem(null,null,path.toString(),name,UUID.randomUUID().toString(),
-                type,FilenameUtils.getExtension(name),getSizeLong(context,path),
-                false,null,null,null);
+        return new FileItem(null,
+                null,
+                fileUri.toString(),
+                fileName,
+                UUID.randomUUID().toString(),
+                fileType,
+                FilenameUtils.getExtension(fileName),
+                getFileSize(context, fileUri),null);
     }
 
-
     public static File createNewDownloadFile(FileItem fileItem) {
-        File folder=new File(Environment.getExternalStorageDirectory(),"Oxtor/Download");
-        File innerFolder=new File(folder,getFileTypeString(fileItem.getFileType()));
-        if(!innerFolder.exists())
+        File folder = new File(Environment.getExternalStorageDirectory(), "Oxtor/Download");
+        File innerFolder = new File(folder, getFileTypeFolder(fileItem.getFileType()));
+        if (!innerFolder.exists()) {
             innerFolder.mkdirs();
-        String nameWithExtension=fileItem.getFileName();
-        File output=new File(innerFolder,nameWithExtension);
-        boolean created= false;
+        }
+        String fileNameWithExtension = fileItem.getFileName();
+        File output = new File(innerFolder, fileNameWithExtension);
+        boolean created = false;
         try {
             created = output.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if(created)
-            return output;
-        else
-            return null;
+        if (!created) {
+            File file1= new File(Environment.getDownloadCacheDirectory(), fileNameWithExtension);
+            try{
+            if(Objects.requireNonNull(file1.getParentFile()).mkdirs())
+                if(file1.createNewFile())
+                    return file1;
+            else
+                return null;
+            }catch (Exception e){
+                return null;
+            }
+        }
+        return output;
     }
 
     public static int calculateBufferSize(Context context, long fileSize) throws Exception {
@@ -198,5 +213,4 @@ public class FileItemUtils {
         int bufferSize = (int) Math.min(Math.max(availableMemory / 4, fileSize / 100), maxBufferSize);
         return Math.max(bufferSize, minBufferSize);
     }
-
 }

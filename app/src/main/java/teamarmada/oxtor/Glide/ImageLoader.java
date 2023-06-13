@@ -20,6 +20,7 @@ import com.bumptech.glide.load.model.ModelLoaderFactory;
 import com.bumptech.glide.load.model.MultiModelLoaderFactory;
 import com.google.firebase.storage.FirebaseStorage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -131,25 +132,34 @@ public class ImageLoader implements ModelLoader<FileItem, Bitmap> {
                                 Log.d(TAG, "loadData: image found: " + fileItem.getFileName());
                                 if (fileItem.isEncrypted()) {
                                     try {
-                                        byte[] bytes = new byte[fileItem.getFileSize().intValue()];
                                         InputStream is = taskSnapshot.getStream();
-                                        is.read(bytes);
+                                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                                        byte[] buffer = new byte[8192];
+                                        int bytesRead;
+                                        while ((bytesRead = is.read(buffer)) != -1) {
+                                            outputStream.write(buffer, 0, bytesRead);
+                                        }
+                                        byte[] bytes = outputStream.toByteArray();
+                                        is.close();
+                                        outputStream.close();
                                         bytes = AES.decrypt(bytes, fileItem, new AuthRepository().getProfileItem());
                                         bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
                                         callback.onDataReady(bitmap);
-                                        is.close();
                                     } catch (Exception e) {
                                         callback.onLoadFailed(e);
                                     }
                                 } else {
                                     callback.onDataReady(BitmapFactory.decodeStream(taskSnapshot.getStream()));
                                 }
-                            } else callback.onLoadFailed(new Exception("Found item is not image"));
+                            } else {
+                                callback.onLoadFailed(new Exception("Found item is not an image"));
+                            }
                         }).addOnFailureListener(executor, callback::onLoadFailed);
-            }catch (Exception e){
+            } catch (Exception e) {
                 callback.onLoadFailed(e);
             }
         }
+
 
         @Override
         public void cleanup() {

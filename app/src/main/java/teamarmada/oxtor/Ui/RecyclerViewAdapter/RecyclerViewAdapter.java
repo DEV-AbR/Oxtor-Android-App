@@ -36,7 +36,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import teamarmada.oxtor.Model.FileItem;
-import teamarmada.oxtor.databinding.ListFileitemBinding;
+import teamarmada.oxtor.databinding.ListitemFileBinding;
 
 
 public class RecyclerViewAdapter extends ListAdapter<FileItem,RecyclerViewAdapter.ViewHolder>
@@ -122,7 +122,7 @@ public class RecyclerViewAdapter extends ListAdapter<FileItem,RecyclerViewAdapte
     @Override
     public RecyclerViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater=LayoutInflater.from(parent.getContext());
-        ListFileitemBinding binding=ListFileitemBinding.inflate(inflater,parent,false);
+        ListitemFileBinding binding=ListitemFileBinding.inflate(inflater,parent,false);
         return new ViewHolder(binding);
     }
 
@@ -266,6 +266,12 @@ public class RecyclerViewAdapter extends ListAdapter<FileItem,RecyclerViewAdapte
         notifyDataSetChanged();
     }
 
+    public void restartListening(){
+        stopListening();
+        startListening();
+    }
+
+
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
         DefaultLifecycleObserver.super.onStart(owner);
@@ -339,9 +345,9 @@ public class RecyclerViewAdapter extends ListAdapter<FileItem,RecyclerViewAdapte
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public ListFileitemBinding binding;
+        public ListitemFileBinding binding;
 
-        public ViewHolder(ListFileitemBinding binding){
+        public ViewHolder(ListitemFileBinding binding){
             super(binding.getRoot());
             this.binding=binding;
         }
@@ -393,7 +399,7 @@ public class RecyclerViewAdapter extends ListAdapter<FileItem,RecyclerViewAdapte
     }
 
     public interface ListItemCallback extends Observer<List<FileItem>> {
-        void bind(ListFileitemBinding binding, FileItem item, int position);
+        void bind(ListitemFileBinding binding, FileItem item, int position);
     }
 
 }

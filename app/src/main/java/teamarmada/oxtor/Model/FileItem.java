@@ -19,13 +19,10 @@ public class FileItem implements Serializable {
     private String fileType;
     private String fileExtension;
     private long fileSize;
-    private boolean encrypted;
-    private String iv,encryptionPassword;
     private @ServerTimestamp Date timeStamp;
 
     public static final String STORAGE_REFERENCE="storageReference";
     public static final String DOWNLOAD_URL="downloadUrl";
-    public static final String ENCRYPTED="encrypted";
     public static final String FILE_EXTENSION="fileExtension";
     public static final String TIMESTAMP="timeStamp";
     public static final String FILETYPE="fileType";
@@ -33,13 +30,11 @@ public class FileItem implements Serializable {
     public static final String FILEPATH="filePath";
     public static final String FILE_SIZE="fileSize";
     public static final String UID="uid";
-    public static final String IV="iv";
-    public static final String ENCRYPTION_PASSWORD="encryptionPassword";
+
 
     public FileItem(){}
 
     public FileItem(DocumentSnapshot documentSnapshot) {
-        this.iv=documentSnapshot.getString(IV);
         this.uid = documentSnapshot.getString(UID);
         this.filePath = documentSnapshot.getString(FILEPATH);
         this.fileName = documentSnapshot.getString(FILENAME);
@@ -48,38 +43,28 @@ public class FileItem implements Serializable {
         this.downloadUrl = documentSnapshot.getString(DOWNLOAD_URL);
         this.fileExtension = documentSnapshot.getString(FILE_EXTENSION);
         this.storageReference = documentSnapshot.getString(STORAGE_REFERENCE);
-        this.encryptionPassword=documentSnapshot.getString(ENCRYPTION_PASSWORD);
         try{
             this.fileSize = documentSnapshot.getLong(FILE_SIZE);
         }catch(Exception e){
             this.fileSize=0;
         }
-        try {
-            encrypted=documentSnapshot.getBoolean(ENCRYPTED);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            encrypted=(iv!=null);
-        }
+
     }
 
     public FileItem(String storageReference, String downloadUrl, String filePath,
                     String fileName, String uid, String fileType, String fileExtension,
-                    Long fileSize, Boolean encrypted,String iv, Date timeStamp,
-                    String encryptionPassword) {
+                    Long fileSize, Date timeStamp) {
         this.storageReference = storageReference;
         this.fileExtension = fileExtension;
         this.downloadUrl = downloadUrl;
-        this.encrypted = encrypted;
+
         this.timeStamp = timeStamp;
         this.filePath = filePath;
         this.fileName = fileName;
         this.fileType = fileType;
         this.fileSize = fileSize;
         this.uid = uid;
-        this.iv=iv;
 
-        this.encryptionPassword=encryptionPassword;
     }
 
     public String getStorageReference() {
@@ -90,13 +75,6 @@ public class FileItem implements Serializable {
         this.storageReference = storageReference;
     }
 
-    public String getIv() {
-        return iv;
-    }
-
-    public void setIv(String iv) {
-        this.iv = iv;
-    }
 
     public String getDownloadUrl() {
         return downloadUrl;
@@ -169,22 +147,6 @@ public class FileItem implements Serializable {
         return this;
     }
 
-    public String getEncryptionPassword() {
-        return encryptionPassword;
-    }
-
-    public void setEncryptionPassword(String encryptionPassword) {
-        this.encryptionPassword = encryptionPassword;
-    }
-
-    public boolean isEncrypted() {
-        return encrypted;
-    }
-
-    public FileItem setEncrypted(boolean encrypted) {
-        this.encrypted = encrypted;
-        return this;
-    }
 
     public Map<String,Object> toHashmap() {
         Map<String,Object> hashMap=new HashMap<>();
@@ -196,9 +158,7 @@ public class FileItem implements Serializable {
         hashMap.put(FILETYPE,fileType);
         hashMap.put(FILE_EXTENSION,fileExtension);
         hashMap.put(FILE_SIZE,fileSize);
-        hashMap.put(ENCRYPTED,encrypted);
-        hashMap.put(IV,iv);
-        hashMap.put(ENCRYPTION_PASSWORD,encryptionPassword);
+
         hashMap.put(TIMESTAMP,timeStamp);
         return hashMap;
     }

@@ -1,11 +1,14 @@
 package teamarmada.oxtor.Main;
 
+import static android.view.View.VISIBLE;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
@@ -24,7 +27,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.app.ActivityCompat;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -32,24 +34,29 @@ import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.DialogFragment.ProgressDialog;
-import teamarmada.oxtor.Ui.DialogFragment.TaskBottomSheet;
+import teamarmada.oxtor.Ui.BottomSheet.TaskBottomSheet;
+import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.Utils.InAppUpdate;
 import teamarmada.oxtor.ViewModels.MainViewModel;
-import teamarmada.oxtor.databinding.ActivityMainBinding;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity implements  MenuProvider, ScreenManager, NavController.OnDestinationChangedListener {
@@ -82,7 +89,19 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
                     Manifest.permission.CHANGE_WIFI_STATE,
                     Manifest.permission.VIBRATE
     };
-
+    private final String[] storagePermissions=new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private static FloatingActionButton addButton;
+    public static RecyclerView.OnScrollListener listener=new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+            if(dy>0&&addButton.isShown()) {
+                addButton.hide();
+            } else  {
+                addButton.show();
+            }
+        }
+    };
     public static Observer<Boolean> observer=aBoolean ->{
         if (aBoolean) {
             progressIndicator.show();
@@ -110,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         isDarkModeOn = sharedPreferences.getBoolean(IS_DARK_MODE_ON, false);
         AppCompatDelegate.setDefaultNightMode(isDarkModeOn? AppCompatDelegate.MODE_NIGHT_YES:AppCompatDelegate.MODE_NIGHT_NO);
         binding =ActivityMainBinding.inflate(getLayoutInflater());
+        addButton=binding.add;
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
         addMenuProvider(this,this);
@@ -126,7 +146,84 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         navControllerMain.setLifecycleOwner(this);
         navControllerMain.addOnDestinationChangedListener(this);
         NavigationUI.setupWithNavController(navView,navControllerMain);
-        if(!checkForPermissions()) askPermission();
+        if(!checkForPermissions(permissions)) askPermission(permissions);
+        initUI();
+    }
+
+    private void initUI(){
+        addButton.setOnClickListener(v -> {
+            if (!checkForPermissions(storagePermissions)){
+                askPermission(storagePermissions);
+            }
+            else {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("*/*");
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                selectFileLauncher.launch(intent);
+            }
+        });
+    }
+
+    public void uploadFileByIntent(Intent intent) {
+        String action = intent.getAction();
+        String type = intent.getType();
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            List<Uri> paths=new ArrayList<>();
+            try {
+                ClipData clipData = intent.getClipData();
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+                    paths.add(clipData.getItemAt(i).getUri());
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (uri != null) {
+                    paths.add(uri);
+                }
+            }
+            uploadSelectedFiles(paths);
+            paths.clear();
+        }
+    }
+
+    private final ActivityResultLauncher<Intent> selectFileLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    if (result.getData() != null) {
+                        Intent data = result.getData();
+                        ClipData clipData = data.getClipData();
+                        List<Uri> selectedFiles = new ArrayList<>();
+                        if (clipData != null) {
+                            for (int i = 0; i < clipData.getItemCount(); i++) {
+                                Uri uri = clipData.getItemAt(i).getUri();
+                                selectedFiles.add(uri);
+                            }
+                        } else {
+                            Uri uri = data.getData();
+                            if (uri != null) {
+                                selectedFiles.add(uri);
+                            }
+                        }
+                        uploadSelectedFiles(selectedFiles);
+                    }
+                }
+            });
+
+    private void uploadSelectedFiles(List<Uri> results){
+        List<FileItem> fileItems=new ArrayList<>();
+        long size=0;
+        for(int i=0;i<results.size();i++){
+            Uri uri=results.get(i);
+            fileItems.add(FileItemUtils.getFileItemFromPath(this,uri));
+            size+=fileItems.get(i).getFileSize();
+        }
+        if (size <= 5*FileItemUtils.ONE_GIGABYTE) {
+            ActivityLifecycleObserver.getInstance(this).startUpload(fileItems);
+        }
+        else {
+            Snackbar.make(binding.getRoot(), "Can't upload as you are only permitted 5GB of space on this account",Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     private void openInternetSetting() {
@@ -141,6 +238,17 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
     @Override
     protected void onStart() {
         super.onStart();
+        try{
+            if(mainViewModel.getAuthInstance()!=null) {
+                Intent intent = getIntent();
+                if (intent.getData() != null)
+                    uploadFileByIntent(intent);
+            }else{
+                // TODO: 13-06-2023 to login
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         Snackbar snackbar=Snackbar.make(binding.getRoot(), R.string.no_connection_found, Snackbar.LENGTH_INDEFINITE)
                 .setAction("Check", v -> openInternetSetting());
         mainViewModel.getInternetConnectionLiveData(this).observe(this, isConnected->{
@@ -223,36 +331,15 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
         return rotate;
     }
 
-    public boolean checkForPermissions(){
-        return  ActivityCompat.checkSelfPermission(this, permissions[0]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this, permissions[1]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this, permissions[2]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this, permissions[3]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this, permissions[4]) == PackageManager.PERMISSION_GRANTED
-                &&
-                ActivityCompat.checkSelfPermission(this,permissions[5]) == PackageManager.PERMISSION_GRANTED;
-    }
-    
-    private final ActivityResultLauncher<String[]> permissionLauncher=
-            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result->{
-                if(!checkForPermissions()) {
-                    Snackbar.make(binding.getRoot(), R.string.permission_rejected, Snackbar.LENGTH_SHORT)
-                            .setAction(R.string.grant, v -> askPermission())
-                            .show();
-                }
-            });
-
-    private void askPermission(){
-      permissionLauncher.launch(permissions);
-    }
-
     @Override
     public void onDestinationChanged(@NonNull NavController navController, @NonNull NavDestination navDestination, @Nullable Bundle bundle) {
         binding.toolbar.setTitle(navDestination.getLabel());
+        if(navDestination.getId()==R.id.navigation_home){
+            addButton.show();
+        }
+        else{
+            addButton.hide();
+        }
     }
 
     @Override
@@ -337,7 +424,7 @@ public class MainActivity extends AppCompatActivity implements  MenuProvider, Sc
 
     @Override
     public void showNavigationBar() {
-        navView.setVisibility(View.VISIBLE);
+        navView.setVisibility(VISIBLE);
         try {
             navView.showContextMenu();
         }catch(Exception e){

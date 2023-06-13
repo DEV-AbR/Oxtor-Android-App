@@ -48,7 +48,7 @@ import teamarmada.oxtor.Main.ScreenManager;
 import teamarmada.oxtor.Main.MainActivity;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
-import teamarmada.oxtor.ViewModels.LoginViewModel;
+import teamarmada.oxtor.ViewModels.MainViewModel;
 import teamarmada.oxtor.databinding.FragmentLoginBinding;
 
 @AndroidEntryPoint
@@ -58,7 +58,7 @@ public class LoginFragment extends Fragment {
 
     public final static String TAG = LoginFragment.class.getSimpleName();
     private FragmentLoginBinding binding;
-    private LoginViewModel loginViewModel;
+    private MainViewModel mainViewModel;
     private TextInputDialog enterCode;
     private String phoneNumber=null;
     private String email =null;
@@ -94,8 +94,8 @@ public class LoginFragment extends Fragment {
             startActivity(intent);
         });
         enterCode=new TextInputDialog(R.string.enter_sms_code,null,null, InputType.TYPE_CLASS_NUMBER,requireContext());
-        loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
-        loginViewModel.getUser().observe(getViewLifecycleOwner(),this::updateUI);
+        mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        mainViewModel.getUser().observe(getViewLifecycleOwner(),this::updateUI);
         observeLoadingState();
         initUI();
         return binding.getRoot();
@@ -103,11 +103,11 @@ public class LoginFragment extends Fragment {
 
     public void initUI(){
         binding.googlesigin.setOnClickListener(v -> {
-            loginViewModel.setIsTaskRunning(false);
+            mainViewModel.setIsTaskRunning(false);
             initGoogleSignIn();
         });
         binding.phonesignin.setOnClickListener(v -> {
-            loginViewModel.setIsTaskRunning(false);
+            mainViewModel.setIsTaskRunning(false);
             TextInputDialog textInputDialog = new TextInputDialog(R.string.sign_in_with_phone,getString(R.string.india_country_code),
                     "Enter your no. with Country Code",InputType.TYPE_CLASS_PHONE, getContext());
             textInputDialog.addCallback(msg -> {
@@ -121,7 +121,7 @@ public class LoginFragment extends Fragment {
             textInputDialog.show(getChildFragmentManager(),"Input");
         });
         binding.emailsignin.setOnClickListener(v -> {
-            loginViewModel.setIsTaskRunning(false);
+            mainViewModel.setIsTaskRunning(false);
             TextInputDialog emailDialog=new TextInputDialog(R.string.sign_in_with_email,null,
                     "Enter your Email address",InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS, getContext());
             emailDialog.addCallback(msg -> {
@@ -145,14 +145,14 @@ public class LoginFragment extends Fragment {
             if(intent.getData()!=null)
                 signInFromIntent(intent);
             else
-                Tasks.await(loginViewModel.checkPendingSignIn());
+                Tasks.await(mainViewModel.checkPendingSignIn());
         }catch (Exception e){
             e.printStackTrace();
         }
     }
 
     private void initGoogleSignIn(){
-        loginViewModel.setIsTaskRunning(true);
+        mainViewModel.setIsTaskRunning(true);
         GoogleSignInOptions gso = new GoogleSignInOptions
                 .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -163,9 +163,9 @@ public class LoginFragment extends Fragment {
     }
 
     private void initPhoneSignIn(){
-        loginViewModel.setIsTaskRunning(true);
+        mainViewModel.setIsTaskRunning(true);
         PhoneAuthOptions pao= new PhoneAuthOptions
-                .Builder(loginViewModel.getAuthInstance())
+                .Builder(mainViewModel.getAuthInstance())
                 .setPhoneNumber(phoneNumber)
                 .setTimeout(60L, TimeUnit.SECONDS)
                 .setActivity(requireActivity())
@@ -175,15 +175,15 @@ public class LoginFragment extends Fragment {
     }
 
     private void initEmailSignIn(){
-        loginViewModel.setIsTaskRunning(true);
+        mainViewModel.setIsTaskRunning(true);
         ActionCodeSettings acs = ActionCodeSettings.newBuilder()
                 .setUrl("https://oxtor.page.link/n3UL")
                 .setHandleCodeInApp(true)
                 .setAndroidPackageName(requireContext().getPackageName(), true, null)
                 .build();
-        loginViewModel.getAuthInstance()
+        mainViewModel.getAuthInstance()
                 .sendSignInLinkToEmail(email,acs)
-                .addOnCompleteListener(requireActivity(),task -> loginViewModel.setIsTaskRunning(!task.isComplete()))
+                .addOnCompleteListener(requireActivity(),task -> mainViewModel.setIsTaskRunning(!task.isComplete()))
                 .addOnSuccessListener(requireActivity(), result->
                         new MaterialAlertDialogBuilder(requireContext(), R.style.Theme_Oxtor_AlertDialog)
                         .setCancelable(false).setTitle("Link Sent")
@@ -213,19 +213,19 @@ public class LoginFragment extends Fragment {
             });
 
     public Task<Unit> getGoogleSignInAccount(Task<GoogleSignInAccount> googleSignInAccountTask) {
-        loginViewModel.setIsTaskRunning(true);
+        mainViewModel.setIsTaskRunning(true);
         return googleSignInAccountTask.continueWith(task->{
-            loginViewModel.setIsTaskRunning(!task.isComplete());
+            mainViewModel.setIsTaskRunning(!task.isComplete());
             GoogleSignInAccount gsa=task.getResult();
             AuthCredential authCredential= GoogleAuthProvider.getCredential(gsa.getIdToken(),null);
-            loginViewModel.signIn(authCredential);
+            mainViewModel.signIn(authCredential);
             return Unit.INSTANCE;
         });
     }
 
     private void resendCode(){
     PhoneAuthOptions pao= new PhoneAuthOptions
-                .Builder(loginViewModel.getAuthInstance())
+                .Builder(mainViewModel.getAuthInstance())
                 .setPhoneNumber(phoneNumber)
                 .setTimeout(60L, TimeUnit.SECONDS)
                 .setActivity(requireActivity())
@@ -233,7 +233,7 @@ public class LoginFragment extends Fragment {
                 .setCallbacks(onVerificationStateChangedCallback)
                 .build();
         PhoneAuthProvider.verifyPhoneNumber(pao);
-        loginViewModel.setIsTaskRunning(true);
+        mainViewModel.setIsTaskRunning(true);
     }
 
     private final PhoneAuthProvider.OnVerificationStateChangedCallbacks 
@@ -245,8 +245,8 @@ public class LoginFragment extends Fragment {
             if (code != null) {
                 PhoneAuthCredential credential = PhoneAuthProvider.getCredential(id, code);
                 sharedPreferences.edit().remove(EMAIL).apply();
-                loginViewModel.signIn(credential);
-                loginViewModel.setIsTaskRunning(false);
+                mainViewModel.signIn(credential);
+                mainViewModel.setIsTaskRunning(false);
             } else {
                 Snackbar.make(binding.getRoot(), "Couldn't receive sms code, try again...", Snackbar.LENGTH_SHORT).show();
             }
@@ -257,8 +257,8 @@ public class LoginFragment extends Fragment {
             super.onCodeSent(s, forceResendingToken);
             id=s;
             resendToken=forceResendingToken;
-            loginViewModel.setIsTaskRunning(false);
-            loginViewModel.getAuthInstance()
+            mainViewModel.setIsTaskRunning(false);
+            mainViewModel.getAuthInstance()
                     .getFirebaseAuthSettings()
                     .setAutoRetrievedSmsCodeForPhoneNumber(phoneNumber,id);
             Snackbar.make(binding.getRoot(),"SMS code sent successfully", Snackbar.LENGTH_SHORT).show();
@@ -267,14 +267,14 @@ public class LoginFragment extends Fragment {
 
         @Override
         public void onVerificationFailed(@NonNull FirebaseException e) {
-            loginViewModel.setIsTaskRunning(false);
+            mainViewModel.setIsTaskRunning(false);
             Snackbar.make(binding.getRoot(), "An Error Occurred",Snackbar.LENGTH_SHORT).show();
         }
 
         @Override
         public void onCodeAutoRetrievalTimeOut(@NonNull String s) {
             super.onCodeAutoRetrievalTimeOut(s);
-            loginViewModel.setIsTaskRunning(false);
+            mainViewModel.setIsTaskRunning(false);
             if(enterCode.isInLayout())enterCode.dismiss();
             Snackbar snackBar=Snackbar.make(binding.getRoot(), "Code Retrieval Timed Out", Snackbar.LENGTH_INDEFINITE);
             snackBar.setAction("RESEND", v -> {
@@ -289,7 +289,7 @@ public class LoginFragment extends Fragment {
         enterCode.addCallback(code -> {
             if (code != null) {
                 PhoneAuthCredential credential = PhoneAuthProvider.getCredential(id, code);
-                loginViewModel.signIn(credential);
+                mainViewModel.signIn(credential);
                 sharedPreferences.edit().remove(EMAIL).apply();
             }
         });
@@ -297,7 +297,7 @@ public class LoginFragment extends Fragment {
     }
 
     private void observeLoadingState() {
-        loginViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(),MainActivity.observer);
+        mainViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(),MainActivity.observer);
     }
 
     private void updateUI(FirebaseUser user) {
@@ -312,10 +312,10 @@ public class LoginFragment extends Fragment {
     }
 
     public void signInFromIntent(Intent data){
-        if(loginViewModel.getAuthInstance().isSignInWithEmailLink(data.getData().toString())) {
+        if(mainViewModel.getAuthInstance().isSignInWithEmailLink(data.getData().toString())) {
             String email=sharedPreferences.getString("email",null);
             Snackbar.make(binding.getRoot(),"SignIn link detected for : "+email,Snackbar.LENGTH_SHORT).show();
-            loginViewModel.signInWithEmail(email, data.getData().toString())
+            mainViewModel.signInWithEmail(email, data.getData().toString())
                     .addOnSuccessListener(result->{
                         Log.d(TAG, "signInFromIntent: continuing sign in");
                     })

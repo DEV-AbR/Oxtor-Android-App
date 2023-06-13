@@ -29,7 +29,8 @@ import java.util.List;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.FileTask;
 import teamarmada.oxtor.Utils.FileItemUtils;
-import teamarmada.oxtor.databinding.ListFiletaskBinding;
+import teamarmada.oxtor.databinding.ListitemFileBinding;
+import teamarmada.oxtor.databinding.ListitemFiletaskBinding;
 
 public class TaskListAdapter <T extends StorageTask> extends ListAdapter<FileTask<T>,TaskListAdapter<T>.ViewHolder> implements Observer<List<FileTask<T>>> {
 
@@ -69,7 +70,7 @@ public class TaskListAdapter <T extends StorageTask> extends ListAdapter<FileTas
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         context=parent.getContext();
         LayoutInflater layoutInflater=LayoutInflater.from(context);
-        ListFiletaskBinding binding= ListFiletaskBinding.inflate(layoutInflater);
+        ListitemFiletaskBinding binding= ListitemFiletaskBinding.inflate(layoutInflater);
         return new ViewHolder(binding);
     }
 
@@ -94,9 +95,9 @@ public class TaskListAdapter <T extends StorageTask> extends ListAdapter<FileTas
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        public ListFiletaskBinding binding;
+        public ListitemFiletaskBinding binding;
 
-        public ViewHolder(ListFiletaskBinding binding){
+        public ViewHolder(ListitemFiletaskBinding binding){
             super(binding.getRoot());
             this.binding=binding;
 
@@ -109,7 +110,7 @@ public class TaskListAdapter <T extends StorageTask> extends ListAdapter<FileTas
         public void bind() {
             FileItem fileItem = getItem().getFileItem();
             binding.name.setText(fileItem.getFileName());
-            binding.size.setText(FileItemUtils.byteToString(fileItem.getFileSize()));
+            binding.size.setText(FileItemUtils.formatByteSize(fileItem.getFileSize()));
             final String t = "Connecting...";
             binding.timestamp.setText(t);
             binding.progressbarTaskItem.setVisibility(View.VISIBLE);
@@ -117,7 +118,7 @@ public class TaskListAdapter <T extends StorageTask> extends ListAdapter<FileTas
             if (getItem().getTask() instanceof UploadTask)
                 Glide.with(binding.picture).load(Uri.parse(fileItem.getFilePath())).into(binding.picture);
             if (getItem().getTask() instanceof FileDownloadTask)
-                FileItemUtils.loadPhoto(fileItem, binding.picture);
+                FileItemUtils.setFileItemIcon(fileItem, binding.picture);
             binding.removeButton.setOnClickListener(v -> {
                 try {
                     Toast.makeText(context, fileItem.getFileName() + " Removed", Toast.LENGTH_SHORT).show();

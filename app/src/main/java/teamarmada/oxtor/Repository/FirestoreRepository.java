@@ -3,23 +3,20 @@ package teamarmada.oxtor.Repository;
 
 import static teamarmada.oxtor.Model.FileItem.DOWNLOAD_URL;
 import static teamarmada.oxtor.Model.FileItem.FILENAME;
+import static teamarmada.oxtor.Model.FileItem.FILETYPE;
 import static teamarmada.oxtor.Model.FileItem.FILE_SIZE;
 import static teamarmada.oxtor.Model.FileItem.TIMESTAMP;
 import static teamarmada.oxtor.Model.FileItem.UID;
 
-import android.util.Base64;
-
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.messaging.FirebaseMessaging;
 
-import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Map;
 
 import teamarmada.oxtor.Model.FileItem;
@@ -34,9 +31,6 @@ public class FirestoreRepository {
     private final FirebaseFirestore db;
     public static final String USERS="users";
     public static final String POSTS="posts";
-    public static final String MESSAGING_TOKEN="messagingToken";
-    public static final String SHARED_POSTS="shared-posts";
-    public static final String SALT="salt";
     private Long usedSpace;
 
 
@@ -68,10 +62,9 @@ public class FirestoreRepository {
     }
 
     public Task<Void> deleteAccount(ProfileItem  profileItem){
-        DocumentReference docRef=db.collection(USERS).document(profileItem.getUid()),
-                posts=docRef.collection(POSTS).document(),
-                sharedPosts=docRef.collection(SHARED_POSTS).document();
-        return db.runBatch(batch -> batch.delete(posts).delete(sharedPosts).delete(docRef));
+        DocumentReference docRef=db.collection(USERS).document(profileItem.getUid());
+        DocumentReference postsRef=docRef.collection(POSTS).document();
+        return postsRef.delete().onSuccessTask(task->docRef.delete());
     }
 
     public Task<Void> createFile(FileItem fileItem, ProfileItem profileItem){
@@ -99,29 +92,13 @@ public class FirestoreRepository {
         return  db.batch().delete(docRef).commit();
     }
 
-    public Task<Void> addMessageToken(ProfileItem profileItem){
-        return FirebaseMessaging.getInstance().getToken().onSuccessTask(task->updateMessageToken(task,profileItem));
-    }
-
-    public Task<Void> updateMessageToken(String token,ProfileItem profileItem){
-       return db.collection(USERS).document(profileItem.getUid()).update(MESSAGING_TOKEN,token);
-    }
-
-    public Task<Void> removeMessageToken(ProfileItem profileItem) {
-        return db.collection(USERS).document(profileItem.getUid()).update(MESSAGING_TOKEN,null);
-    }
-
-    public Task<ProfileItem> fetchProfileItem(ProfileItem profileItem) {
-        return db.collection(USERS).document(profileItem.getUid()).get()
-                .continueWith(task -> task.getResult().toObject(ProfileItem.class));
-    }
-
     public Task<Long> fetchUsedSpace(ProfileItem profileItem) {
         usedSpace=0L;
-        Query query= firestoreRepository.sortByTimestamp(profileItem);
-        if(query!=null)
-            return query.get().continueWith(task -> {
-                    for(DocumentSnapshot snapshot:task.getResult()){
+        return firestoreRepository.sortByTimestamp(profileItem).continueWith(task-> {
+            Query query=task.getResult();
+            if(query!=null){
+                query.get().addOnSuccessListener(task1 -> {
+                    for(DocumentSnapshot snapshot:task1.getDocuments()){
                         Long g;
                         try{
                             if(snapshot.getString(DOWNLOAD_URL)!=null)
@@ -133,54 +110,83 @@ public class FirestoreRepository {
                         }
                         usedSpace += g;
                     }
-                    return usedSpace;
                 });
-        else return Tasks.forResult(0L);
-    }
-
-    public Task<String> fetchUsername(ProfileItem profileItem){
-        return fetchProfileItem(profileItem)
-                .continueWith(task -> task.getResult().getUsername());
-    }
-
-    public Task<byte[]> fetchSALT(ProfileItem item){
-        return db.collection(USERS).document(item.getUid()).get()
-                .continueWith(task -> {
-                    String salt=task.getResult().getString(SALT);
-                    byte[] bytes=new byte[16];
-                    if(salt==null){
-                        (new SecureRandom()).nextBytes(bytes);
-                        String sa=Base64.encodeToString(bytes,Base64.DEFAULT);
-                        db.collection(USERS).document(item.getUid()).update(SALT,sa);
-                    }
-                    else bytes=salt.getBytes(StandardCharsets.UTF_8);
-                    return bytes;
-                });
+            }
+            return usedSpace;
+        });
     }
 
     public Task<Void> clearCache(){
        return db.clearPersistence();
     }
 
-    public Query sortByTimestamp(ProfileItem profileItem){
+    public Task<Query> sortByTimestamp(ProfileItem profileItem){
+        TaskCompletionSource<Query> queryTaskCompletionSource=new TaskCompletionSource<>();
         if(profileItem.getUid()!=null)
-            return db.collection(USERS).document(profileItem.getUid())
-                .collection(POSTS).orderBy(TIMESTAMP,Query.Direction.ASCENDING);
-        else return null;
+            queryTaskCompletionSource.setResult( db.collection(USERS).document(profileItem.getUid())
+                    .collection(POSTS).orderBy(TIMESTAMP,Query.Direction.ASCENDING));
+        else
+            queryTaskCompletionSource.setException(new Exception("No UID found, Invalid session detected"));
+        return queryTaskCompletionSource.getTask();
     }
 
-    public Query sortBySize(ProfileItem profileItem){
-        if(profileItem.getUid()!=null)
-            return db.collection(USERS).document(profileItem.getUid())
-                .collection(POSTS).orderBy(FILE_SIZE, Query.Direction.DESCENDING);
-        else return null;
+    public Task<Query> sortBySize(ProfileItem profileItem){
+        TaskCompletionSource<Query> queryTaskCompletionSource=new TaskCompletionSource<>();
+        try {
+            queryTaskCompletionSource.setResult(db.collection(USERS).document(profileItem.getUid())
+                    .collection(POSTS).orderBy(FILE_SIZE, Query.Direction.DESCENDING));
+        }catch (Exception e) {
+            queryTaskCompletionSource.setException(e);
+        }
+        return queryTaskCompletionSource.getTask();
     }
 
-    public Query sortByName(ProfileItem profileItem){
-        if(profileItem.getUid()!=null)
-            return db.collection(USERS).document(profileItem.getUid())
-                .collection(POSTS).orderBy(FILENAME, Query.Direction.ASCENDING);
-        else return null;
+    public Task<Query> sortByName(ProfileItem profileItem){
+        TaskCompletionSource<Query> queryTaskCompletionSource=new TaskCompletionSource<>();
+        try {
+            queryTaskCompletionSource.setResult(db.collection(USERS).document(profileItem.getUid())
+                    .collection(POSTS).orderBy(FILENAME, Query.Direction.ASCENDING));
+        }catch (Exception e) {
+            queryTaskCompletionSource.setException(e);
+        }
+        return queryTaskCompletionSource.getTask();
     }
-    
+
+    public Query queryDeletedFiles(ProfileItem profileItem) {
+        return db.collection(USERS).document(profileItem.getUid())
+                .collection(POSTS)
+                .whereNotEqualTo(DOWNLOAD_URL,null)
+                .whereEqualTo(DOWNLOAD_URL,null);
+    }
+
+    public Query queryImageFiles(ProfileItem profileItem){
+        return db.collection(USERS).document(profileItem.getUid())
+                .collection(POSTS)
+                .whereNotEqualTo(DOWNLOAD_URL,null)
+                .whereEqualTo(DOWNLOAD_URL,null);
+    }
+
+    public Query queryVideoFiles(ProfileItem profileItem){
+        return db.collection(USERS).document(profileItem.getUid())
+                .collection(POSTS)
+                .whereNotEqualTo(DOWNLOAD_URL,null)
+                .whereEqualTo(FILETYPE,"video");
+    }
+
+    public Query queryAudioFiles(ProfileItem profileItem){
+        return db.collection(USERS).document(profileItem.getUid())
+                .collection(POSTS)
+                .whereNotEqualTo(DOWNLOAD_URL,null)
+                .whereEqualTo(FILETYPE,"audio");
+    }
+
+    public Query queryDocumentFiles(ProfileItem profileItem){
+        return db.collection(USERS).document(profileItem.getUid())
+                .collection(POSTS)
+                .whereNotEqualTo(DOWNLOAD_URL,null)
+                .whereNotEqualTo(FILETYPE,"video")
+                .whereNotEqualTo(FILETYPE,"image")
+                .whereNotEqualTo(FILETYPE,"audio");
+    }
+
 }

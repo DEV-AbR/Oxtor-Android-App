@@ -2,16 +2,14 @@
 <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".Ui.DialogFragment.TaskBottomSheet"
+        tools:context=".Ui.BottomSheet.TaskBottomSheet"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
-
 
     <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            tools:layout_editor_absoluteY="675dp">
+            android:layout_height="?attr/actionBarSize">
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
@@ -30,4 +28,5 @@
             android:layout_height="match_parent"
             android:layout_width="match_parent"
             android:id="@+id/viewpager_filetasks" />
+
 </RelativeLayout>

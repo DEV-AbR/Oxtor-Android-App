@@ -161,4 +161,10 @@
     <string name="no_connection_found">No internet connection found</string>
     <string name="check_internet_connection">Check internet connection</string>
     <string name="clear_cache">Clear cache</string>
+    <string name="images">Images</string>
+    <string name="videos">Videos</string>
+    <string name="audio">Audios</string>
+    <string name="documents">Documents</string>
+    <string name="deleted">Deleted</string>
+    <string name="tabs">Tabs</string>
 </resources>

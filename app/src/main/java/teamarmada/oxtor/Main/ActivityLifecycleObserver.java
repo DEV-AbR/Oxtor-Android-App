@@ -174,13 +174,13 @@ public class ActivityLifecycleObserver extends FullScreenContentCallback impleme
     }
 
     private Task<Unit> uploadFile(FileItem fileItem) {
-        return mainViewModel.uploadUsingInputStream(fileItem,activity)
+        return mainViewModel.uploadFile(fileItem)
                 .continueWithTask(task-> task.isSuccessful()?task:mainViewModel.uploadUsingByteArray(fileItem,activity))
                 .continueWithTask(task -> task.isSuccessful()?task:Tasks.forException(Objects.requireNonNull(task.getException())));
     }
 
     private Task<Unit> downloadFile(FileItem fileItem) {
-        return mainViewModel.downloadUsingInputStream(fileItem,activity)
+        return mainViewModel.downloadFile(fileItem)
                 .continueWithTask(task -> task.isSuccessful()?task:mainViewModel.downloadUsingDownloadManager(fileItem,activity))
                 .continueWithTask(task -> task.isSuccessful()?task:Tasks.forException(Objects.requireNonNull(task.getException())));
     }

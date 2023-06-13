@@ -60,6 +60,20 @@
             android:visibility="invisible"
             android:src="@drawable/ic_baseline_refresh_24"
             app:fabSize="normal" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/add"
+            android:layout_margin="@dimen/margin"
+            app:elevation="0dp"
+            android:src="@drawable/ic_baseline_add_24"
+            android:layout_gravity="end|bottom"
+            android:contentDescription="@string/add_button"
+            android:layout_alignParentEnd="true"
+            android:layout_above="@id/nav_view"
+            app:fabSize="normal"
+            android:visibility="invisible"
+            />
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progress_bar"

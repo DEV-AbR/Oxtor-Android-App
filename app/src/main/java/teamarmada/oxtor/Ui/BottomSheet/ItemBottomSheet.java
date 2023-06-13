@@ -1,4 +1,4 @@
-package teamarmada.oxtor.Ui.DialogFragment;
+package teamarmada.oxtor.Ui.BottomSheet;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

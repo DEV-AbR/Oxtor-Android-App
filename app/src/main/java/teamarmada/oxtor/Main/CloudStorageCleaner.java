@@ -1,4 +1,4 @@
-package teamarmada.oxtor.Service;
+package teamarmada.oxtor.Main;
 
 import android.app.Service;
 import android.content.Intent;

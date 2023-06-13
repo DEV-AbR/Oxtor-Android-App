@@ -14,6 +14,7 @@
 
  import dagger.hilt.android.HiltAndroidApp;
  import teamarmada.oxtor.Initializer.MobileAdsInitializer;
+ import teamarmada.oxtor.Initializer.StorageCleanerInitializer;
  import teamarmada.oxtor.Utils.InAppUpdate;
  @HiltAndroidApp
 public class App extends Application implements LifecycleObserver, Application.ActivityLifecycleCallbacks {
@@ -23,7 +24,7 @@ public class App extends Application implements LifecycleObserver, Application.A
     @Override
     public void onCreate() {
         super.onCreate();
-        AppInitializer.getInstance(this).initializeComponent(MobileAdsInitializer.class);
+        AppInitializer.getInstance(this).initializeComponent(StorageCleanerInitializer.class);
         registerActivityLifecycleCallbacks(this);
     }
 

@@ -1,4 +1,4 @@
-package teamarmada.oxtor.Livedata;
+package teamarmada.oxtor.ViewModels;
 
 import android.app.ActivityManager;
 import android.content.ComponentCallbacks2;

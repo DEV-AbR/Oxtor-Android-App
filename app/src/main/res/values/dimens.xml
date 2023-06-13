@@ -27,5 +27,6 @@
     <dimen name="text_padding_vertical">6dp</dimen>
     <dimen name="list_item_spacing">16dp</dimen>
     <dimen name="list_item_spacing_half">8dp</dimen>
+    <dimen name="text_snippet">24dp</dimen>
 
 </resources>

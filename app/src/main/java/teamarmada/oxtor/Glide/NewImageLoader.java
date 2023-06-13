@@ -38,7 +38,6 @@ import java.util.concurrent.Executors;
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Model.ProfileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
-import teamarmada.oxtor.Utils.AES;
 
 public class NewImageLoader implements ModelLoader<FileItem, ByteBuffer> {
     private static final String TAG = GlideImageLoader.class.getSimpleName();
@@ -162,10 +161,8 @@ public class NewImageLoader implements ModelLoader<FileItem, ByteBuffer> {
                     inputStream.close();
                 }
             }
-            if(sharedPreferences.getBoolean(TO_ENCRYPT,false))
-                return AES.encrypt(outputStream.toByteArray(),item,profileItem);
-            else
-                return outputStream.toByteArray();
+
+            return outputStream.toByteArray();
         }
 
         @Override

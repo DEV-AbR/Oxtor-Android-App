@@ -16,7 +16,6 @@ import teamarmada.oxtor.R;
 import teamarmada.oxtor.Utils.FileItemUtils;
 import teamarmada.oxtor.databinding.FragmentFileitemBinding;
 
-
 public class FileItemFragment extends Fragment {
 
     public static final String TAG=FileItemFragment.class.getSimpleName();
@@ -33,14 +32,14 @@ public class FileItemFragment extends Fragment {
         try {
             if(item!=null) {
                 binding.filename.setText(item.getFileName());
-                binding.fileSize.setText(FileItemUtils.byteToString(item.getFileSize()));
+                binding.fileSize.setText(FileItemUtils.formatByteSize(item.getFileSize()));
                 if(item.getDownloadUrl()==null){
                     binding.isencrypted.setText("[File deleted]");
                     binding.pictureOfFile.setImageResource(R.drawable.ic_baseline_file_present_24);
                     return binding.getRoot();
                 }
                 binding.isencrypted.setText("Encrypted: " + item.isEncrypted());
-                binding.timestamp.setText(FileItemUtils.getTimestampString(item.getTimeStamp()));
+                binding.timestamp.setText(FileItemUtils.getFormattedTimestamp(item.getTimeStamp()));
                 Glide.with(this).load(item).fitCenter().into(binding.pictureOfFile);
             }
         }catch (NullPointerException e){

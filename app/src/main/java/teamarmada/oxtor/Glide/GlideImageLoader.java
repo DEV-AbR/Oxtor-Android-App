@@ -27,7 +27,6 @@ import javax.crypto.CipherInputStream;
 
 import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.Repository.AuthRepository;
-import teamarmada.oxtor.Utils.AES;
 
 public class GlideImageLoader implements ModelLoader<FileItem, InputStream> {
 
@@ -111,11 +110,7 @@ public class GlideImageLoader implements ModelLoader<FileItem, InputStream> {
                 .addOnSuccessListener(executor,taskSnapshot -> {
                     if(fileItem.getFileType().contains("image")){
                         try {
-                            if(fileItem.isEncrypted()){
-                                inputStream=new CipherInputStream(taskSnapshot.getStream(), AES.getDecryptionCipher(fileItem,new AuthRepository().getProfileItem()));
-                            }else{
-                                inputStream=new BufferedInputStream(taskSnapshot.getStream(),(int)taskSnapshot.getTotalByteCount());
-                            }
+                            inputStream=new BufferedInputStream(taskSnapshot.getStream(),(int)taskSnapshot.getTotalByteCount());
                             callback.onDataReady(inputStream);
                         } catch (Exception e) {
                             callback.onLoadFailed(e);

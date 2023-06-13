@@ -48,7 +48,7 @@ import teamarmada.oxtor.Model.FileItem;
 import teamarmada.oxtor.R;
 import teamarmada.oxtor.Ui.DialogFragment.TextInputDialog;
 import teamarmada.oxtor.Utils.FileItemUtils;
-import teamarmada.oxtor.ViewModels.ProfileViewModel;
+import teamarmada.oxtor.ViewModels.MainViewModel;
 import teamarmada.oxtor.databinding.FragmentProfileBinding;
 
 @AndroidEntryPoint
@@ -57,7 +57,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     public static final String TAG="ProfileFragment";
     private FragmentProfileBinding binding;
     private SharedPreferences sharedPreferences;
-    private ProfileViewModel profileViewModel;
+    private MainViewModel mainViewModel;
     private NavController navController;
     private final String[] permissions=new String[]{
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -71,7 +71,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         requireActivity().addMenuProvider(this,getViewLifecycleOwner());
         binding = FragmentProfileBinding.inflate(inflater, container, false);
         sharedPreferences=requireContext().getSharedPreferences(PREFS,Context.MODE_PRIVATE);
-        profileViewModel=new ViewModelProvider(this).get(ProfileViewModel.class);
+        mainViewModel=new ViewModelProvider(this).get(MainViewModel.class);
         observeLoadingState();
         initUI();
         try {
@@ -94,7 +94,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                         Snackbar.make(binding.getRoot(),"Some error occurred",Snackbar.LENGTH_SHORT).show();
                     }
                 }).create();
-        binding.editpassword.setOnClickListener(this);
+
         binding.editname.setOnClickListener(this);
         binding.editimage.setOnClickListener(this);
         binding.refreshButton.setOnClickListener(this);
@@ -102,28 +102,21 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     }
 
     private void initUI() {
-        profileViewModel.checkUsedSpace();
-        profileViewModel.getUsedSpace().observe(getViewLifecycleOwner(),usedSpace->{
-            String a = "Used Space : " + FileItemUtils.byteToString(usedSpace);
+        mainViewModel.checkUsedSpace();
+        mainViewModel.getUsedSpace().observe(getViewLifecycleOwner(),usedSpace->{
+            String a = "Used Space : " + FileItemUtils.formatByteSize(usedSpace);
             binding.usedSpace.setText(a);
             long b = ((5*FileItemUtils.ONE_GIGABYTE) - usedSpace);
-            String c = "Available Space : " + FileItemUtils.byteToString(b);
+            String c = "Available Space : " + FileItemUtils.formatByteSize(b);
             binding.availableSpace.setText(c);
-            String d = "Total Space : " + FileItemUtils.byteToString(5*FileItemUtils.ONE_GIGABYTE);
+            String d = "Total Space : " + FileItemUtils.formatByteSize(5*FileItemUtils.ONE_GIGABYTE);
             binding.totalSpace.setText(d);
             double e = ((usedSpace) * 100) / (5*FileItemUtils.ONE_GIGABYTE);
             binding.spaceIndicator.setProgress((int) e);
         });
 
-        boolean bl=sharedPreferences.getBoolean(TO_ENCRYPT,false);
-        binding.encryptionSwitch.setChecked(bl);
-        getPassword(bl);
-        binding.encryptionSwitch.setOnCheckedChangeListener((compoundButton, b1) -> {
-            getPassword(b1);
-            profileViewModel.updateEncryptionSetting(b1);
-        });
 
-        profileViewModel.getProfileItem().observe(getViewLifecycleOwner(), profileItem -> {
+        mainViewModel.getProfileItem().observe(getViewLifecycleOwner(), profileItem -> {
                     if(profileItem!=null)
                         try {
                             Glide.with(this).load(profileItem.getPhotoUrl()).into(binding.dpofuser);
@@ -144,34 +137,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     }
 
     private void updateName() {
-        String currentName=profileViewModel.getProfileItem().getValue().getDisplayName();
+        String currentName=mainViewModel.getProfileItem().getValue().getDisplayName();
         TextInputDialog textInputDialog =new TextInputDialog(R.string.update_name,null,"Current name : "
                 +currentName, InputType.TYPE_CLASS_TEXT,requireContext());
-        textInputDialog.addCallback(profileViewModel::updateDisplayName);
+        textInputDialog.addCallback(mainViewModel::updateDisplayName);
         textInputDialog.show(getChildFragmentManager(),"Input");
     }
-
-//    private void updateUsername(){
-//        ProfileItem profileItem=profileViewModel.getProfileItem().getValue();
-//        String currentUsername=profileItem.getUsername();
-//        TextInputDialog textInputDialog =new TextInputDialog(R.string.update_username,getString(R.string.at),
-//                "Current Username : " +currentUsername, InputType.TYPE_CLASS_TEXT, requireContext());
-//        textInputDialog.addCallback(msg -> {
-//            if(textInputDialog.isUsernameValid(msg)){
-//                profileViewModel.updateUsername(msg).addOnSuccessListener(task -> {
-//                    profileItem.setUsername(msg);
-//                    profileViewModel.getProfileItem().postValue(profileItem);
-//                    binding.username.setText(msg);
-//                    sharedPreferences.edit().putString(USERNAME,msg).apply();
-//                    Snackbar.make(binding.getRoot(),R.string.username_updated,Snackbar.LENGTH_SHORT).show();
-//                }).addOnFailureListener(e-> Snackbar.make(binding.getRoot(),e.toString(),Snackbar.LENGTH_SHORT).show());
-//            }
-//            else {
-//                Snackbar.make(binding.getRoot(), R.string.dont_use_any_special_character, Snackbar.LENGTH_SHORT).show();
-//            }
-//        });
-//        textInputDialog.show(getChildFragmentManager(),"Input");
-//    }
 
     private void updatePicture(){
         if(checkForPermissions()) {
@@ -186,26 +157,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
         permissionLauncher.launch(permissions);
     }
 
-    private void getPassword(boolean b){
-        if(b){
-            binding.password.setVisibility(VISIBLE);
-            binding.editpassword.setVisibility(VISIBLE);
-            binding.password.setText(MainActivity.getEncryptionPassword());
-        }
-        else{
-            binding.password.setVisibility(GONE);
-            binding.editpassword.setVisibility(GONE);
-        }
-    }
-
-    private void generateNewPassword() {
-        String s=UUID.randomUUID().toString();
-        binding.password.setText(s);
-        sharedPreferences.edit().putString(ENCRYPTION_PASSWORD,s).apply();
-    }
 
     private void deleteAccount() {
-        profileViewModel.deleteAccount().addOnCompleteListener(task -> {
+        mainViewModel.deleteAccount().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
                 Snackbar.make(binding.getRoot(), "Come back again to signIn, bye... :-)", Snackbar.LENGTH_SHORT).show();
             }
@@ -217,8 +171,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     }
 
     public void signOut(){
-        profileViewModel.abortAllTasks();
-        profileViewModel.signOut().addOnCompleteListener(task->{
+        mainViewModel.abortAllTasks();
+        mainViewModel.signOut().addOnCompleteListener(task->{
             if(task.isSuccessful()){
                 Snackbar.make(binding.getRoot(), "Come back again to signIn, bye... :-)", Snackbar.LENGTH_SHORT).show();
                 try {
@@ -232,7 +186,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
     }
 
     private void observeLoadingState() {
-        profileViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(), MainActivity.observer);
+        mainViewModel.getIsTaskRunning().observe(getViewLifecycleOwner(), MainActivity.observer);
     }
 
 
@@ -257,7 +211,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
                     outputStream.flush();
                     outputStream.close();
                     inputStream.close();
-                    profileViewModel.updateDisplayPicture(file, bytes);
+                    mainViewModel.updateDisplayPicture(file, bytes);
                 } catch (Exception e){
                     Log.e(TAG, "onActivityResult: ", e);
                 }
@@ -280,18 +234,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener, M
             case R.id.editname:
                 updateName();
                 break;
-//            case R.id.editusername:
-//                updateUsername();
-//                break;
             case R.id.editimage:
                 updatePicture();
                 break;
-            case R.id.editpassword:
-                generateNewPassword();
-                break;
             case R.id.refresh_button:
-                profileViewModel.checkUsedSpace();
-                profileViewModel.checkUsername();
+                mainViewModel.checkUsedSpace();
                 break;
         }
     }

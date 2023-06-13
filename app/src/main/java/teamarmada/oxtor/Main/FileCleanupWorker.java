@@ -1,19 +1,11 @@
-package teamarmada.oxtor.Service;
+package teamarmada.oxtor.Main;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.work.Constraints;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+
 
 import java.util.Date;
 
@@ -25,15 +17,10 @@ import teamarmada.oxtor.Repository.StorageRepository;
 public class FileCleanupWorker extends Worker {
 
     public static final String TAG=FileCleanupWorker.class.getSimpleName();
-    public final String NOTIFICATION_WORK="Share Notification Work";
-    private final WorkManager workManager;
-    private StatusCode statusCode=null;
-    private Context context;
+    Result result=Result.retry();
 
     public FileCleanupWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
-        this.context=context;
-        workManager=WorkManager.getInstance(context);
         AuthRepository authRepository=new AuthRepository();
         FirestoreRepository firestoreRepository=FirestoreRepository.getInstance();
         authRepository.getAuth().addAuthStateListener(firebaseAuth -> {
@@ -41,8 +28,8 @@ public class FileCleanupWorker extends Worker {
                 return;
             }
             firestoreRepository.sortByTimestamp(authRepository.getProfileItem())
-                    .get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> queryDocumentSnapshots.getDocuments().forEach(snapshot -> {
+                    .continueWithTask(task->task.getResult().get())
+                    .addOnSuccessListener(results-> results.getDocuments().forEach(snapshot -> {
                         FileItem fileItem;
                         try{
                             fileItem=snapshot.toObject(FileItem.class);
@@ -52,30 +39,28 @@ public class FileCleanupWorker extends Worker {
                         }
                         FileItem finalFileItem = fileItem;
                         if(shouldDeleteFileFromBucket(fileItem.getTimeStamp())){
-                            statusCode=StatusCode.TO_DELETE;
                             try {
                                 StorageRepository.getInstance().deleteFile(fileItem, authRepository.getProfileItem())
-                                        .addOnSuccessListener(task -> {
-                                            statusCode = StatusCode.DELETED;
-                                            initNotificationWork(finalFileItem.getFileName());
+                                        .addOnSuccessListener(task1 -> {
+                                            result=Result.success();
                                         })
-                                        .addOnFailureListener(e -> statusCode = StatusCode.IT_FAILED);
+                                        .addOnFailureListener(e -> result=Result.failure());
                             }catch (Exception e){
-                                statusCode=StatusCode.IT_FAILED;
+                                result=Result.failure();
                             }
                         }
                         else if(shouldDeleteFileFromDatabase(fileItem.getTimeStamp())){
                             firestoreRepository.deleteFile(fileItem,authRepository.getProfileItem())
-                                    .addOnSuccessListener(task->{
-                                        statusCode=StatusCode.DELETED;
-                                        initNotificationWork(finalFileItem.getFileName());
+                                    .addOnSuccessListener(task1->{
+                                        result=Result.success();
                                     })
-                                    .addOnFailureListener(e->statusCode=StatusCode.IT_FAILED);
+                                    .addOnFailureListener(e->result=Result.failure());
                         }
                         else{
-                            statusCode=StatusCode.NOT_TO_DELETE;
+                            result=Result.failure();
                         }
                     }));
+
         });
     }
 
@@ -93,33 +78,10 @@ public class FileCleanupWorker extends Worker {
         return elapsedTimeMillis >= twentyFourHoursInMillis;
     }
 
-    public void initNotificationWork(String fileName){
-        Constraints constraints=new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
-        OneTimeWorkRequest notificationWork= new OneTimeWorkRequest.Builder(NotificationWorker.class)
-                .addTag(NOTIFICATION_WORK)
-                .setConstraints(constraints)
-                .build();
-        NotificationWorker.setRemoteMessage("File Deleted",fileName+" has been deleted after 24 hr of uploading");
-        workManager.enqueueUniqueWork(NOTIFICATION_WORK,
-                ExistingWorkPolicy.APPEND,
-                notificationWork);
-    }
-
     @NonNull
     @Override
     public Result doWork() {
-        switch(statusCode){
-            default:
-            case IT_FAILED:return Result.retry();
-            case TO_DELETE:
-            case DELETED:return Result.success();
-        }
-    }
-
-    public enum StatusCode {
-        TO_DELETE, DELETED, IT_FAILED, NOT_TO_DELETE;
+        return result;
     }
 
 }
